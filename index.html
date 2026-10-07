@@ -299,7 +299,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.07.34</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.07.34.1</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -335,8 +335,8 @@
   <dialog id="confirmDialog">
     <div class="sheet">
       <p id="confirmText">從第1關開始玩？</p>
-      <button class="primary" id="confirmYes" type="button">是</button>
-      <button class="secondary" id="confirmNo" type="button">否</button>
+      <button class="secondary" id="confirmYes" type="button">是</button>
+      <button class="primary" id="confirmNo" type="button" autofocus>否</button>
     </div>
   </dialog>
 
@@ -886,6 +886,7 @@
     var c=document.getElementById('confirmDialog');
     if(c.open)return;
     c.showModal();
+    document.getElementById('confirmNo').focus();
   }
   function finish(win){
     if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
