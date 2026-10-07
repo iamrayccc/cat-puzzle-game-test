@@ -272,12 +272,12 @@
 
   <dialog id="rulesDialog">
     <div class="sheet">
-      <div class="sheet-head"><div><h2>找出所有躲起來的貓咪</h2><p>現階段開放 50 關，每關各有 3 幅版圖，每次進入關卡隨機選出其中一幅。全數 150 幅版圖均已逐幅確認：旋轉或鏡像後不會重複、色區大小均衡、完整連通、只有一個答案，而且可純邏輯解開；第 1–5 關另有明確的空盤起手。淡色區域以細白線分隔。先選「標 X」或「放貓」，再單擊格子；已有標記時單擊即可取消。「全部清除」只會移除標記，不會更換目前版圖。</p></div><button class="close-btn" type="button" aria-label="關閉">×</button></div>
+      <div class="sheet-head"><div><h2>找出所有躲起來的貓咪</h2><p>現階段開放 50 關，每關各有 3 幅版圖，每次進入關卡隨機選出其中一幅。全數 150 幅版圖均已逐幅確認：旋轉或鏡像後不會重複、色區大小均衡、完整連通、只有一個答案，而且可純邏輯解開；第 1–5 關另有明確的空盤起手。淡色區域以細白線分隔。先選「標 X」或「放貓」，再單擊格子；玩家手動標記可再次單擊取消。錯放貓咪後自動產生的 X 會鎖定，不可取消，也不可再次放貓。「全部清除」只會移除可取消的標記，不會更換目前版圖。</p></div><button class="close-btn" type="button" aria-label="關閉">×</button></div>
       <ol class="rules-list">
         <li><span class="rule-number">1</span><div><strong>每一行、每一列各一隻</strong><span>同一橫行或直列不能出現第二隻貓咪。</span></div></li>
         <li><span class="rule-number">2</span><div><strong>每個區域各一隻</strong><span>以白色邊界分隔的區域形狀不一，裡面一定剛好藏著一隻。</span></div></li>
         <li><span class="rule-number">3</span><div><strong>貓咪不能彼此相鄰</strong><span>連斜角也不行；放好後，周圍八格都可排除。</span></div></li>
-        <li><span class="rule-number">4</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為 X；心用完即遊戲結束。</span></div></li>
+        <li><span class="rule-number">4</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
         <li><span class="rule-number">5</span><div><strong>每關一次免費開局指引</strong><span>非進度恢復進入關卡時，可查看一次不直接落子的起手推理；高亮只教一步，由你親自標記，也不會消耗找貓提示。</span></div></li>
         <li><span class="rule-number">6</span><div><strong>每關兩次找貓提示</strong><span>每關可使用 2 次「找貓提示」，提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
         <li><span class="rule-number">7</span><div><strong>積分與補心</strong><span>完成一關 +1000 分；每次使用找貓提示扣 100 分；每扣 1 顆心扣 500 分；積分最低為 0 分。每通過五關最多補回 1 顆心，心數上限為 5 顆。</span></div></li>
@@ -569,12 +569,13 @@
     return out;
   }
   var puzzles=buildVariantPuzzles();validateFirstFive(puzzles);
-  var state={level:0,variant:0,cells:[],history:[],hearts:MAX_HEARTS,hintsRemaining:2,mistakes:0,hintsUsed:0,moves:0,score:0,mode:'x',start:Date.now(),locked:false,pendingCells:{},resultShown:false,levelAwarded:false,focus:0,milestoneRewards:{},openingAvailable:true,openingGuide:null,restoredEntry:false};
+  var state={level:0,variant:0,cells:[],lockedXs:{},history:[],hearts:MAX_HEARTS,hintsRemaining:2,mistakes:0,hintsUsed:0,moves:0,score:0,mode:'x',start:Date.now(),locked:false,pendingCells:{},resultShown:false,levelAwarded:false,focus:0,milestoneRewards:{},openingAvailable:true,openingGuide:null,restoredEntry:false};
   function currentPuzzle(){return puzzles[state.level][state.variant]}
   var board=document.getElementById('board'),toast=document.getElementById('toast'),logicNote=document.getElementById('logicNote');
   function encodeProgress(){
-    var bytes=[2,state.level,state.variant,(state.score>>>24)&255,(state.score>>>16)&255,(state.score>>>8)&255,state.score&255,state.hearts,state.hintsRemaining,state.levelAwarded?1:0],power=[1,3,9,27,81];
+    var bytes=[3,state.level,state.variant,(state.score>>>24)&255,(state.score>>>16)&255,(state.score>>>8)&255,state.score&255,state.hearts,state.hintsRemaining,state.levelAwarded?1:0],power=[1,3,9,27,81];
     for(var i=0;i<state.cells.length;i+=5){var packed=0;for(var j=0;j<5&&i+j<state.cells.length;j++){var value=state.cells[i+j]==='x'?1:(state.cells[i+j]==='cat'?2:0);packed+=value*power[j]}bytes.push(packed)}
+    for(var k=0;k<state.cells.length;k+=8){var lockBits=0;for(var bit=0;bit<8&&k+bit<state.cells.length;bit++)if(state.lockedXs[k+bit])lockBits|=1<<bit;bytes.push(lockBits)}
     var raw='';for(var b=0;b<bytes.length;b++)raw+=String.fromCharCode(bytes[b]);
     return btoa(raw).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   }
@@ -588,14 +589,15 @@
     try{
       var encoded=match[1].replace(/-/g,'+').replace(/_/g,'/');while(encoded.length%4)encoded+='=';
       var raw=atob(encoded),bytes=[];for(var i=0;i<raw.length;i++)bytes.push(raw.charCodeAt(i));
-      if(bytes.length<10||bytes[0]!==2)return false;
-      var level=bytes[1],variant=bytes[2];if(!puzzles[level]||variant>2)return false;
-      var p=puzzles[level][variant],needed=Math.ceil((p.size*p.size)/5);if(bytes.length!==10+needed)return false;
+      if(bytes.length<10||(bytes[0]!==2&&bytes[0]!==3))return false;
+      var version=bytes[0],level=bytes[1],variant=bytes[2];if(!puzzles[level]||variant>2)return false;
+      var p=puzzles[level][variant],needed=Math.ceil((p.size*p.size)/5),lockBytes=version===3?Math.ceil((p.size*p.size)/8):0;if(bytes.length!==10+needed+lockBytes)return false;
       var score=((bytes[3]*16777216)+(bytes[4]<<16)+(bytes[5]<<8)+bytes[6]);
       if(score<0||bytes[7]<1||bytes[7]>MAX_HEARTS||bytes[8]>2)return false;
-      var cells=[],power=[1,3,9,27,81];
+      var cells=[],lockedXs={},power=[1,3,9,27,81];
       for(var n=0;n<needed;n++){var packed=bytes[10+n];if(packed>242)return false;for(var j=0;j<5&&cells.length<p.size*p.size;j++){var value=Math.floor(packed/power[j])%3;cells.push(value===1?'x':(value===2?'cat':''))}}
-      state.level=level;state.variant=variant;state.cells=cells;state.score=score;state.hearts=bytes[7];state.hintsRemaining=bytes[8];state.levelAwarded=!!(bytes[9]&1);state.history=[];state.pendingCells={};state.mistakes=0;state.hintsUsed=2-state.hintsRemaining;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.focus=0;state.openingAvailable=false;state.openingGuide=null;state.restoredEntry=true;
+      for(var k=0;k<lockBytes;k++){var lockBits=bytes[10+needed+k];for(var bit=0;bit<8&&k*8+bit<cells.length;bit++)if(lockBits&(1<<bit)){var lockedIndex=k*8+bit;if(cells[lockedIndex]!=='x')return false;lockedXs[lockedIndex]=true}}
+      state.level=level;state.variant=variant;state.cells=cells;state.lockedXs=lockedXs;state.score=score;state.hearts=bytes[7];state.hintsRemaining=bytes[8];state.levelAwarded=!!(bytes[9]&1);state.history=[];state.pendingCells={};state.mistakes=0;state.hintsUsed=2-state.hintsRemaining;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.focus=0;state.openingAvailable=false;state.openingGuide=null;state.restoredEntry=true;
       return true;
     }catch(err){return false}
   }
@@ -664,23 +666,24 @@
   function paintScore(){state.score=Math.max(0,state.score);document.getElementById('scoreValue').textContent=state.score.toLocaleString('zh-Hant')}
   function changeScore(delta){state.score=Math.max(0,state.score+delta);paintScore();persistProgress()}
   function paintMode(){document.getElementById('xModeBtn').setAttribute('aria-pressed',state.mode==='x'?'true':'false');document.getElementById('catModeBtn').setAttribute('aria-pressed',state.mode==='cat'?'true':'false')}
-  function chooseMode(mode){state.mode=mode;paintMode();setLogic(mode==='cat'?'已選擇放貓':'已選擇標 X',mode==='cat'?'單擊空白格放貓；單擊已有標記可取消。':'單擊空白格標 X；單擊已有標記可取消。',mode==='cat'?'●':'×')}
+  function chooseMode(mode){state.mode=mode;paintMode();setLogic(mode==='cat'?'已選擇放貓':'已選擇標 X',mode==='cat'?'單擊空白格放貓；玩家手動標記可取消，鎖定 X 不可更改。':'單擊空白格標 X；玩家手動標記可取消，鎖定 X 不可更改。',mode==='cat'?'●':'×')}
   function paintHintButton(){var btn=document.getElementById('hintBtn'),label=document.getElementById('hintLabel'),used=state.hintsRemaining<=0;label.textContent=used?'找貓提示 · 已用完':'找貓提示 · 剩餘 '+state.hintsRemaining+' 次';btn.setAttribute('aria-label',used?'找貓提示，本關已用完':'找貓提示，本關剩餘'+state.hintsRemaining+'次');btn.classList.toggle('hint-used',used)}
   function paintOpeningButton(){var btn=document.getElementById('openingBtn'),label=document.getElementById('openingLabel');btn.hidden=state.restoredEntry;if(state.restoredEntry){btn.disabled=true;return}label.textContent=state.openingAvailable?'開局指引 · 免費':'開局指引 · 已看';btn.disabled=!state.openingAvailable;btn.classList.toggle('guide-used',!state.openingAvailable);btn.setAttribute('aria-label',state.openingAvailable?'查看本關免費開局指引':'本關開局指引已看')}
   function render(){var p=currentPuzzle();board.innerHTML='';board.style.gridTemplateColumns='repeat('+p.size+',1fr)';board.style.gridTemplateRows='repeat('+p.size+',1fr)';document.getElementById('levelCount').textContent='第 '+(state.level+1)+'／'+TOTAL+' 關 · '+p.label+' · '+p.size+'×'+p.size+' · '+p.colors+' 色';document.getElementById('levelName').textContent=p.name;for(var r=0;r<p.size;r++)for(var c=0;c<p.size;c++){var i=r*p.size+c,b=document.createElement('button');b.type='button';b.className='cell';b.dataset.i=i;b.setAttribute('role','gridcell');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，空白');b.tabIndex=i===state.focus?0:-1;b.style.setProperty('--cell-bg',palette[p.regionHues[p.regions[r][c]]]);b.addEventListener('click',onCell);b.addEventListener('keydown',onKey);board.appendChild(b)}paintHearts();paintScore();paintMode();paintHintButton();paintOpeningButton()}
-  function updateCell(i,animate){var b=board.children[i],p=currentPuzzle(),r=Math.floor(i/p.size),c=i%p.size,v=state.cells[i];b.innerHTML=v==='cat'?catSVG:(v==='x'?'<span class="cross" aria-hidden="true"></span>':'');if(v==='cat'&&animate)b.querySelector('.cat').classList.add('pop');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，'+(v==='cat'?'貓咪':v==='x'?'已排除':'空白'))}
+  function updateCell(i,animate){var b=board.children[i],p=currentPuzzle(),r=Math.floor(i/p.size),c=i%p.size,v=state.cells[i],lockedX=!!state.lockedXs[i];b.innerHTML=v==='cat'?catSVG:(v==='x'?'<span class="cross" aria-hidden="true"></span>':'');if(v==='cat'&&animate)b.querySelector('.cat').classList.add('pop');b.setAttribute('aria-disabled',lockedX?'true':'false');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，'+(v==='cat'?'貓咪':v==='x'?(lockedX?'已排除，鎖定':'已排除'):'空白'))}
   function snapshot(){state.history.push(state.cells.slice());if(state.history.length>100)state.history.shift()}
   function focusCell(i){state.focus=i;board.querySelectorAll('.cell').forEach(function(x,j){x.tabIndex=j===i?0:-1})}
-  function onCell(e){if(state.locked)return;var i=+e.currentTarget.dataset.i;if(state.pendingCells[i])return;focusCell(i);if(state.cells[i]!==''){removeMark(i);return}if(state.mode==='cat')placeCat(i);else placeX(i)}
+  function onCell(e){if(state.locked)return;var i=+e.currentTarget.dataset.i;if(state.pendingCells[i]||state.lockedXs[i])return;focusCell(i);if(state.cells[i]!==''){removeMark(i);return}if(state.mode==='cat')placeCat(i);else placeX(i)}
   function placeX(i){
-    if(state.locked||state.pendingCells[i]||state.cells[i]!=='')return;
-    snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();setLogic('已標記不能放','目前是「標 X」模式；單擊已有標記可取消。','×');persistProgress()
+    if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]!=='')return;
+    snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();setLogic('已標記不能放','目前是「標 X」模式；玩家手動標記可取消，鎖定 X 不可更改。','×');persistProgress()
   }
-  function removeMark(i){if(state.locked||state.pendingCells[i]||state.cells[i]==='')return;snapshot();state.moves++;state.cells[i]='';updateCell(i,false);setLogic('已取消標記','目前選擇的標記模式保持不變。','↶');persistProgress()}
+  function removeMark(i){if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]==='')return;snapshot();state.moves++;state.cells[i]='';updateCell(i,false);setLogic('已取消標記','目前選擇的標記模式保持不變。','↶');persistProgress()}
   function conflicts(a,b,p){var ar=Math.floor(a/p.size),ac=a%p.size,br=Math.floor(b/p.size),bc=b%p.size;return ar===br||ac===bc||p.regions[ar][ac]===p.regions[br][bc]||(Math.abs(ar-br)<=1&&Math.abs(ac-bc)<=1)}
   function commitWrongPlacement(i){
     var scoreBeforePenalty=state.score;
     state.cells[i]='x';
+    state.lockedXs[i]=true;
     state.pendingCells[i]=true;
     state.hearts=Math.max(0,state.hearts-1);
     state.mistakes++;
@@ -690,7 +693,7 @@
     return{hearts:state.hearts,deducted:scoreBeforePenalty-state.score};
   }
   function placeCat(i){
-    if(state.locked||state.pendingCells[i]||state.cells[i]!=='')return;
+    if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]!=='')return;
     snapshot();state.moves++;state.cells[i]='cat';
     var p=currentPuzzle(),validationCells=state.cells.slice();
     Object.keys(state.pendingCells).forEach(function(key){validationCells[+key]='x'});
@@ -748,12 +751,12 @@
     }
     var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor((Date.now()-state.start)/1000));document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';document.getElementById('resultText').textContent=win?(state.level===TOTAL-1?('你已完成現階段全部 50 關'+(earned?'，本關獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。'):('本關完成'+(earned?'，獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。')):'5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、積分 −5000（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。';document.getElementById('nextBtn').textContent=win?(state.level===TOTAL-1?'再玩一輪':'下一關'):'重新開始';document.getElementById('retryBtn').textContent=win?'重新挑戰':'繼續玩';document.getElementById('retryBtn').style.display='block';d.dataset.win=win?'1':'0';d.showModal();if(win){soundComplete();burst()}
   }
-  function newLevel(index,skipSave,preserveVariant){state.level=index;if(!preserveVariant)state.variant=Math.floor(Math.random()*3);var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.history=[];state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=true;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','先查看免費「開局指引」，或直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress()}
+  function newLevel(index,skipSave,preserveVariant){state.level=index;if(!preserveVariant)state.variant=Math.floor(Math.random()*3);var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=true;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','先查看免費「開局指引」，或直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress()}
   function restartLevel(){
     if(state.locked)return;if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}
-    var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.history=[];state.focus=0;render();setLogic('已清除所有標記','版圖、積分、心數、失誤數及計時保持不變；可由空白棋盤重新推理。','↻');showToast('已清除所有標記');persistProgress()
+    var p=currentPuzzle(),lockKeys=Object.keys(state.lockedXs);state.cells=new Array(p.size*p.size).fill('');lockKeys.forEach(function(key){state.cells[+key]='x'});state.history=[];state.focus=0;render();setLogic(lockKeys.length?'已清除可移除標記':'已清除所有標記',lockKeys.length?'錯放後鎖定的 X 已保留；版圖、積分、心數、失誤數及計時保持不變。':'版圖、積分、心數、失誤數及計時保持不變；可由空白棋盤重新推理。','↻');showToast(lockKeys.length?'已清除可移除標記':'已清除所有標記');persistProgress()
   }
-  function undo(){if(state.locked||!state.history.length){showToast('沒有可復原的步驟');return}if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}state.cells=state.history.pop();updateAll(false);setLogic('已復原一步','可繼續推理下一個位置。','↶');persistProgress()}
+  function undo(){if(state.locked||!state.history.length){showToast('沒有可復原的步驟');return}if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}state.cells=state.history.pop();Object.keys(state.lockedXs).forEach(function(key){state.cells[+key]='x'});updateAll(false);setLogic('已復原一步','錯放後鎖定的 X 會保留；可繼續推理下一個位置。','↶');persistProgress()}
   function findLegalSolution(p,cells,forbidden){
     var n=p.size,fixedRows=new Array(n).fill(-1),cats=[];
     for(var i=0;i<cells.length;i++)if(cells[i]==='cat'){
