@@ -153,8 +153,19 @@
     .version { display:block; margin-top:7px; font-size:.7rem; font-variant-numeric:tabular-nums; opacity:.82; }
     dialog { border:0; padding:0; max-width:none; max-height:none; background:transparent; color:inherit; }
     dialog::backdrop { background:rgba(12,28,31,.62); backdrop-filter:blur(4px); }
-    #resultDialog[open] { width:100vw; height:100vh; margin:0; overflow:visible; pointer-events:none; }
-    #resultDialog .sheet { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:1; pointer-events:auto; }
+    html.dialog-open, body.dialog-open { overflow:hidden; overscroll-behavior:none; }
+    body.dialog-open { position:fixed; left:0; right:0; width:100%; }
+    #resultDialog[open] {
+      position:fixed; inset:0; width:auto; height:100dvh; margin:0;
+      padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
+      display:flex; flex-direction:column; align-items:center; justify-content:safe center;
+      overflow-y:auto; overscroll-behavior:contain; pointer-events:auto; -webkit-overflow-scrolling:touch;
+    }
+    #resultDialog .sheet {
+      position:relative; z-index:1; flex:0 0 auto; width:min(92vw,520px);
+      max-height:min(90dvh,700px); overflow-y:auto; overscroll-behavior:contain;
+      pointer-events:auto; -webkit-overflow-scrolling:touch;
+    }
     .sheet { width:min(92vw,520px); max-height:min(84vh,700px); overflow:auto; background:var(--panel); border:1px solid var(--soft-line); border-radius:24px; padding:24px; box-shadow:0 24px 70px rgba(0,0,0,.32); }
     .sheet-head { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
     .sheet h2 { margin:0 0 6px; font-size:1.55rem; line-height:1.15; }
@@ -167,8 +178,10 @@
     .rules-list span { display:block; color:var(--muted); font-size:.88rem; line-height:1.35; }
     .primary { width:100%; min-height:52px; border:0; border-radius:14px; background:var(--accent); color:#fff; font-weight:900; font-size:1rem; cursor:pointer; box-shadow:0 5px 0 var(--accent-dark); }
     .primary:active { transform:translateY(3px); box-shadow:0 2px 0 var(--accent-dark); }
-    .result { text-align:center; padding-top:28px; }
-    .result-cat { width:110px; height:110px; margin:0 auto 16px; color:var(--accent); animation:celebrate .7s ease; }
+    .result { text-align:center; padding-top:22px; }
+    .result-heading { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:8px; }
+    .result-heading h2 { margin:0; }
+    .result-cat { flex:0 0 auto; width:48px; height:48px; margin:0; color:var(--accent); animation:celebrate .7s ease; }
     @keyframes celebrate { 0%{transform:translateY(20px) scale(.6);opacity:0} 70%{transform:translateY(-8px) scale(1.05)} 100%{transform:none;opacity:1} }
     .stats { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:22px 0; }
     .stat { background:var(--panel-2); padding:12px 6px; border-radius:14px; }
@@ -185,6 +198,13 @@
       .rule-strip { font-size:.82rem; }
     }
     @media (max-width:560px) {
+      #resultDialog[open] { padding:10px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left)); }
+      #resultDialog .sheet { width:min(94vw,520px); padding:18px; border-radius:20px; }
+      .result { padding-top:18px; }
+      .result-heading { gap:10px; margin-bottom:6px; }
+      .result-cat { width:44px; height:44px; }
+      .stats { margin:16px 0; gap:7px; }
+      .stat { padding:9px 6px; }
       .status-actions { gap:6px; }
       .hearts { padding:9px 10px; }
       .sound-btn { width:40px; height:40px; }
@@ -267,7 +287,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.07.32.3</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.07.32.4</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -289,8 +309,10 @@
 
   <dialog id="resultDialog">
     <div class="sheet result">
-      <div class="result-cat" id="resultCat"></div>
-      <h2 id="resultTitle">遊戲完結</h2>
+      <div class="result-heading">
+        <div class="result-cat" id="resultCat"></div>
+        <h2 id="resultTitle">遊戲完結</h2>
+      </div>
       <p id="resultText">本關統計如下。</p>
       <div class="stats"><div class="stat"><b id="timeStat">0:00</b><span>用時</span></div><div class="stat"><b id="mistakeStat">0</b><span>失誤</span></div><div class="stat"><b id="hintStat">0</b><span>找貓提示</span></div><div class="stat"><b id="moveStat">0</b><span>步數</span></div><div class="stat"><b id="scoreStat">0</b><span>累計積分</span></div></div>
       <button class="primary" id="nextBtn" type="button">下一關</button>
@@ -333,7 +355,7 @@
     search(0);return count;
   }
   function logicalSolvePuzzle(p){
-    var n=p.size,total=n*n,candidates=new Array(total).fill(true),cats=new Array(total).fill(false),units=[],steps=0,direct=0,combined=0;
+    var n=p.size,total=n*n,candidates=new Array(total).fill(true),cats=new Array(total).fill(false),units=[],steps=0,direct=0,combined=0,hall=0;
     for(var r=0;r<n;r++)units.push(Array.from({length:n},function(_,c){return r*n+c}));
     for(var c=0;c<n;c++)units.push(Array.from({length:n},function(_,r){return r*n+c}));
     for(var reg=0;reg<n;reg++){var area=[];for(var i=0;i<total;i++)if(p.regions[Math.floor(i/n)][i%n]===reg)area.push(i);units.push(area)}
@@ -342,10 +364,10 @@
       var changed=false;
       for(var u=0;u<units.length;u++){
         var placed=units[u].filter(function(i){return cats[i]}),options;
-        if(placed.length>1)return{solved:false,steps:steps,direct:direct,combined:combined};
+        if(placed.length>1)return{solved:false,steps:steps,direct:direct,combined:combined,hall:hall};
         if(placed.length)continue;
         options=units[u].filter(function(i){return candidates[i]});
-        if(!options.length)return{solved:false,steps:steps,direct:direct,combined:combined};
+        if(!options.length)return{solved:false,steps:steps,direct:direct,combined:combined,hall:hall};
         if(options.length===1){place(options[0]);direct++;changed=true;break}
       }
       if(changed)continue;
@@ -358,9 +380,53 @@
         }
         if(changed)break;
       }
+      if(changed)continue;
+      var directions=[['REGION','ROW'],['REGION','COLUMN'],['ROW','REGION'],['COLUMN','REGION']];
+      function unitNumber(kind,i){return kind==='ROW'?Math.floor(i/n):kind==='COLUMN'?i%n:p.regions[Math.floor(i/n)][i%n]}
+      function sourceUnits(kind){
+        var offset=kind==='ROW'?0:kind==='COLUMN'?n:2*n,out=[];
+        for(var number=0;number<n;number++){
+          var members=units[offset+number];
+          if(members.some(function(i){return cats[i]}))continue;
+          out.push({number:number,cells:members.filter(function(i){return candidates[i]})});
+        }
+        return out;
+      }
+      function tryHall(sourceKind,targetKind){
+        var source=sourceUnits(sourceKind);
+        function examine(subset){
+          var sourceNumbers={},sourceCells={},targetNumbers={};
+          for(var s=0;s<subset.length;s++){
+            sourceNumbers[subset[s].number]=true;
+            for(var q=0;q<subset[s].cells.length;q++){
+              var cell=subset[s].cells[q];sourceCells[cell]=true;targetNumbers[unitNumber(targetKind,cell)]=true;
+            }
+          }
+          if(Object.keys(targetNumbers).length!==subset.length)return false;
+          for(var target=0;target<total;target++)if(candidates[target]&&!cats[target]&&!sourceCells[target]&&targetNumbers[unitNumber(targetKind,target)]&&!sourceNumbers[unitNumber(sourceKind,target)]){
+            candidates[target]=false;steps++;hall++;return true;
+          }
+          return false;
+        }
+        function eachCombination(items,width,visit){
+          var picked=new Array(width);
+          function choose(start,depth){
+            if(depth===width)return visit(picked.slice());
+            for(var index=start;index<=items.length-(width-depth);index++){
+              picked[depth]=items[index];
+              if(choose(index+1,depth+1))return true;
+            }
+            return false;
+          }
+          return choose(0,0);
+        }
+        for(var width=2,maxWidth=Math.min(n-1,source.length);width<=maxWidth;width++)if(eachCombination(source,width,examine))return true;
+        return false;
+      }
+      for(var d=0;d<directions.length;d++)if(tryHall(directions[d][0],directions[d][1])){changed=true;break}
       if(!changed)break;
     }
-    return{solved:cats.filter(Boolean).length===n,steps:steps,direct:direct,combined:combined};
+    return{solved:cats.filter(Boolean).length===n,steps:steps,direct:direct,combined:combined,hall:hall};
   }
   function buildVerifiedPuzzles(){
     var targets={6:20,9:30,11:50},generated=[],seen={};
@@ -743,6 +809,16 @@
   function closeOpeningGuide(){state.openingGuide=null;setLogic('輪到你推理','高亮已收起；剛才只示範一步，其餘位置由你判斷。','✓')}
   function setLogic(title,text,symbol){clearOpeningGuideVisuals();state.openingGuide=null;logicNote.innerHTML='<b>'+symbol+'</b><p><strong>'+title+'</strong>'+text+'</p>'}
   function checkWin(){if(Object.keys(state.pendingCells).length)return false;var p=currentPuzzle(),cats=[],rows=new Array(p.size).fill(0),cols=new Array(p.size).fill(0),regions=new Array(p.size).fill(0);for(var i=0;i<state.cells.length;i++)if(state.cells[i]==='cat'){var r=Math.floor(i/p.size),c=i%p.size;cats.push(i);rows[r]++;cols[c]++;regions[p.regions[r][c]]++}if(cats.length!==p.size)return false;for(var n=0;n<p.size;n++)if(rows[n]!==1||cols[n]!==1||regions[n]!==1)return false;for(var a=0;a<cats.length;a++)for(var b=a+1;b<cats.length;b++)if(conflicts(cats[a],cats[b],p))return false;state.locked=true;setTimeout(function(){finish(true)},350);return true}
+  var lockedScrollY=0;
+  function lockPageScroll(){
+    lockedScrollY=window.scrollY||window.pageYOffset||0;
+    document.documentElement.classList.add('dialog-open');document.body.classList.add('dialog-open');document.body.style.top='-'+lockedScrollY+'px';
+  }
+  function unlockPageScroll(){
+    document.documentElement.classList.remove('dialog-open');document.body.classList.remove('dialog-open');document.body.style.top='';window.scrollTo(0,lockedScrollY);
+  }
+  function openResultDialog(dialog){lockPageScroll();dialog.showModal();dialog.scrollTop=0}
+  function closeResultDialog(){var dialog=document.getElementById('resultDialog');if(dialog.open)dialog.close();unlockPageScroll()}
   function finish(win){
     if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
     var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
@@ -751,7 +827,7 @@
       state.milestoneRewards[completed]=true;
       if(state.hearts<MAX_HEARTS){state.hearts=Math.min(MAX_HEARTS,state.hearts+1);recovered=true;paintHearts();persistProgress()}
     }
-    var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor((Date.now()-state.start)/1000));document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';document.getElementById('resultText').textContent=win?(state.level===TOTAL-1?('你已完成現階段全部 50 關'+(earned?'，本關獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。'):('本關完成'+(earned?'，獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。')):'5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、積分 −5000（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。';document.getElementById('nextBtn').textContent=win?(state.level===TOTAL-1?'再玩一輪':'下一關'):'重新開始';document.getElementById('retryBtn').textContent=win?'重新挑戰':'繼續玩';document.getElementById('retryBtn').style.display='block';d.dataset.win=win?'1':'0';d.showModal();if(win){soundComplete();burst()}
+    var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor((Date.now()-state.start)/1000));document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';document.getElementById('resultText').textContent=win?(state.level===TOTAL-1?('你已完成現階段全部 50 關'+(earned?'，本關獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。'):('本關完成'+(earned?'，獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。')):'5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、積分 −5000（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。';document.getElementById('nextBtn').textContent=win?(state.level===TOTAL-1?'再玩一輪':'下一關'):'重新開始';document.getElementById('retryBtn').textContent=win?'重新挑戰':'繼續玩';document.getElementById('retryBtn').style.display='block';d.dataset.win=win?'1':'0';openResultDialog(d);if(win){soundComplete();burst()}
   }
   function newLevel(index,skipSave,preserveVariant){state.level=index;if(!preserveVariant)state.variant=Math.floor(Math.random()*3);var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=true;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','先查看免費「開局指引」，或直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress()}
   function restartLevel(){
@@ -865,7 +941,7 @@
   }
   function unlockAudio(){if(!muted)ensureAudio()}
   document.addEventListener('pointerdown',unlockAudio,{capture:true,passive:true});document.addEventListener('keydown',unlockAudio,{capture:true});document.addEventListener('visibilitychange',function(){if(!document.hidden&&!muted)ensureAudio()});
-  var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;result.close();if(!won||finishedAll){clearToast();state.hearts=MAX_HEARTS;state.score=0;state.mode='x';state.milestoneRewards={};newLevel(0,true);clearProgress();return}newLevel(state.level+1)};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';result.close();if(!won){clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}newLevel(state.level)};[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
+  var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;closeResultDialog();if(!won||finishedAll){clearToast();state.hearts=MAX_HEARTS;state.score=0;state.mode='x';state.milestoneRewards={};newLevel(0,true);clearProgress();return}newLevel(state.level+1)};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';closeResultDialog();if(!won){clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}newLevel(state.level)};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
   if(restoreProgress()){
     render();updateAll(false);
     if(state.hearts<=0){
