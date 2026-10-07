@@ -116,8 +116,8 @@
     @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(3px)} }
     @keyframes errorFlash { 0%,100%{background:transparent;box-shadow:none} 35%,70%{background:color-mix(in srgb,var(--bad) 24%, transparent);box-shadow:0 0 0 5px color-mix(in srgb,var(--bad) 28%, transparent)} }
     @keyframes pulse { 50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--sun) 38%, transparent)} }
-    .cross { width:58%; height:58%; position:relative; opacity:1; filter:drop-shadow(0 1px 1px rgba(24,50,58,.55)); }
-    .cross::before,.cross::after { content:""; position:absolute; left:44%; top:-8%; width:12%; height:116%; border-radius:2px; background:#ffffff; transform:rotate(45deg); }
+    .cross { width:65%; height:65%; position:relative; opacity:1; filter:drop-shadow(0 1px 1px rgba(24,50,58,.55)); }
+    .cross::before,.cross::after { content:""; position:absolute; left:40%; top:-8%; width:20%; height:116%; border-radius:999px; background:#ffffff; transform:rotate(45deg); }
     .cross::after { transform:rotate(-45deg); }
     .cat { width:70%; height:70%; filter:drop-shadow(0 2px 0 rgba(255,255,255,.5)); transform-origin:center bottom; }
     .cat.pop { animation:catPop .28s cubic-bezier(.2,1.8,.4,1); }
@@ -267,7 +267,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.07.32.2</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.07.32.3</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -465,6 +465,7 @@
       for(var j=0;j<preferred.length;j++){
         var candidate=preferred[(j+offset+colored)%preferred.length];
         if(used[candidate])continue;
+        if((candidate===9&&used[10])||(candidate===10&&used[9]))continue;
         var distances=neighbors.map(function(k){return distance(candidate,hues[k])});
         if(distances.some(function(value){return value<40}))continue;
         choices.push({value:candidate,score:distances.length?Math.min.apply(null,distances):999,tie:j});
@@ -485,6 +486,7 @@
       for(var j=0;j<preferred.length;j++){
         var candidate=preferred[(j+offset+index)%preferred.length];
         if(hues.indexOf(candidate)>=0)continue;
+        if((candidate===9&&hues.indexOf(10)>=0)||(candidate===10&&hues.indexOf(9)>=0))continue;
         var score=neighbors.length?Math.min.apply(null,neighbors.map(function(k){return distance(candidate,hues[k])})):200-j;
         if(score>bestScore){best=candidate;bestScore=score}
       }
