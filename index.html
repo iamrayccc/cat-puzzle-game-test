@@ -299,7 +299,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.07.34.1</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.07.34.2</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -313,7 +313,7 @@
         <li><span class="rule-number">5</span><div><strong>每關一次免費開局指引</strong><span>非進度恢復進入關卡時，可查看一次不直接落子的起手推理；高亮只教一步，由你親自標記，也不會消耗找貓提示。</span></div></li>
         <li><span class="rule-number">6</span><div><strong>每關兩次找貓提示</strong><span>每關可使用 2 次「找貓提示」，提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
         <li><span class="rule-number">7</span><div><strong>積分與補心</strong><span>完成一關 +1000 分；每次使用找貓提示扣 100 分；每扣 1 顆心扣 500 分；積分最低為 0 分。每通過五關最多補回 1 顆心，心數上限為 5 顆。</span></div></li>
-        <li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、積分 −5000（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。</span></div></li>
+        <li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。</span></div></li>
       </ol>
       <button class="primary close-rules" type="button">開始動腦</button>
     </div>
@@ -896,7 +896,7 @@
       state.milestoneRewards[completed]=true;
       if(state.hearts<MAX_HEARTS){state.hearts=Math.min(MAX_HEARTS,state.hearts+1);recovered=true;paintHearts();persistProgress()}
     }
-    var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor((Date.now()-state.start)/1000));document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';document.getElementById('resultText').textContent=win?(state.level===TOTAL-1?('你已完成現階段全部 50 關'+(earned?'，本關獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。'):('本關完成'+(earned?'，獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。')):'5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、積分 −5000（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。';document.getElementById('nextBtn').textContent=win?(state.level===TOTAL-1?'再玩一輪':'下一關'):'重新開始';document.getElementById('retryBtn').textContent=win?'重新開始':'繼續玩';document.getElementById('retryBtn').style.display='block';d.dataset.win=win?'1':'0';openResultDialog(d);if(win){soundComplete();burst()}
+    var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor((Date.now()-state.start)/1000)),nextBtn=document.getElementById('nextBtn'),retryBtn=document.getElementById('retryBtn');document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';document.getElementById('resultText').textContent=win?(state.level===TOTAL-1?('你已完成現階段全部 50 關'+(earned?'，本關獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。'):('本關完成'+(earned?'，獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。')):'5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。';nextBtn.textContent=win?(state.level===TOTAL-1?'再玩一輪':'下一關'):'重新開始';retryBtn.textContent=win?'重新開始':'繼續玩';retryBtn.style.display='block';if(win){nextBtn.className='primary';retryBtn.className='secondary';nextBtn.autofocus=true;retryBtn.autofocus=false;retryBtn.parentNode.insertBefore(nextBtn,retryBtn)}else{retryBtn.className='primary';nextBtn.className='secondary';retryBtn.autofocus=true;nextBtn.autofocus=false;nextBtn.parentNode.insertBefore(retryBtn,nextBtn)}d.dataset.win=win?'1':'0';openResultDialog(d);if(win){soundComplete();burst()}
   }
   function newLevel(index,skipSave,preserveVariant){state.level=index;if(!preserveVariant)state.variant=Math.floor(Math.random()*3);var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=true;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','先查看免費「開局指引」，或直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress()}
   function restartLevel(){
