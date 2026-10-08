@@ -299,7 +299,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.08.35.4.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.08.35.5.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -553,6 +553,7 @@ window.VERIFIED_50_DATA=[[6,"110000122244122244332444352545355555","503142"],[6,
         var candidate=preferred[(j+offset+colored)%preferred.length];
         if(used[candidate])continue;
         if((candidate===9&&used[10])||(candidate===10&&used[9]))continue;
+        if((candidate===5&&used[6])||(candidate===6&&used[5]))continue;
         var distances=neighbors.map(function(k){return distance(candidate,hues[k])});
         if(distances.some(function(value){return value<40}))continue;
         choices.push({value:candidate,score:distances.length?Math.min.apply(null,distances):999,tie:j});
@@ -574,6 +575,7 @@ window.VERIFIED_50_DATA=[[6,"110000122244122244332444352545355555","503142"],[6,
         var candidate=preferred[(j+offset+index)%preferred.length];
         if(hues.indexOf(candidate)>=0)continue;
         if((candidate===9&&hues.indexOf(10)>=0)||(candidate===10&&hues.indexOf(9)>=0))continue;
+        if((candidate===5&&hues.indexOf(6)>=0)||(candidate===6&&hues.indexOf(5)>=0))continue;
         var score=neighbors.length?Math.min.apply(null,neighbors.map(function(k){return distance(candidate,hues[k])})):200-j;
         if(score>bestScore){best=candidate;bestScore=score}
       }
