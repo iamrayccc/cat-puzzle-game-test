@@ -95,7 +95,7 @@
     #hintBtn .bulb-glow { fill:currentColor; stroke:var(--line); }
     #hintBtn.hint-used .lit-bulb { color:var(--muted); filter:none; }
     .board-wrap { position:relative; margin:0; }
-    .board-shell { background:var(--panel); border:1px solid var(--soft-line); border-radius:24px; padding:4px 4px clamp(10px,3vw,16px); box-shadow:var(--shadow); }
+    .board-shell { background:var(--panel); border:1px solid var(--soft-line); border-radius:16px; padding:4px 4px clamp(10px,3vw,16px); box-shadow:var(--shadow); }
     .board {
       width:100%; max-width:560px; aspect-ratio:1; margin:auto; display:grid;
       border:2px solid var(--grid-line); border-radius:12px; overflow:hidden; background:var(--grid-line); gap:1px;
@@ -205,7 +205,7 @@
     @keyframes fall { to { transform:translate(var(--drift),110vh) rotate(680deg); } }
     @media (min-width:660px) {
       .app { padding-top:30px; }
-      .board-shell { padding:6px 6px 18px; }
+      .board-shell { padding:6px 6px 18px; border-radius:18px; }
       .controls { width:420px; align-self:center; }
       .rule-strip { font-size:.82rem; }
     }
@@ -299,7 +299,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.08.35.3.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.08.35.4.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
