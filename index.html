@@ -308,7 +308,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.39.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.40.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -759,10 +759,10 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
     if(state.cells[i]==='cat')return;
     if(swipeMode==='clear'){
       if(state.cells[i]!=='x')return;
-      snapshot();state.moves++;state.cells[i]='';updateCell(i,false);
+      state.moves++;state.cells[i]='';updateCell(i,false);
     }else{
       if(state.cells[i]!=='')return;
-      snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();
+      state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();
     }
   }
   function cellFromTarget(target,clientX,clientY){
@@ -798,7 +798,7 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
     e.preventDefault();
     var t=e.touches[0],i=cellFromTouch(t);
     if(i>=0){
-      if(!swipeMoved){swipeMoved=true}
+      if(!swipeMoved){swipeMoved=true;snapshot()}
       var p=currentPuzzle(),path=cellsBetween(swipeLastCell,i,p.size);
       for(var k=0;k<path.length;k++)trySwipeMark(path[k]);
       swipeLastCell=i;
@@ -966,7 +966,7 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
       },1500);
       return;
     }
-    persistProgress();setLogic('已放置貓咪','目前棋面仍有合法解，已自動切回「標 X」模式。','✓');vibrate(25);checkWin()
+    persistProgress();setLogic('已放置貓咪','已自動切回「標 X」模式。','✓');vibrate(25);checkWin()
   }
   function updateAll(animate){for(var i=0;i<state.cells.length;i++)updateCell(i,animate&&state.cells[i]==='cat')}
   function clearOpeningGuideVisuals(){board.querySelectorAll('.opening-region,.opening-target').forEach(function(cell){cell.classList.remove('opening-region','opening-target')});logicNote.classList.remove('guide-active')}
@@ -1133,7 +1133,6 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
     if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}
     if(state.hintsRemaining<=0){setLogic('本關找貓提示已用完','下一關會回復 2 次；找貓提示不扣心，但每次扣 100 分。','!');showToast('本關找貓提示已用完');return}
     var p=currentPuzzle(),sol=p.solution;
-    if(!findLegalSolution(p,state.cells,-1)){setLogic('棋面有矛盾',directConflictMessage(p),'!');showToast('請先修正矛盾');vibrate(35);return}
     var target=-1,certain=false;
     for(var r=0;r<p.size;r++){
       var candidate=r*p.size+sol[r];
