@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <title>貓咪邏輯解謎遊戲</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #eef7f4;
+      --ink: #18323a;
+      --muted: #567078;
+      --panel: #fffdf9;
+      --panel-2: #dcece8;
+      --line: #24454c;
+      --soft-line: rgba(36,69,76,.18);
+      --grid-line: #ffffff;
+      --cell-ink: #29474f;
+      --accent: #ec6f5c;
+      --accent-dark: #b94135;
+      --accent-ink: #32110d;
+      --sun: #f2b84b;
+      --good: #26886e;
+      --bad: #c74343;
+      --shadow: 0 14px 34px rgba(26,60,66,.14);
+      --r1:#f3a6a6; --r2:#f6c184; --r3:#e8da72; --r4:#b8db76;
+      --r5:#8dd39b; --r6:#7fd6bc; --r7:#78cfd9; --r8:#82bde5; --r9:#8ea3e1; --r10:#aa92dc; --r11:#c895d8; --r12:#e89bc8; --r13:#d4b191; --r14:#a7b8c4;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:#142326; --ink:#f5f1e8; --muted:#b7c9c9; --panel:#1d3034;
+        --panel-2:#294247; --line:#d6e3df; --soft-line:rgba(214,227,223,.2);
+        --accent:#ff8a73; --accent-dark:#ffab98; --accent-ink:#25100d; --sun:#ffd06a;
+        --good:#65d2ae; --bad:#ff7e7a; --shadow:0 16px 38px rgba(0,0,0,.3);
+        --grid-line:#ffffff; --cell-ink:#29474f;
+        --r1:#f3a6a6; --r2:#f6c184; --r3:#e8da72; --r4:#b8db76;
+        --r5:#8dd39b; --r6:#7fd6bc; --r7:#78cfd9; --r8:#82bde5; --r9:#8ea3e1; --r10:#aa92dc; --r11:#c895d8; --r12:#e89bc8; --r13:#d4b191; --r14:#a7b8c4;
+      }
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0; color:var(--ink); background:var(--bg);
+      font-family:"Nunito","Noto Sans TC",sans-serif;
+      -webkit-tap-highlight-color:transparent;
+      overflow-x:hidden;
+    }
+    button { font:inherit; color:inherit; }
+    .app {
+      width:min(100%, 760px); margin:0 auto; min-height:100vh;
+      padding:max(18px,env(safe-area-inset-top)) clamp(12px,3vw,24px) calc(32px + env(safe-area-inset-bottom));
+      display:flex; flex-direction:column;
+    }
+    .statusbar { display:flex; align-items:center; justify-content:flex-end; margin-bottom:12px; }
+    .level-meta { min-width:0; margin-bottom:16px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:baseline; gap:12px; }
+    .status-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; flex:0 0 auto; width:100%; }
+    .score { min-height:42px; display:flex; flex-direction:column; justify-content:center; align-items:flex-end; background:var(--panel); border:1px solid var(--soft-line); padding:5px 11px; border-radius:13px; box-shadow:0 5px 16px rgba(26,60,66,.08); font-variant-numeric:tabular-nums; }
+    .score span { color:var(--muted); font-size:.65rem; font-weight:900; line-height:1; }
+    .score b { font-size:1rem; line-height:1.15; }
+    .sound-btn { width:42px; height:42px; border:1px solid var(--soft-line); border-radius:50%; background:var(--panel); color:var(--ink); display:grid; place-items:center; cursor:pointer; box-shadow:0 5px 16px rgba(26,60,66,.08); }
+    .sound-btn:hover, .sound-btn:focus-visible { background:var(--panel-2); outline:2px solid var(--line); outline-offset:2px; }
+    .sound-btn svg { width:20px; height:20px; }
+    .sound-btn .sound-off { display:none; }
+    .sound-btn[aria-pressed="true"] .sound-on { display:none; }
+    .sound-btn[aria-pressed="true"] .sound-off { display:block; }
+    .level-meta small { display:block; color:var(--muted); font-weight:800; font-size:clamp(.64rem,2.4vw,.76rem); letter-spacing:.015em; text-align:right; white-space:nowrap; }
+    .level-meta h1 { min-width:0; font-size:clamp(1.15rem,4.7vw,1.8rem); line-height:1.1; margin:0; font-weight:900; }
+    .hearts { display:flex; align-items:center; gap:5px; background:var(--panel); border:1px solid var(--soft-line); padding:9px 12px; border-radius:999px; box-shadow:0 5px 16px rgba(26,60,66,.08); }
+    .heart { width:18px; height:17px; color:var(--accent); overflow:visible; transition:opacity .2s, transform .2s, filter .2s; }
+    .heart.lost { opacity:.18; transform:scale(.78); filter:grayscale(1); }
+    .heart-crack { fill:none; stroke:var(--panel); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; opacity:0; }
+    .hearts.heart-hit { animation:heartHit .85s ease; }
+    .heart.breaking { animation:heartBreak .9s cubic-bezier(.22,.8,.32,1) both; }
+    .heart.breaking .heart-crack { animation:crackShow .9s ease both; }
+    @keyframes heartHit { 18%{transform:translateX(-3px);background:color-mix(in srgb,var(--bad) 18%,var(--panel))} 36%{transform:translateX(3px)} 54%{transform:translateX(-2px)} 100%{transform:none} }
+    @keyframes heartBreak { 0%{opacity:1;transform:translateY(0) scale(1);filter:none} 28%{opacity:1;transform:translateY(-3px) scale(1.38) rotate(-7deg);filter:none} 55%{opacity:.82;transform:translateY(2px) scale(1.02) rotate(8deg);filter:grayscale(.75)} 100%{opacity:.18;transform:translateY(9px) scale(.72) rotate(14deg);filter:grayscale(1)} }
+    @keyframes crackShow { 0%,20%{opacity:0;stroke-dasharray:16;stroke-dashoffset:16} 38%,100%{opacity:1;stroke-dasharray:16;stroke-dashoffset:0} }
+    .top-actions { display:flex; gap:8px; margin-bottom:18px; }
+    .quiet-btn { border:0; background:transparent; color:var(--muted); padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:800; display:flex; align-items:center; gap:6px; }
+    .quiet-btn:hover, .quiet-btn:focus-visible { background:var(--panel-2); color:var(--ink); outline:none; }
+    .quiet-btn.hint-used { opacity:.7; }
+    .quiet-btn svg { width:18px; height:18px; }
+    .quiet-btn:first-child { margin-left:-8px; }
+    #openingBtn { background:var(--panel-2); color:var(--ink); }
+    #openingBtn[hidden] { display:none; }
+    #openingBtn svg { color:var(--good); }
+    #openingBtn.guide-used { opacity:.68; cursor:default; }
+    #hintBtn { margin-left:auto; }
+    #hintBtn .lit-bulb { color:var(--sun); filter:drop-shadow(0 0 3px color-mix(in srgb,var(--sun) 62%,transparent)); }
+    #hintBtn .bulb-glow { fill:currentColor; stroke:var(--line); }
+    #hintBtn.hint-used .lit-bulb { color:var(--muted); filter:none; }
+    .board-wrap { position:relative; margin:0; }
+    .board-shell { background:var(--panel); border:1px solid var(--soft-line); border-radius:16px; padding:4px 4px clamp(10px,3vw,16px); box-shadow:var(--shadow); }
+    .board {
+      width:100%; max-width:560px; aspect-ratio:1; margin:auto; display:grid;
+      border:2px solid var(--grid-line); border-radius:12px; overflow:hidden; background:var(--grid-line); gap:1px;
+    }
+    .cell {
+      position:relative; border:0; margin:0; padding:0; min-width:0; cursor:pointer;
+      background:var(--cell-bg); outline:0; display:grid; place-items:center; touch-action:manipulation;
+    }
+    .cell::after { content:""; position:absolute; inset:3px; border:2px solid transparent; border-radius:7px; pointer-events:none; }
+    .cell:hover::after { border-color:rgba(255,255,255,.62); }
+    .cell:focus-visible::after, .cell.keyboard-focus::after { border-color:var(--cell-ink); }
+    .cell.wrong { animation:shake .45s ease; }
+    .cell.wrong::after { border-color:var(--bad); animation:errorFlash .8s ease; }
+    .cell.hinted::after { border-color:var(--sun); animation:pulse 1.1s ease 2; }
+    .cell.opening-region::before { content:""; position:absolute; inset:0; z-index:0; background:color-mix(in srgb,var(--sun) 18%,transparent); pointer-events:none; }
+    .cell.opening-target::after { border-color:var(--sun); background:color-mix(in srgb,var(--sun) 12%,transparent); box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--line) 42%,transparent); animation:pulse 1.1s ease 2; }
+    .cell > * { position:relative; z-index:1; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(3px)} }
+    @keyframes errorFlash { 0%,100%{background:transparent;box-shadow:none} 35%,70%{background:color-mix(in srgb,var(--bad) 24%, transparent);box-shadow:0 0 0 5px color-mix(in srgb,var(--bad) 28%, transparent)} }
+    @keyframes pulse { 50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--sun) 38%, transparent)} }
+    .cross { width:65%; height:65%; position:relative; opacity:1; filter:drop-shadow(0 1px 1px rgba(24,50,58,.55)); }
+    .cross::before,.cross::after { content:""; position:absolute; left:40%; top:-8%; width:20%; height:116%; border-radius:999px; background:#ffffff; transform:rotate(45deg); }
+    .cross::after { transform:rotate(-45deg); }
+    .cat { width:70%; height:70%; filter:drop-shadow(0 2px 0 rgba(255,255,255,.5)); transform-origin:center bottom; }
+    .cat.pop { animation:catPop .28s cubic-bezier(.2,1.8,.4,1); }
+    @keyframes catPop { from{transform:scale(.2) rotate(-12deg)} to{transform:scale(1) rotate(0)} }
+    .cat .cat-blink{transform-box:fill-box;transform-origin:center;animation:catBlink 4.2s infinite}
+    .cat .cat-breathe{transform-box:fill-box;transform-origin:center;animation:catBreathe 3s ease-in-out infinite}
+    .cat .cat-sway{transform-box:fill-box;transform-origin:50% 88%;animation:catSway 3.6s ease-in-out infinite}
+    @keyframes catBlink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.12)}}
+    @keyframes catBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.028)}}
+    @keyframes catSway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+    .toast { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) translateY(10px); opacity:0; pointer-events:none; z-index:3; background:var(--line); color:var(--panel); border-radius:999px; padding:9px 14px; font-weight:900; font-size:.86rem; transition:.18s; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translate(-50%,-50%) translateY(0); }
+    .rule-strip { display:flex; justify-content:center; gap:clamp(10px,5vw,30px); padding:16px 4px 12px; color:var(--muted); font-size:.75rem; font-weight:800; }
+    .rule { display:flex; align-items:center; gap:6px; }
+    .rule b { display:grid; place-items:center; width:22px; height:22px; border-radius:7px; background:var(--panel-2); color:var(--ink); font-size:.82rem; }
+    .logic-note { margin-top:12px; display:grid; grid-template-columns:34px 1fr; gap:10px; align-items:center; padding:11px 13px; border-radius:14px; background:var(--panel-2); color:var(--muted); }
+    .logic-note b { width:34px; height:34px; display:grid; place-items:center; border-radius:10px; background:var(--panel); color:var(--good); font-size:1rem; }
+    .logic-note p { margin:0; font-size:.82rem; line-height:1.38; font-weight:700; }
+    .logic-note strong { display:block; color:var(--ink); font-size:.88rem; }
+    .logic-note.guide-active { grid-template-columns:34px minmax(0,1fr) auto; background:color-mix(in srgb,var(--sun) 22%,var(--panel-2)); color:var(--ink); }
+    .guide-close { align-self:center; border:1px solid var(--soft-line); background:var(--panel); color:var(--ink); min-height:36px; padding:7px 10px; border-radius:10px; cursor:pointer; font-weight:900; font-size:.76rem; white-space:nowrap; }
+    .guide-close:hover,.guide-close:focus-visible { outline:2px solid var(--line); outline-offset:2px; }
+    .controls { width:100%; margin:0 auto 14px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .mode-btn { min-height:58px; border:2px solid var(--soft-line); background:var(--panel); border-radius:16px; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:10px; font-weight:900; box-shadow:0 5px 13px rgba(26,60,66,.06); touch-action:manipulation; }
+    .mode-btn:hover, .mode-btn:focus-visible { border-color:var(--line); outline:2px solid var(--line); outline-offset:2px; }
+    .mode-btn[aria-pressed="true"] { border-color:var(--line); background:var(--line); color:var(--panel); box-shadow:0 6px 0 color-mix(in srgb,var(--line) 35%, transparent); transform:translateY(-2px); }
+    .mode-icon { width:28px; height:28px; display:grid; place-items:center; }
+    .mini-x { width:18px; height:18px; position:relative; }
+    .mini-x::before,.mini-x::after { content:""; position:absolute; left:8px; top:0; width:3px; height:19px; border-radius:2px; background:currentColor; transform:rotate(45deg); }
+    .mini-x::after{transform:rotate(-45deg)}
+    .mode-icon svg { width:30px; height:30px; }
+    .footer-note { text-align:center; font-size:.78rem; color:var(--muted); margin:13px 0 0; }
+    .version { display:block; margin-top:7px; font-size:.7rem; font-variant-numeric:tabular-nums; opacity:.82; }
+    dialog { border:0; padding:0; max-width:none; max-height:none; background:transparent; color:inherit; }
+    dialog::backdrop { background:rgba(12,28,31,.62); backdrop-filter:blur(4px); }
+    html.dialog-open { height:100%; overflow:hidden !important; overscroll-behavior:none; }
+    body.dialog-open {
+      position:fixed; left:0; right:0; width:100%; overflow:hidden !important;
+      overscroll-behavior:none; touch-action:none;
+    }
+    body.dialog-open dialog[open] { touch-action:none; }
+    body.dialog-open dialog[open] .sheet { touch-action:pan-y; }
+    #resultDialog[open] {
+      position:fixed; inset:0; width:auto; height:100dvh; margin:0;
+      padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
+      display:flex; flex-direction:column; align-items:center; justify-content:safe center;
+      overflow-y:auto; overscroll-behavior:contain; pointer-events:auto; -webkit-overflow-scrolling:touch;
+    }
+    #resultDialog .sheet {
+      position:relative; z-index:1; flex:0 0 auto; width:min(92vw,520px);
+      max-height:min(90dvh,700px); overflow-y:auto; overscroll-behavior:contain;
+      pointer-events:auto; -webkit-overflow-scrolling:touch;
+    }
+    .sheet { width:min(92vw,520px); max-height:min(84vh,700px); overflow:auto; background:var(--panel); border:1px solid var(--soft-line); border-radius:24px; padding:24px; box-shadow:0 24px 70px rgba(0,0,0,.32); }
+    .sheet-head { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
+    .sheet h2 { margin:0 0 6px; font-size:1.55rem; line-height:1.15; }
+    .sheet p { margin:0; color:var(--muted); line-height:1.55; }
+    .close-btn { width:36px; height:36px; border:0; background:var(--panel-2); border-radius:50%; cursor:pointer; font-size:1.25rem; line-height:1; }
+    .rules-list { list-style:none; padding:0; margin:22px 0; display:grid; gap:15px; }
+    .rules-list li { display:grid; grid-template-columns:38px 1fr; gap:12px; align-items:center; }
+    .rule-number { width:38px; height:38px; display:grid; place-items:center; border-radius:12px; background:var(--panel-2); font-weight:900; }
+    .rules-list strong { display:block; margin-bottom:2px; }
+    .rules-list span { display:block; color:var(--muted); font-size:.88rem; line-height:1.35; }
+    .primary { width:100%; min-height:52px; border:0; border-radius:14px; background:var(--accent); color:#fff; font-weight:900; font-size:1rem; cursor:pointer; box-shadow:0 5px 0 var(--accent-dark); }
+    .primary:active { transform:translateY(3px); box-shadow:0 2px 0 var(--accent-dark); }
+    .result { text-align:center; padding-top:22px; }
+    .result-heading { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:8px; }
+    .result-heading h2 { margin:0; }
+    .result-cat { flex:0 0 auto; width:48px; height:48px; margin:0; color:var(--accent); animation:celebrate .7s ease; }
+    @keyframes celebrate { 0%{transform:translateY(20px) scale(.6);opacity:0} 70%{transform:translateY(-8px) scale(1.05)} 100%{transform:none;opacity:1} }
+    .stats { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:22px 0; }
+    .stat { background:var(--panel-2); padding:12px 6px; border-radius:14px; }
+    .stat b { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; }
+    .stat span { display:block; margin-top:3px; font-size:.78rem; color:var(--muted); font-weight:800; line-height:1.25; }
+    .secondary { width:100%; min-height:48px; margin-top:10px; border:1px solid var(--soft-line); border-radius:14px; background:transparent; cursor:pointer; font-weight:900; }
+    #confirmDialog[open], #jumpDialog[open] {
+      position:fixed; inset:0; width:auto; height:100dvh; margin:0;
+      padding:14px; display:flex; flex-direction:column; align-items:center; justify-content:safe center;
+      pointer-events:auto;
+    }
+    #confirmDialog .sheet, #jumpDialog .sheet { width:min(92vw,400px); text-align:center; }
+    #confirmDialog .sheet p, #jumpDialog .sheet label { font-size:1.1rem; font-weight:800; margin:0 0 18px; color:var(--ink); }
+    #jumpDialog .sheet label { display:block; }
+    #jumpInput { width:100%; min-height:52px; margin-bottom:10px; border:2px solid var(--soft-line); border-radius:14px; background:var(--panel); color:var(--ink); padding:8px 12px; font:inherit; font-size:1.05rem; text-align:center; }
+    #jumpInput:focus { outline:2px solid var(--line); outline-offset:2px; }
+    .jump-error { min-height:1.3em; margin:0 0 10px; color:var(--bad); font-size:.82rem; font-weight:800; }
+    .jump-error[hidden] { visibility:hidden; display:block; }
+    .jump-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .jump-actions .secondary { margin-top:0; }
+    .confetti { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:20; }
+    .confetti i { position:absolute; width:9px; height:15px; top:-20px; border-radius:2px; animation:fall 1.7s ease-in forwards; }
+    @keyframes fall { to { transform:translate(var(--drift),110vh) rotate(680deg); } }
+    @media (min-width:660px) {
+      .app { padding-top:30px; }
+      .board-shell { padding:6px 6px 18px; border-radius:18px; }
+      .controls { width:420px; align-self:center; }
+      .rule-strip { font-size:.82rem; }
+    }
+    @media (max-width:560px) {
+      #resultDialog[open] { padding:10px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left)); }
+      #resultDialog .sheet { width:min(94vw,520px); padding:18px; border-radius:20px; }
+      .result { padding-top:18px; }
+      .result-heading { gap:10px; margin-bottom:6px; }
+      .result-cat { width:44px; height:44px; }
+      .stats { margin:16px 0; gap:7px; }
+      .stat { padding:9px 6px; }
+      .status-actions { gap:6px; }
+      .hearts { padding:9px 10px; }
+      .sound-btn { width:40px; height:40px; }
+      .score { min-height:40px; padding:5px 9px; }
+      .stats { grid-template-columns:repeat(2,1fr); }
+      .stat:last-child { grid-column:1/-1; }
+      .top-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
+      .quiet-btn { justify-content:center; padding:8px 5px; font-size:.78rem; }
+      .quiet-btn:first-child, #hintBtn { margin-left:0; }
+      #hintBtn { grid-column:1/-1; background:var(--panel-2); }
+      .logic-note.guide-active { grid-template-columns:30px 1fr; }
+      .logic-note.guide-active .guide-close { grid-column:2; justify-self:start; }
+    }
+    @media (max-width:400px) {
+      .status-actions { justify-content:flex-end; width:100%; }
+      .score { margin-right:auto; }
+    }
+    @media (max-height:720px) and (orientation:landscape) { 
+      .app { width:100%; max-width:980px; display:grid; grid-template-columns:minmax(300px,520px) 1fr; grid-template-rows:auto 1fr; gap:0 28px; padding:12px 24px; }
+      .statusbar,.level-meta,.top-actions { grid-column:2; }
+      .statusbar { margin:8px 0 0; }
+      .level-meta { margin-bottom:8px; }
+      .top-actions { margin:0; }
+      .board-wrap { grid-column:1; grid-row:1/6; align-self:center; }
+      .controls,.footer-note { grid-column:2; align-self:start; }
+      .rule-strip { padding:8px 0 0; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="statusbar" aria-label="積分、音效及剩餘機會">
+      <div class="status-actions">
+        <div class="score" aria-live="polite"><span>積分</span><b id="scoreValue">0</b></div>
+        <button class="sound-btn" id="soundBtn" type="button" aria-label="靜音" aria-pressed="false" title="靜音">
+          <svg class="sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/></svg>
+          <svg class="sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="m16 9 5 5m0-5-5 5"/></svg>
+        </button>
+        <div class="hearts" aria-label="剩餘五次機會" id="hearts"></div>
+      </div>
+    </section>
+    <section class="level-meta" aria-label="關卡資料"><h1 id="levelName">午睡角落</h1><small id="levelCount">第 1／50 關</small></section>
+
+    <nav class="top-actions" aria-label="遊戲工具">
+      <button class="quiet-btn" id="rulesBtn" type="button" aria-label="查看玩法">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 3.1 2.3c-.8.3-1.3.9-1.3 1.7"/><path d="M12 17h.01"/></svg>玩法
+      </button>
+      <button class="quiet-btn" id="undoBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 8-4 4 4 4"/><path d="M5 12h8a6 6 0 0 1 6 6"/></svg>復原
+      </button>
+      <button class="quiet-btn" id="restartBtn" type="button" aria-label="清除本關所有標記，保留同一版圖">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 11a8 8 0 1 1 2.3 6.7"/><path d="M4 5v6h6"/></svg>全部清除
+      </button>
+      <button class="quiet-btn" id="openingBtn" type="button" aria-label="查看本關免費開局指引">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 19c3-7 7-11 14-14"/><path d="M9 5h10v10"/><circle cx="6" cy="18" r="2"/></svg><span id="openingLabel">開局指引 · 免費</span>
+      </button>
+      <button class="quiet-btn" id="hintBtn" type="button" aria-label="找貓提示，本關剩餘兩次">
+        <svg class="lit-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1v2M4.2 4.2l1.4 1.4M1 12h2m16 0h2M18.4 5.6l1.4-1.4"/><path class="bulb-glow" d="M8.5 14.5A6 6 0 1 1 15.5 14.5c-.8.7-1.5 1.5-1.5 2.5h-4c0-1-.7-1.8-1.5-2.5Z"/><path d="M9 19h6M10 22h4"/></svg><span id="hintLabel">找貓提示 · 剩餘 2 次</span>
+      </button>
+    </nav>
+
+    <section class="controls" aria-label="選擇放置標記">
+      <button class="mode-btn" id="xModeBtn" type="button" aria-pressed="true"><span class="mode-icon"><span class="mini-x"></span></span>標 X</button>
+      <button class="mode-btn" id="catModeBtn" type="button" aria-pressed="false"><span class="mode-icon" id="catModeIcon"></span>放貓</button>
+    </section>
+
+    <section class="board-wrap" aria-label="解謎棋盤">
+      <div class="board-shell">
+        <div class="board" id="board" role="grid" aria-label="貓咪邏輯棋盤"></div>
+        <div class="rule-strip" aria-hidden="true">
+          <span class="rule"><b>↔</b> 每行一隻</span>
+          <span class="rule"><b>↕</b> 每列一隻</span>
+          <span class="rule"><b>◇</b> 每顏色區一隻</span>
+        </div>
+        <div class="logic-note" id="logicNote" role="status" aria-live="polite">
+          <b>?</b><p><strong>先找可排除的位置</strong>觀察某一行、列或色區的貓只可能落在哪些格子。</p>
+        </div>
+      </div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </section>
+
+    <p class="footer-note"><span class="version">Version 2026.10.09.35.14.beta</span></p>
+  </main>
+
+  <dialog id="rulesDialog">
+    <div class="sheet">
+      <div class="sheet-head"><div><h2>找出所有躲起來的貓咪</h2></div><button class="close-btn" type="button" aria-label="關閉">×</button></div>
+      <ol class="rules-list">
+        <li><span class="rule-number">1</span><div><strong>每一行、每一列各一隻</strong><span>同一橫行或直列不能出現第二隻貓咪。</span></div></li>
+        <li><span class="rule-number">2</span><div><strong>每個區域各一隻</strong><span>以白色邊界分隔的區域形狀不一，裡面一定剛好藏著一隻。</span></div></li>
+        <li><span class="rule-number">3</span><div><strong>貓咪不能彼此相鄰</strong><span>連斜角也不行；放好後，周圍八格都可排除。</span></div></li>
+        <li><span class="rule-number">4</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
+        <li><span class="rule-number">5</span><div><strong>每關一次免費開局指引</strong><span>非進度恢復進入關卡時，可查看一次不直接落子的起手推理；高亮只教一步，由你親自標記，也不會消耗找貓提示。</span></div></li>
+        <li><span class="rule-number">6</span><div><strong>每關兩次找貓提示</strong><span>每關可使用 2 次「找貓提示」，提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
+        <li><span class="rule-number">7</span><div><strong>積分與補心</strong><span>完成一關 +1000 分；每次使用找貓提示扣 100 分；每扣 1 顆心扣 500 分；積分最低為 0 分。每通過五關最多補回 1 顆心，心數上限為 5 顆。</span></div></li>
+        <li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。</span></div></li>
+      </ol>
+      <button class="primary close-rules" type="button">開始動腦</button>
+    </div>
+  </dialog>
+
+  <dialog id="resultDialog">
+    <div class="sheet result">
+      <div class="result-heading">
+        <div class="result-cat" id="resultCat"></div>
+        <h2 id="resultTitle">遊戲完結</h2>
+      </div>
+      <p id="resultText">本關統計如下。</p>
+      <div class="stats"><div class="stat"><b id="timeStat">0:00</b><span>用時</span></div><div class="stat"><b id="mistakeStat">0</b><span>失誤</span></div><div class="stat"><b id="hintStat">0</b><span>找貓提示</span></div><div class="stat"><b id="moveStat">0</b><span>步數</span></div><div class="stat"><b id="scoreStat">0</b><span>累計積分</span></div></div>
+      <button class="primary" id="nextBtn" type="button">下一關</button>
+      <button class="secondary" id="retryBtn" type="button">重新開始</button>
+    </div>
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+  </dialog>
+  <dialog id="confirmDialog">
+    <div class="sheet">
+      <p id="confirmText">從第1關開始玩？</p>
+      <button class="secondary" id="confirmYes" type="button">是</button>
+      <button class="primary" id="confirmNo" type="button" autofocus>否</button>
+    </div>
+  </dialog>
+  <dialog id="jumpDialog">
+    <form class="sheet" id="jumpForm" method="dialog">
+      <label for="jumpInput">跳到第幾關？（1–10）</label>
+      <input id="jumpInput" type="number" min="1" max="10" step="1" inputmode="numeric" required />
+      <p class="jump-error" id="jumpError" role="alert" hidden>請輸入 1–10 的關號</p>
+      <div class="jump-actions">
+        <button class="secondary" id="jumpCancel" type="button">取消</button>
+        <button class="primary" type="submit">跳關</button>
+      </div>
+    </form>
+  </dialog>
+
+<script>
+window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888333222222233222022233222222243","241586037"],[9,"888344666883344647888334444881344444883333333888003333880033223880000000500000000","685241730"],[9,"000000000000000444000500388220555588222258888221178888221111811221111111621111111","286374150"],[9,"556666667556366677566666880554666680544666660544666600546660600246660000666661000","836142705"],[9,"444444448033444444333344444333544444333544622333376662313311666311111666111666666","805374261"],[9,"455222666445252266445555166444555556444355566474455660477556666777558866777556666","426038157"],[9,"444888555448885555474455335444425333444443333444444433044444661044444466000044466","351462807"],[9,"888666666888366666888722226887725222887772222888772222888772220188844200888842222","731526804"],[9,"666333377666635337822333377888333377888818777888888777888887777848888777448888880","052647318"],[9,"333333333333330333454883333444888683444888883444828883442222888442222818444728888","851640273"],[9,"664444444666444444664444022664544122666644123666611123666111222668881222678882222","206385741"],[9,"888866044887766444887711444877711144888511144888111444888814444883844244333444224","648135027"],[9,"555550000555668000556674440566777220666677222666622222226622122222222233222333333","857042613"],[9,"224435555244335555224335550224235500222235555227235555233335556233135666338888666","614702835"],[9,"000222228022222222533222222553334442555534444555574444555544444555544411665555511","805364271"],[9,"812244444812244444115444444111444444111744444117777774777770334777070006000000000","302714685"],[9,"777777777877777772878117222848666626888666666888606556886666655836366665833336555","583164702"],[9,"444444881447464881444464888444666688448888688428888888440553388440553388400053333","820571463"],[9,"888888888828808088668000080655555000655530000665533004555555555555551555555771555","716048253"],[9,"778700000777700660777736600777771666777771166777476666774466666776665666726666666","284063751"],[9,"555557775551155555003166555003333555223333555222223355332343355333333355383333333","735082461"],[9,"111143233711143333711143333778843333777443333577333333550533336550555355555555555","641305827"],[9,"333333888337773888337448888637744888333444888332244458332214555333444555334400055","137052486"],[9,"644444711666647777666666767525666666555666608555660000553300000353000000333333000","746183052"],[9,"444441155447444115247441111227401111777400000777700008777770000677777777677777377","735148206"],[9,"888888884880884444880888144828886646222286666222222226522527766525533666555533666","826371504"],[9,"444880000488837000445533300442233000444223300444422200444622222444661222411111222","352860741"],[9,"733333111733311114730014444770444444774444444774444444775422688775442222555555222","153048627"],[9,"366600222336600202335660802337700800337770000333444400444444404444444444411444444","382640751"],[9,"155500000115555000611555500111155000121553330221755535222222555222222445222228555","840263175"]];
+</script>
+<script>
+(function(){
+  'use strict';
+  /* ===== 測試版專屬旗標 =====
+     IS_TEST = true  → 顯示跳關按鈕（測試版專用）
+     玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
+  var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
+  var TOTAL=10, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
+  var palette=['var(--r1)','var(--r2)','var(--r3)','var(--r4)','var(--r5)','var(--r6)','var(--r7)','var(--r8)','var(--r9)','var(--r10)','var(--r11)','var(--r12)','var(--r13)','var(--r14)'];
+  var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
+  var second=['角落','小徑','迷宮','窗台','走廊','花園','書架','屋頂','庭院','秘境'];
+  function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  function shuffle(a,rand){for(var j=a.length-1;j>0;j--){var k=Math.floor(rand()*(j+1)),v=a[j];a[j]=a[k];a[k]=v}return a}
+  function levelSpec(index){var no=index+1,difficulty=index/(TOTAL-1);return{size:9,colors:9,label:no<=5?'入門':'初階',difficulty:difficulty}}
+  var VERIFIED_BASES=[{"n":6,"r":"001111011111211111211311255334255444","s":"140352"},{"n":6,"r":"000111241111244444244443444443444455","s":"130524"},{"n":6,"r":"113300113300113322333333433333455333","s":"415302"},{"n":9,"r":"000333333000331112333333322333333333333343333553343333555543663777743333788743333","s":"258640731"},{"n":9,"r":"440000113444444113442444443442444443444444444444455555644447778644447778444447888","s":"362814057"},{"n":9,"r":"211100885221188885228888885448888385848888385888888885888668885887788888888888888","s":"530618427"},{"n":9,"r":"111444400111444444224444444224444334244444444244445444664445744664488744644488444","s":"820735164"},{"n":11,"r":"aa000aa3344aa0011a3344aaa111a3224aaa56aa3224aaa56aaaa44a5556aaaaaaaaa66aaaaaaaaa8aaaa7aaaaa8aaaa7aa99aaaaaaaaaaaaaaaaaaaa","s":"2597a148306"},{"n":11,"r":"11117700000222117000002227777777755777777773557777774737577777746677777777766777777777777777777877777797778777aa997777777","s":"642a8195730"},{"n":11,"r":"110000666661116006666246663366662466633666664666666666666666655666666666666666686676666666866796666666667966666666699aa66","s":"31a40795268"},{"n":11,"r":"000004444410002244444133442444444334444444443344444444488444444555884444665778844444447788944444444999444444449994444aaaa","s":"3a415869027"},{"n":11,"r":"33333111000333332211003333322333333333333333443533333333335333333333333663333377333333333393338833333933388aa33333338aaa3","s":"a8640351729"},{"n":11,"r":"221100aaaaa2211aaaaaaa22aaaaaaaaa55533aa44445553aaa44445557aaaa666aaa7aaaa666aaa7aaaaaaaaaaaaaaaa88aaaaaaaa998aaaaaaaaaaa","s":"52047193a86"},{"n":11,"r":"1100000666611330026666113336266661133366666655533666644555566666666667666666686676666666866666666696666666666966666666aa9","s":"516492730a8"}];
+  function transformVerified(base,turn){
+    var n=base.n,flat=base.r.split('').map(function(v){return parseInt(v,36)}),solution=base.s.split('').map(function(v){return parseInt(v,36)}),out=new Array(n*n),nextSolution=new Array(n);
+    function xy(r,c){if(turn===0)return[r,c];if(turn===1)return[c,n-1-r];if(turn===2)return[n-1-r,n-1-c];if(turn===3)return[n-1-c,r];if(turn===4)return[r,n-1-c];if(turn===5)return[n-1-r,c];if(turn===6)return[c,r];return[n-1-c,n-1-r]}
+    for(var r=0;r<n;r++)for(var c=0;c<n;c++){var at=xy(r,c);out[at[0]*n+at[1]]=flat[r*n+c]}
+    for(var row=0;row<n;row++){var cat=xy(row,solution[row]);nextSolution[cat[0]]=cat[1]}
+    var regions=[];for(var rr=0;rr<n;rr++)regions.push(out.slice(rr*n,(rr+1)*n));
+    return{size:n,colors:n,regions:regions,solution:nextSolution};
+  }
+  function puzzleConflict(a,b,p){var n=p.size,ar=Math.floor(a/n),ac=a%n,br=Math.floor(b/n),bc=b%n;return ar===br||ac===bc||p.regions[ar][ac]===p.regions[br][bc]||(Math.abs(ar-br)<=1&&Math.abs(ac-bc)<=1)}
+  function countPuzzleSolutions(p,limit){
+    var n=p.size,usedCols=new Array(n).fill(false),usedRegions=new Array(n).fill(false),chosen=[],count=0;
+    function search(row){
+      if(count>=limit)return;if(row===n){count++;return}
+      for(var c=0;c<n;c++){
+        var reg=p.regions[row][c];
+        if(usedCols[c]||usedRegions[reg]||(row&&Math.abs(chosen[row-1]-c)<=1))continue;
+        chosen[row]=c;usedCols[c]=true;usedRegions[reg]=true;search(row+1);usedCols[c]=false;usedRegions[reg]=false;
+      }
+    }
+    search(0);return count;
+  }
+  function logicalSolvePuzzle(p){
+    var n=p.size,total=n*n,candidates=new Array(total).fill(true),cats=new Array(total).fill(false),units=[],steps=0,direct=0,combined=0,hall=0;
+    for(var r=0;r<n;r++)units.push(Array.from({length:n},function(_,c){return r*n+c}));
+    for(var c=0;c<n;c++)units.push(Array.from({length:n},function(_,r){return r*n+c}));
+    for(var reg=0;reg<n;reg++){var area=[];for(var i=0;i<total;i++)if(p.regions[Math.floor(i/n)][i%n]===reg)area.push(i);units.push(area)}
+    function place(i){if(cats[i])return;cats[i]=true;for(var j=0;j<total;j++)if(j!==i&&candidates[j]&&puzzleConflict(i,j,p))candidates[j]=false;steps++}
+    while(true){
+      var changed=false;
+      for(var u=0;u<units.length;u++){
+        var placed=units[u].filter(function(i){return cats[i]}),options;
+        if(placed.length>1)return{solved:false,steps:steps,direct:direct,combined:combined,hall:hall};
+        if(placed.length)continue;
+        options=units[u].filter(function(i){return candidates[i]});
+        if(!options.length)return{solved:false,steps:steps,direct:direct,combined:combined,hall:hall};
+        if(options.length===1){place(options[0]);direct++;changed=true;break}
+      }
+      if(changed)continue;
+      for(var g=0;g<units.length;g++){
+        if(units[g].some(function(i){return cats[i]}))continue;
+        var opts=units[g].filter(function(i){return candidates[i]});
+        if(opts.length<2)continue;
+        for(var target=0;target<total;target++)if(candidates[target]&&opts.indexOf(target)<0&&opts.every(function(i){return puzzleConflict(i,target,p)})){
+          candidates[target]=false;steps++;combined++;changed=true;break;
+        }
+        if(changed)break;
+      }
+      if(changed)continue;
+      var directions=[['REGION','ROW'],['REGION','COLUMN'],['ROW','REGION'],['COLUMN','REGION']];
+      function unitNumber(kind,i){return kind==='ROW'?Math.floor(i/n):kind==='COLUMN'?i%n:p.regions[Math.floor(i/n)][i%n]}
+      function sourceUnits(kind){
+        var offset=kind==='ROW'?0:kind==='COLUMN'?n:2*n,out=[];
+        for(var number=0;number<n;number++){
+          var members=units[offset+number];
+          if(members.some(function(i){return cats[i]}))continue;
+          out.push({number:number,cells:members.filter(function(i){return candidates[i]})});
+        }
+        return out;
+      }
+      function tryHall(sourceKind,targetKind){
+        var source=sourceUnits(sourceKind);
+        function examine(subset){
+          var sourceNumbers={},sourceCells={},targetNumbers={};
+          for(var s=0;s<subset.length;s++){
+            sourceNumbers[subset[s].number]=true;
+            for(var q=0;q<subset[s].cells.length;q++){
+              var cell=subset[s].cells[q];sourceCells[cell]=true;targetNumbers[unitNumber(targetKind,cell)]=true;
+            }
+          }
+          if(Object.keys(targetNumbers).length!==subset.length)return false;
+          for(var target=0;target<total;target++)if(candidates[target]&&!cats[target]&&!sourceCells[target]&&targetNumbers[unitNumber(targetKind,target)]&&!sourceNumbers[unitNumber(sourceKind,target)]){
+            candidates[target]=false;steps++;hall++;return true;
+          }
+          return false;
+        }
+        function eachCombination(items,width,visit){
+          var picked=new Array(width);
+          function choose(start,depth){
+            if(depth===width)return visit(picked.slice());
+            for(var index=start;index<=items.length-(width-depth);index++){
+              picked[depth]=items[index];
+              if(choose(index+1,depth+1))return true;
+            }
+            return false;
+          }
+          return choose(0,0);
+        }
+        for(var width=2,maxWidth=Math.min(n-1,source.length);width<=maxWidth;width++)if(eachCombination(source,width,examine))return true;
+        return false;
+      }
+      for(var d=0;d<directions.length;d++)if(tryHall(directions[d][0],directions[d][1])){changed=true;break}
+      if(!changed)break;
+    }
+    return{solved:cats.filter(Boolean).length===n,steps:steps,direct:direct,combined:combined,hall:hall};
+  }
+  function buildVerifiedPuzzles(){
+    var targets={6:20,9:30,11:50},generated=[],seen={};
+    [6,9,11].forEach(function(n){
+      var band=[],bases=VERIFIED_BASES.filter(function(base){return base.n===n});
+      for(var b=0;b<bases.length;b++)for(var turn=0;turn<8;turn++){
+        var p=transformVerified(bases[b],turn),signature=puzzleSignature(p);
+        if(seen[signature])continue;
+        var unique=countPuzzleSolutions(p,2)===1,logic=logicalSolvePuzzle(p);
+        if(!unique||!logic.solved)continue;
+        seen[signature]=true;p.logicSteps=logic.steps;p.logicCombined=logic.combined;band.push(p);
+      }
+      band.sort(function(a,b){return a.logicSteps-b.logicSteps||a.logicCombined-b.logicCombined||puzzleSignature(a).localeCompare(puzzleSignature(b))});
+      if(band.length<targets[n])throw new Error('沒有足夠已驗證的 '+n+'×'+n+' 邏輯版圖');
+      generated=generated.concat(n===11?band.slice(band.length-targets[n]):band.slice(0,targets[n]));
+    });
+    return generated.map(function(p,index){var spec=levelSpec(index),rand=rng(fixedSeed(index,p.logicSteps));p.name=first[index%10]+second[Math.floor(index/10)];p.label=spec.label;p.difficulty=spec.difficulty;p.regionHues=shuffle(Array.from({length:p.size},function(_,i){return i}),rand);return p});
+  }
+  function makeSolution(n,rand){var cols=shuffle(Array.from({length:n},function(_,i){return i}),rand);for(var tries=0;tries<5000;tries++){shuffle(cols,rand);var ok=true;for(var r=1;r<n;r++)if(Math.abs(cols[r]-cols[r-1])<=1){ok=false;break}if(ok)return cols.slice()}var out=[],used={};function go(r){if(r===n)return true;var choices=shuffle(Array.from({length:n},function(_,i){return i}),rand);for(var q=0;q<n;q++){var c=choices[q];if(used[c]||(r&&Math.abs(c-out[r-1])<=1))continue;used[c]=1;out[r]=c;if(go(r+1))return true;delete used[c]}return false}go(0);return out}
+  function fixedSeed(index,salt){var x=(PUZZLE_SEED^Math.imul(index+1,0x9e3779b1)^Math.imul(salt+1,0x85ebca6b))>>>0;x=Math.imul(x^(x>>>16),0x7feb352d);x=Math.imul(x^(x>>>15),0x846ca68b);return(x^(x>>>16))>>>0}
+  function makePuzzle(index,salt){
+    var spec=levelSpec(index),n=spec.size,rand=rng(fixedSeed(index,salt||0)),solution=makeSolution(n,rand),regions=Array.from({length:n},function(){return new Array(n).fill(-1)}),regionSizes=new Array(n).fill(1),left=n*n-n;
+    for(var r=0;r<n;r++)regions[r][solution[r]]=r;
+    while(left){
+      var frontier=[];
+      for(var rr=0;rr<n;rr++)for(var cc=0;cc<n;cc++)if(regions[rr][cc]<0){
+        var adjacent=[];if(rr&&regions[rr-1][cc]>=0)adjacent.push(regions[rr-1][cc]);if(rr<n-1&&regions[rr+1][cc]>=0)adjacent.push(regions[rr+1][cc]);if(cc&&regions[rr][cc-1]>=0)adjacent.push(regions[rr][cc-1]);if(cc<n-1&&regions[rr][cc+1]>=0)adjacent.push(regions[rr][cc+1]);
+        if(adjacent.length){var unique=adjacent.filter(function(v,i,a){return a.indexOf(v)===i}),touch=0;for(var u=0;u<unique.length;u++){var count=adjacent.filter(function(v){return v===unique[u]}).length;if(count>touch)touch=count}frontier.push({r:rr,c:cc,near:unique,touch:touch,tie:rand()})}
+      }
+      frontier.sort(function(a,b){var easeA=a.touch*3-a.near.reduce(function(m,reg){return Math.min(m,regionSizes[reg])},99)/n,easeB=b.touch*3-b.near.reduce(function(m,reg){return Math.min(m,regionSizes[reg])},99)/n;return easeB-easeA||a.tie-b.tie});
+      var pool=Math.max(1,Math.ceil(frontier.length*(.1+spec.difficulty*.9))),pick=frontier[Math.floor(rand()*pool)],choices=pick.near.slice();
+      choices.sort(function(a,b){var compactA=0,compactB=0;if(pick.r&&regions[pick.r-1][pick.c]===a)compactA++;if(pick.r<n-1&&regions[pick.r+1][pick.c]===a)compactA++;if(pick.c&&regions[pick.r][pick.c-1]===a)compactA++;if(pick.c<n-1&&regions[pick.r][pick.c+1]===a)compactA++;if(pick.r&&regions[pick.r-1][pick.c]===b)compactB++;if(pick.r<n-1&&regions[pick.r+1][pick.c]===b)compactB++;if(pick.c&&regions[pick.r][pick.c-1]===b)compactB++;if(pick.c<n-1&&regions[pick.r][pick.c+1]===b)compactB++;return compactB-compactA||regionSizes[a]-regionSizes[b]});
+      var choice=spec.difficulty>.55&&rand()<spec.difficulty?choices[Math.floor(rand()*choices.length)]:choices[0];regions[pick.r][pick.c]=choice;regionSizes[choice]++;left--;
+    }
+    var hues=shuffle(Array.from({length:n},function(_,i){return i%spec.colors}),rand);
+    return{name:first[index%10]+second[Math.floor(index/10)],size:n,colors:spec.colors,label:spec.label,regions:regions,regionHues:hues,solution:solution,difficulty:spec.difficulty};
+  }
+  function puzzleSignature(p){return p.size+'|'+p.regions.map(function(row){return row.join(',')}).join(';')}
+  function canonicalPartitionSignature(p){
+    var n=p.size,flat=p.regions.reduce(function(all,row){return all.concat(row)},[]),signatures=[];
+    function normalise(values){var labels={},next=0;return values.map(function(value){if(labels[value]===undefined)labels[value]=next++;return labels[value].toString(36)}).join('')}
+    function transformed(turn){
+      var out=new Array(n*n);
+      function xy(r,c){if(turn===0)return[r,c];if(turn===1)return[c,n-1-r];if(turn===2)return[n-1-r,n-1-c];if(turn===3)return[n-1-c,r];if(turn===4)return[r,n-1-c];if(turn===5)return[n-1-r,c];if(turn===6)return[c,r];return[n-1-c,n-1-r]}
+      for(var r=0;r<n;r++)for(var c=0;c<n;c++){var at=xy(r,c);out[at[0]*n+at[1]]=flat[r*n+c]}
+      return normalise(out);
+    }
+    for(var turn=0;turn<8;turn++)signatures.push(transformed(turn));
+    signatures.sort();return n+'|'+signatures[0];
+  }
+  function measureDifficulty(p){
+    var n=p.size,usedCols=new Array(n).fill(false),usedRegions=new Array(n).fill(false),chosen=[],rows=Array.from({length:n},function(_,r){return{row:r,done:false}}),solutions=0,branches=0,limit=24;
+    function search(depth){
+      if(solutions>=limit)return;if(depth===n){solutions++;return}
+      var best=-1,options=null;
+      for(var ri=0;ri<n;ri++)if(!rows[ri].done){var r=rows[ri].row,opts=[];for(var c=0;c<n;c++){var idx=r*n+c,reg=p.regions[r][c],ok=!usedCols[c]&&!usedRegions[reg];if(ok)for(var j=0;j<chosen.length;j++){var cr=Math.floor(chosen[j]/n),cc=chosen[j]%n;if(Math.abs(cr-r)<=1&&Math.abs(cc-c)<=1){ok=false;break}}if(ok)opts.push(idx)}if(options===null||opts.length<options.length){best=ri;options=opts;if(!opts.length)break}}
+      if(!options||!options.length)return;rows[best].done=true;
+      for(var q=0;q<options.length;q++){branches++;var idx=options[q],rr=Math.floor(idx/n),cc=idx%n,reg=p.regions[rr][cc];chosen.push(idx);usedCols[cc]=true;usedRegions[reg]=true;search(depth+1);chosen.pop();usedCols[cc]=false;usedRegions[reg]=false;if(solutions>=limit)break}
+      rows[best].done=false;
+    }
+    search(0);
+    var perimeter=0;for(var r=0;r<n;r++)for(var c=0;c<n;c++){if(r<n-1&&p.regions[r][c]!==p.regions[r+1][c])perimeter++;if(c<n-1&&p.regions[r][c]!==p.regions[r][c+1])perimeter++}
+    return(limit-solutions)*100000+branches*10+perimeter;
+  }
+  function buildPuzzles(){
+    var generated=[],seen={};
+    for(var i=0;i<TOTAL;i++){var salt=0,p=makePuzzle(i,salt),key=puzzleSignature(p);while(seen[key]){salt++;p=makePuzzle(i,salt);key=puzzleSignature(p)}seen[key]=true;p.measuredDifficulty=measureDifficulty(p);generated.push(p)}
+    var bands=[[0,20],[20,50],[50,100]],out=new Array(TOTAL);
+    bands.forEach(function(band){var sorted=generated.slice(band[0],band[1]).sort(function(a,b){return a.measuredDifficulty-b.measuredDifficulty});for(var j=0;j<sorted.length;j++){var level=band[0]+j,spec=levelSpec(level);sorted[j].name=first[level%10]+second[Math.floor(level/10)];sorted[j].label=spec.label;sorted[j].difficulty=spec.difficulty;out[level]=sorted[j]}});
+    return out;
+  }
+  var VERIFIED_VARIANT_SEEDS=[[5,1377684655],[5,1377652979],[5,1377660898],[5,1377676736],[5,1377668817],[4,1377682567],[4,1377658810],[4,1377674648],[4,1377642972],[4,1377650891],[3,1377680479],[3,1377632965],[3,1377656722],[3,1377672560],[3,1377696317],[7,1380736354],[7,1380712597],[7,1380688840],[7,1380704678],[7,1380680921],[6,1380734266],[6,1380765942],[6,1380670914],[6,1380742185],[6,1380686752],[6,1380710509],[6,1380773861],[5,1380716340],[5,1380732178],[5,1380850963],[8,1381880987],[8,1381793878],[8,1381746364],[8,1381857230],[8,1381873068],[8,1381762202],[8,1381817635],[8,1381865149],[8,1381706769],[8,1381754283],[8,1381698850],[8,1381849311],[8,1381809716],[8,1381690931],[8,1381683012],[8,1381778040],[8,1381841392],[8,1381738445],[8,1381722607],[8,1381730526],[7,1381870980],[7,1381926413],[7,1382053117],[7,1381783871],[7,1381942251],[7,1381823466],[7,1381768033],[7,1381673005],[7,1381918494],[7,1381720519],[7,1381831385],[7,1381704681],[7,1381680924],[7,1381775952],[7,1381752195],[7,1382045198],[7,1381815547],[7,1382076874],[7,1381847223],[7,1381744276],[6,1382454898],[6,1382684549],[6,1382264842],[6,1382953795],[6,1381987677],[6,1382882524],[6,1381710512],[6,1382835010],[6,1382058948],[6,1382249004],[6,1382296518],[6,1381678836],[6,1382724144],[6,1382344032],[6,1382470736],[6,1381995596],[6,1382874605],[6,1381773864],[6,1382644954],[6,1381908487],[10,1383908926],[10,1384011873],[10,1383964359],[10,1383885169],[10,1383901007],[10,1383956440],[10,1383988116],[10,1383972278],[10,1383734708],[10,1383766384],[10,1383798060],[10,1383893088],[10,1383758465],[10,1383853493],[10,1383916845],[10,1383726789],[10,1383790141],[10,1384003954],[10,1383845574],[10,1383996035],[9,1383962271],[9,1384184003],[9,1384104813],[9,1384065218],[9,1383708863],[9,1384160246],[9,1383993947],[9,1384255274],[9,1384461168],[9,1384279031],[9,1384437411],[9,1383700944],[9,1384318626],[9,1384025623],[9,1384112732],[9,1383716782],[9,1384271112],[9,1383938514],[9,1383811810],[9,1383795972],[8,1384427404],[8,1383952264],[8,1383928507],[8,1384957977],[8,1385140114],[8,1384767921],[8,1383849317],[8,1385631092],[8,1383936426],[8,1384039373],[8,1384823354],[8,1385195547],[8,1384775840],[8,1383999778],[8,1385496469],[8,1384514513],[8,1385021329],[8,1383873074],[8,1385005491],[8,1384633298],[12,1385960622],[12,1385921027],[12,1386079407],[12,1386047731],[12,1385905189],[12,1385857675],[12,1386111083],[12,1385849756],[12,1386000217],[12,1385897270],[12,1385992298],[12,1386095245],[12,1385881432],[12,1386008136],[12,1385984379],[12,1385865594],[12,1385976460],[12,1385944784],[12,1386174435],[12,1386119002],[12,1385794323],[12,1385802242],[12,1386142759],[12,1385778485],[12,1385762647],[12,1386023974],[12,1385841837],[12,1385810161],[12,1385928946],[12,1386016055],[11,1386639568],[11,1386877138],[11,1387027599],[11,1386821705],[11,1386330727],[11,1385990210],[11,1386623730],[11,1386314889],[11,1386956328],[11,1386528702],[11,1386433674],[11,1386013967],[11,1386124833],[11,1386267375],[11,1387011761],[11,1386948409],[11,1386750434],[11,1386069400],[11,1385776397],[11,1385887263],[11,1386932571],[11,1385911020],[11,1386188185],[11,1386306970],[11,1385800154],[11,1386441593],[11,1386299051],[11,1385815992],[11,1385958534],[11,1385895182],[11,1386386160],[11,1386053562],[11,1386774191],[11,1386908814],[11,1385847668],[11,1385950615],[11,1386702920],[11,1386283213],[11,1385736802],[11,1386900895],[10,1386368234],[10,1390676170],[10,1386170259],[10,1393503253],[10,1391610612],[10,1388775610],[10,1391309690],[10,1390351491],[10,1388609311],[10,1392426269],[10,1386320720],[10,1388181685],[10,1387857006],[10,1393978393],[10,1392671758],[10,1392481702],[10,1388625149],[10,1391555179],[10,1386589966],[10,1393067708],[10,1392624244],[10,1388142090],[10,1392750948],[10,1387746140],[10,1390945416],[10,1388284632],[10,1386471181],[10,1393606200],[10,1392521297],[10,1393424063],[10,1393471577],[10,1392537135],[10,1390074326],[10,1388498445],[10,1388759772],[10,1387571922],[10,1387318514],[10,1391871939],[10,1388355903],[10,1385703038],[10,1388157928],[10,1388870638],[10,1391024606],[10,1390771198],[10,1389345778],[10,1391072120],[10,1393827932],[10,1386859212],[10,1393004356],[10,1386122745],[9,1390270213],[9,1409014486],[9,1402687205],[9,1404556089],[9,1415278415],[9,1394997856],[9,1387506482],[9,1414415244],[9,1386413660],[9,1406417054],[9,1387332264],[9,1397048877],[9,1391212574],[9,1403993840],[9,1391109627],[9,1408951134],[9,1386160252],[9,1398719786],[9,1409743034],[9,1386168171],[9,1397270609],[9,1399852203],[9,1403059398],[9,1410891289],[9,1401158838],[9,1410946722],[9,1396407438],[9,1412585955],[9,1413504559],[9,1391489739]];
+  function regionsConnected(regions,n){
+    for(var g=0;g<n;g++){
+      var start=-1,total=0;for(var i=0;i<n*n;i++)if(regions[Math.floor(i/n)][i%n]===g){start=i;total++}
+      if(total===0)return false;
+      var seen={},queue=[start];seen[start]=true;
+      while(queue.length){var at=queue.shift(),r=Math.floor(at/n),c=at%n,near=[r?at-n:-1,r<n-1?at+n:-1,c?at-1:-1,c<n-1?at+1:-1];for(var q=0;q<near.length;q++){var j=near[q];if(j>=0&&!seen[j]&&regions[Math.floor(j/n)][j%n]===g){seen[j]=true;queue.push(j)}}}
+      if(Object.keys(seen).length!==total)return false;
+    }
+    return true;
+  }
+  function firstPuzzleSolution(p){
+    var n=p.size,usedCols=new Array(n).fill(false),usedRegions=new Array(n).fill(false),chosen=new Array(n),answer=null;
+    function search(row){if(answer)return;if(row===n){answer=chosen.slice();return}for(var c=0;c<n;c++){var reg=p.regions[row][c];if(usedCols[c]||usedRegions[reg]||(row&&Math.abs(chosen[row-1]-c)<=1))continue;chosen[row]=c;usedCols[c]=true;usedRegions[reg]=true;search(row+1);usedCols[c]=false;usedRegions[reg]=false;if(answer)return}}
+    search(0);return answer;
+  }
+  function colorRegions(regions,n,seed){
+    var adjacent=Array.from({length:n},function(){return{}}),hues=new Array(n),used=new Array(14).fill(false),preferred=[0,5,10,8,3,7,2,4,12,6,1,11,9,13],offset=seed%preferred.length,calls=0;
+    var rgb=[[243,166,166],[246,193,132],[232,218,114],[184,219,118],[141,211,155],[127,214,188],[120,207,217],[130,189,229],[142,163,225],[170,146,220],[200,149,216],[232,155,200],[212,177,145],[167,184,196]];
+    function distance(a,b){var dr=rgb[a][0]-rgb[b][0],dg=rgb[a][1]-rgb[b][1],db=rgb[a][2]-rgb[b][2];return Math.sqrt(.3*dr*dr+.59*dg*dg+.11*db*db)}
+    for(var r=0;r<n;r++)for(var c=0;c<n;c++){var a=regions[r][c],b;if(r<n-1&&(b=regions[r+1][c])!==a){adjacent[a][b]=1;adjacent[b][a]=1}if(c<n-1&&(b=regions[r][c+1])!==a){adjacent[a][b]=1;adjacent[b][a]=1}}
+    function assign(colored){
+      if(colored===n)return true;
+      if(++calls>20000)return false;
+      var g=-1,bestColored=-1,bestDegree=-1;
+      for(var i=0;i<n;i++)if(hues[i]===undefined){
+        var keys=Object.keys(adjacent[i]).map(Number),coloredNeighbors=keys.filter(function(k){return hues[k]!==undefined}).length;
+        if(coloredNeighbors>bestColored||(coloredNeighbors===bestColored&&keys.length>bestDegree)){g=i;bestColored=coloredNeighbors;bestDegree=keys.length}
+      }
+      var neighbors=Object.keys(adjacent[g]).map(Number).filter(function(k){return hues[k]!==undefined}),choices=[];
+      for(var j=0;j<preferred.length;j++){
+        var candidate=preferred[(j+offset+colored)%preferred.length];
+        if(used[candidate])continue;
+        if((candidate===9&&used[10])||(candidate===10&&used[9]))continue;
+        if((candidate===5&&used[6])||(candidate===6&&used[5]))continue;
+        var distances=neighbors.map(function(k){return distance(candidate,hues[k])});
+        if(distances.some(function(value){return value<40}))continue;
+        choices.push({value:candidate,score:distances.length?Math.min.apply(null,distances):999,tie:j});
+      }
+      choices.sort(function(a,b){return b.score-a.score||a.tie-b.tie});
+      for(var q=0;q<choices.length;q++){
+        hues[g]=choices[q].value;used[choices[q].value]=true;
+        if(assign(colored+1))return true;
+        used[choices[q].value]=false;hues[g]=undefined;
+      }
+      return false;
+    }
+    if(assign(0))return hues;
+    var order=Array.from({length:n},function(_,i){return i});hues=new Array(n);
+    order.sort(function(a,b){return Object.keys(adjacent[b]).length-Object.keys(adjacent[a]).length||a-b});
+    order.forEach(function(g,index){
+      var neighbors=Object.keys(adjacent[g]).map(Number).filter(function(k){return hues[k]!==undefined}),best=-1,bestScore=-1;
+      for(var j=0;j<preferred.length;j++){
+        var candidate=preferred[(j+offset+index)%preferred.length];
+        if(hues.indexOf(candidate)>=0)continue;
+        if((candidate===9&&hues.indexOf(10)>=0)||(candidate===10&&hues.indexOf(9)>=0))continue;
+        if((candidate===5&&hues.indexOf(6)>=0)||(candidate===6&&hues.indexOf(5)>=0))continue;
+        var score=neighbors.length?Math.min.apply(null,neighbors.map(function(k){return distance(candidate,hues[k])})):200-j;
+        if(score>bestScore){best=candidate;bestScore=score}
+      }
+      hues[g]=best;
+    });
+    return hues;
+  }
+  function makeBalancedVariant(index,variant,salt){
+    var spec=levelSpec(index),n=spec.size,rand=rng(fixedSeed(index,variant*97+(salt||0)+701)),blockH=n===6?2:n===9?3:n===10?2:n===12?3:2,blockW=n/blockH,regionCols=n/blockW;
+    var regions=Array.from({length:n},function(_,r){return Array.from({length:n},function(_,c){return Math.floor(r/blockH)*regionCols+Math.floor(c/blockW)})});
+    var flips=2+Math.floor(index/12)+variant;
+    for(var attempt=0,done=0;attempt<180&&done<flips;attempt++){
+      var vertical=rand()<.5,r,c,a,b,trial=regions.map(function(row){return row.slice()});
+      if(vertical){var band=Math.floor(rand()*regionCols);if(band>=regionCols-1)continue;r=Math.floor(rand()*(n-1));if(Math.floor(r/blockH)!==Math.floor((r+1)/blockH))continue;c=(band+1)*blockW-1;a=trial[r][c];b=trial[r][c+1];if(a===b||trial[r+1][c]!==a||trial[r+1][c+1]!==b)continue;trial[r][c+1]=a;trial[r+1][c]=b}
+      else{var rowBand=Math.floor(rand()*(n/blockH));if(rowBand>=n/blockH-1)continue;r=(rowBand+1)*blockH-1;c=Math.floor(rand()*(n-1));if(Math.floor(c/blockW)!==Math.floor((c+1)/blockW))continue;a=trial[r][c];b=trial[r+1][c];if(a===b||trial[r][c+1]!==a||trial[r+1][c+1]!==b)continue;trial[r+1][c]=a;trial[r][c+1]=b}
+      if(regionsConnected(trial,n)){regions=trial;done++}
+    }
+    var p={name:first[index%10]+second[Math.floor(index/10)],size:n,colors:n,label:spec.label,regions:regions,difficulty:spec.difficulty};
+    p.solution=firstPuzzleSolution(p);if(!p.solution)return null;p.regionHues=colorRegions(regions,n,index+variant);return p;
+  }
+  var CURATED_SIX=[
+    ['000011020314220314233354223354223555','140253'],
+    ['000111220011220044233054223354233555','140253'],
+    ['200111200114223314523544523544555544','140253'],
+    ['200001220111230044333444355554355554','140253'],
+    ['000001020011221111233444223544223555','140253']
+  ];
+  function curatedSix(index,variant){
+    var base=CURATED_SIX[(index*3+variant)%CURATED_SIX.length],flat=base[0].split('').map(Number),solution=base[1].split('').map(Number),turn=(index+variant*2)%8,out=new Array(36),next=new Array(6);
+    function xy(r,c){if(turn===0)return[r,c];if(turn===1)return[c,5-r];if(turn===2)return[5-r,5-c];if(turn===3)return[5-c,r];if(turn===4)return[r,5-c];if(turn===5)return[5-r,c];if(turn===6)return[c,r];return[5-c,5-r]}
+    for(var r=0;r<6;r++)for(var c=0;c<6;c++){var at=xy(r,c);out[at[0]*6+at[1]]=flat[r*6+c]}
+    for(var row=0;row<6;row++){var cat=xy(row,solution[row]);next[cat[0]]=cat[1]}
+    var spec=levelSpec(index),regions=[];for(var rr=0;rr<6;rr++)regions.push(out.slice(rr*6,(rr+1)*6));return{name:first[index%10]+second[Math.floor(index/10)],size:6,colors:6,label:spec.label,regions:regions,regionHues:colorRegions(regions,6,index+variant),solution:next,difficulty:spec.difficulty};
+  }
+  function findOpeningGuide(p){
+    var n=p.size,total=n*n,found=[];
+    function inspect(groups,axis){
+      var inGroup={};groups.forEach(function(g){inGroup[g]=true});
+      var lines={};
+      for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(inGroup[p.regions[r][c]])lines[axis==='row'?r:c]=true;
+      var lineList=Object.keys(lines).map(Number).sort(function(a,b){return a-b});
+      if(lineList.length!==groups.length)return;
+      var excluded=[];
+      lineList.forEach(function(line){for(var other=0;other<n;other++){var rr=axis==='row'?line:other,cc=axis==='row'?other:line;if(!inGroup[p.regions[rr][cc]])excluded.push(rr*n+cc)}});
+      if(excluded.length)found.push({type:'locked',axis:axis,regions:groups.slice(),lines:lineList,excluded:excluded});
+    }
+    function combinations(start,left,picked){
+      if(!left){inspect(picked,'row');inspect(picked,'col');return}
+      for(var g=start;g<=n-left;g++){picked.push(g);combinations(g+1,left-1,picked);picked.pop()}
+    }
+    for(var size=1;size<=n&&!found.length;size++)combinations(0,size,[]);
+    found.sort(function(a,b){return b.excluded.length-a.excluded.length||a.axis.localeCompare(b.axis)});
+    if(found.length)return found[0];
+
+    var units=[];
+    for(var row=0;row<n;row++)units.push({kind:'row',number:row,cells:Array.from({length:n},function(_,col){return row*n+col})});
+    for(var col=0;col<n;col++)units.push({kind:'col',number:col,cells:Array.from({length:n},function(_,r){return r*n+col})});
+    for(var region=0;region<n;region++){
+      var regionCells=[];
+      for(var i=0;i<total;i++)if(p.regions[Math.floor(i/n)][i%n]===region)regionCells.push(i);
+      units.push({kind:'region',number:region,cells:regionCells});
+    }
+    var combined=[];
+    units.forEach(function(unit){
+      if(unit.cells.length<2)return;
+      var inUnit={};unit.cells.forEach(function(i){inUnit[i]=true});
+      var excluded=[];
+      for(var target=0;target<total;target++)if(!inUnit[target]&&unit.cells.every(function(option){return puzzleConflict(option,target,p)}))excluded.push(target);
+      if(excluded.length)combined.push({type:'combined',kind:unit.kind,number:unit.number,cells:unit.cells.slice(),excluded:excluded});
+    });
+    combined.sort(function(a,b){return b.excluded.length-a.excluded.length||a.cells.length-b.cells.length||a.kind.localeCompare(b.kind)||a.number-b.number});
+    return combined[0]||null;
+  }
+  function validateFirstFive(all){
+    for(var level=0;level<5;level++)for(var variant=0;variant<3;variant++){
+      var p=all[level][variant],sizes=new Array(p.size).fill(0);
+      for(var r=0;r<p.size;r++)for(var c=0;c<p.size;c++)sizes[p.regions[r][c]]++;
+      // 第 1 關入門特例（CC 2026-10-09 明令，只限 6×6 第 1 關）：允許恰 2 個 1 格區，其餘 4 區 [7,10]
+      var limits={6:[4,8],9:[6,12],10:[7,13],12:[9,15]}[p.size];
+      var balanced=p.size===9
+        ? sizes.every(function(v){return v>0})
+        : p.size===6&&level===0
+          ? sizes.filter(function(v){return v===1}).length===2&&sizes.filter(function(v){return v!==1}).every(function(v){return v>=7&&v<=10})
+          : limits&&sizes.every(function(value){return value>=limits[0]&&value<=limits[1]});
+      if(p.size!==levelSpec(level).size||!balanced||!regionsConnected(p.regions,p.size)||countPuzzleSolutions(p,2)!==1||!logicalSolvePuzzle(p).solved||!findOpeningGuide(p))throw new Error('第 '+(level+1)+' 關第 '+(variant+1)+' 幅未通過開局版圖驗證');
+    }
+  }
+  function buildVariantPuzzles(){
+    if(!Array.isArray(window.VERIFIED_50_DATA)||window.VERIFIED_50_DATA.length!==TOTAL*3)throw new Error('已驗證版圖資料不完整');
+    var out=[],seen={};
+    for(var level=0;level<TOTAL;level++){
+      var variants=[],spec=levelSpec(level);
+      for(var variant=0;variant<3;variant++){
+        var raw=window.VERIFIED_50_DATA[level*3+variant],n=raw[0],flat=raw[1].split('').map(function(v){return parseInt(v,36)}),solution=raw[2].split('').map(function(v){return parseInt(v,36)}),regions=[];
+        if(n!==spec.size||flat.length!==n*n||solution.length!==n)throw new Error('第 '+(level+1)+' 關第 '+(variant+1)+' 幅版圖資料不符');
+        for(var r=0;r<n;r++)regions.push(flat.slice(r*n,(r+1)*n));
+        var puzzle={name:first[level%10]+second[Math.floor(level/10)],size:n,colors:n,label:spec.label,regions:regions,regionHues:colorRegions(regions,n,level*3+variant),solution:solution,difficulty:spec.difficulty};
+        var signature=canonicalPartitionSignature(puzzle),limits={6:[4,8],9:[6,12],10:[7,13],12:[9,15]}[n],regionSizes=new Array(n).fill(0);
+        flat.forEach(function(value){regionSizes[value]++});
+        if(seen[signature])throw new Error('發現旋轉或鏡像重複版圖：第 '+(level+1)+' 關第 '+(variant+1)+' 幅');
+        // 第 1 關入門特例（CC 2026-10-09 明令，只限 6×6 第 1 關）：允許恰 2 個 1 格區，其餘 4 區 [7,10]
+        var sizesOk=n===9
+          ? regionSizes.every(function(v){return v>0})
+          : n===6&&level===0
+            ? regionSizes.filter(function(v){return v===1}).length===2&&regionSizes.filter(function(v){return v!==1}).every(function(v){return v>=7&&v<=10})
+            : regionSizes.every(function(value){return value>=limits[0]&&value<=limits[1]});
+        if(!sizesOk||!regionsConnected(regions,n))throw new Error('第 '+(level+1)+' 關第 '+(variant+1)+' 幅色區結構未通過驗證');
+        seen[signature]=true;
+        variants.push(puzzle);
+      }
+      out.push(variants);
+    }
+    return out;
+  }
+  var puzzles=buildVariantPuzzles();validateFirstFive(puzzles);
+  var state={level:0,variant:0,cells:[],lockedXs:{},history:[],hearts:MAX_HEARTS,hintsRemaining:2,mistakes:0,hintsUsed:0,moves:0,score:0,mode:'x',start:Date.now(),locked:false,pendingCells:{},resultShown:false,levelAwarded:false,focus:0,milestoneRewards:{},openingAvailable:true,openingGuide:null,restoredEntry:false};
+  function currentPuzzle(){return puzzles[state.level][state.variant]}
+  var board=document.getElementById('board'),toast=document.getElementById('toast'),logicNote=document.getElementById('logicNote');
+  /* 放大點擊熱區：棋盤層統一處理點擊，判給最近的格子中心（擴展量＝格邊長×0.45） */
+  function onBoardClick(e){
+    var p=currentPuzzle(),n=p.size,rect=board.getBoundingClientRect();
+    var x=e.clientX-rect.left,y=e.clientY-rect.top;
+    var cellW=rect.width/n,cellH=rect.height/n,ext=cellW*0.45;
+    var c=Math.round((x-cellW/2)/cellW),r=Math.round((y-cellH/2)/cellH);
+    if(c<0||c>=n||r<0||r>=n)return;
+    var cx=c*cellW+cellW/2,cy=r*cellH+cellH/2;
+    if(Math.abs(x-cx)>cellW/2+ext||Math.abs(y-cy)>cellH/2+ext)return;
+    handleCellTap(r*n+c);
+  }
+  board.addEventListener('click',onBoardClick);
+  function encodeProgress(){
+    var bytes=[3,state.level,state.variant,(state.score>>>24)&255,(state.score>>>16)&255,(state.score>>>8)&255,state.score&255,state.hearts,state.hintsRemaining,state.levelAwarded?1:0],power=[1,3,9,27,81];
+    for(var i=0;i<state.cells.length;i+=5){var packed=0;for(var j=0;j<5&&i+j<state.cells.length;j++){var value=state.cells[i+j]==='x'?1:(state.cells[i+j]==='cat'?2:0);packed+=value*power[j]}bytes.push(packed)}
+    for(var k=0;k<state.cells.length;k+=8){var lockBits=0;for(var bit=0;bit<8&&k+bit<state.cells.length;bit++)if(state.lockedXs[k+bit])lockBits|=1<<bit;bytes.push(lockBits)}
+    var raw='';for(var b=0;b<bytes.length;b++)raw+=String.fromCharCode(bytes[b]);
+    return btoa(raw).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function persistProgress(){
+    var hash='#p='+encodeProgress();
+    if(location.hash!==hash)history.replaceState(null,'',hash);
+  }
+  function clearProgress(){if(location.hash)history.replaceState(null,'',location.pathname+location.search)}
+  function restoreProgress(){
+    var match=location.hash.match(/^#p=([A-Za-z0-9_-]+)$/);if(!match)return false;
+    try{
+      var encoded=match[1].replace(/-/g,'+').replace(/_/g,'/');while(encoded.length%4)encoded+='=';
+      var raw=atob(encoded),bytes=[];for(var i=0;i<raw.length;i++)bytes.push(raw.charCodeAt(i));
+      if(bytes.length<10||(bytes[0]!==2&&bytes[0]!==3))return false;
+      var version=bytes[0],level=bytes[1],variant=bytes[2];if(!puzzles[level]||variant>2)return false;
+      var p=puzzles[level][variant],needed=Math.ceil((p.size*p.size)/5),lockBytes=version===3?Math.ceil((p.size*p.size)/8):0;if(bytes.length!==10+needed+lockBytes)return false;
+      var score=((bytes[3]*16777216)+(bytes[4]<<16)+(bytes[5]<<8)+bytes[6]);
+      if(score<0||bytes[7]<1||bytes[7]>MAX_HEARTS||bytes[8]>2)return false;
+      var cells=[],lockedXs={},power=[1,3,9,27,81];
+      for(var n=0;n<needed;n++){var packed=bytes[10+n];if(packed>242)return false;for(var j=0;j<5&&cells.length<p.size*p.size;j++){var value=Math.floor(packed/power[j])%3;cells.push(value===1?'x':(value===2?'cat':''))}}
+      for(var k=0;k<lockBytes;k++){var lockBits=bytes[10+needed+k];for(var bit=0;bit<8&&k*8+bit<cells.length;bit++)if(lockBits&(1<<bit)){var lockedIndex=k*8+bit;if(cells[lockedIndex]!=='x')return false;lockedXs[lockedIndex]=true}}
+      state.level=level;state.variant=variant;state.cells=cells;state.lockedXs=lockedXs;state.score=score;state.hearts=bytes[7];state.hintsRemaining=bytes[8];state.levelAwarded=!!(bytes[9]&1);state.history=[];state.pendingCells={};state.mistakes=0;state.hintsUsed=2-state.hintsRemaining;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.focus=0;state.openingAvailable=false;state.openingGuide=null;state.restoredEntry=true;
+      return true;
+    }catch(err){return false}
+  }
+  var audioCtx=null,masterGain=null,muted=false,audioQueueTime=0,meowBufferPromise=null;
+  var MEOW_AUDIO_URI='data:audio/mpeg;base64,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';
+  function ensureAudio(){
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return Promise.resolve(false);
+    if(!audioCtx||audioCtx.state==='closed'){
+      audioCtx=new AC();masterGain=audioCtx.createGain();masterGain.gain.value=.42;masterGain.connect(audioCtx.destination);audioQueueTime=0;
+    }
+    if(audioCtx.state==='running')return Promise.resolve(true);
+    return audioCtx.resume().then(function(){return audioCtx.state==='running'}).catch(function(){return false});
+  }
+  function getMeowBuffer(){
+    if(meowBufferPromise)return meowBufferPromise;
+    meowBufferPromise=ensureAudio().then(function(ready){
+      if(!ready||!audioCtx)throw new Error('AudioContext unavailable');
+      var encoded=MEOW_AUDIO_URI.split(',')[1],raw=atob(encoded),bytes=new Uint8Array(raw.length);
+      for(var i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+      return audioCtx.decodeAudioData(bytes.buffer);
+    }).catch(function(err){meowBufferPromise=null;throw err});
+    return meowBufferPromise;
+  }
+  function queueSound(duration,draw){
+    if(muted)return;
+    ensureAudio().then(function(ready){
+      if(!ready||muted||!audioCtx||!masterGain)return;
+      var now=audioCtx.currentTime,start=Math.max(now+.012,audioQueueTime);
+      audioQueueTime=start+duration;
+      draw(start);
+    });
+  }
+  function soundClick(){
+    queueSound(.065,function(now){
+      var osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+      osc.type='square';osc.frequency.setValueAtTime(1250,now);osc.frequency.exponentialRampToValueAtTime(190,now+.045);
+      gain.gain.setValueAtTime(.18,now);gain.gain.exponentialRampToValueAtTime(.001,now+.05);
+      osc.connect(gain);gain.connect(masterGain);osc.start(now);osc.stop(now+.055);
+    });
+  }
+  function soundMeow(){
+    if(muted)return;
+    getMeowBuffer().then(function(buffer){
+      queueSound(buffer.duration,function(now){
+        var source=audioCtx.createBufferSource(),gain=audioCtx.createGain();
+        source.buffer=buffer;gain.gain.value=.9;source.connect(gain);gain.connect(masterGain);source.start(now);
+      });
+    }).catch(function(){});
+  }
+  function soundComplete(){
+    queueSound(.72,function(now){
+      var notes=[523.25,659.25,783.99,1046.5];
+      notes.forEach(function(freq,index){
+        var start=now+index*.13,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+        osc.type=index===3?'sine':'triangle';osc.frequency.setValueAtTime(freq,start);
+        gain.gain.setValueAtTime(.001,start);gain.gain.linearRampToValueAtTime(.16,start+.025);gain.gain.exponentialRampToValueAtTime(.001,start+.28);
+        osc.connect(gain);gain.connect(masterGain);osc.start(start);osc.stop(start+.3);
+      });
+    });
+  }
+  var catSVG='<svg class="cat" viewBox="0 0 64 64" aria-hidden="true"><g class="cat-sway"><g class="cat-breathe"><path d="M14 25 11 8l15 9a27 27 0 0 1 12 0l15-9-3 17c4 4 6 10 6 16 0 11-10 18-24 18S8 52 8 41c0-6 2-12 6-16Z" fill="#fffdf8" stroke="#29474f" stroke-width="2.7" stroke-linejoin="round"/><path d="m15 13 3 10 7-4Z" fill="#f5b4ae"/><path d="m49 13-3 10-7-4Z" fill="#f5b4ae"/><g class="cat-blink"><path d="M21 35h.1M43 35h.1" stroke="#29474f" stroke-width="5" stroke-linecap="round"/></g><path d="m29 41 3-2 3 2-3 3Z" fill="#ee7b70" stroke="#29474f" stroke-width="1.2" stroke-linejoin="round"/><path d="M32 44c-1 3-5 3-6 1m6-1c1 3 5 3 6 1" fill="none" stroke="#29474f" stroke-width="2" stroke-linecap="round"/><path d="M19 43 7 40m12 8L8 50m37-7 12-3m-12 8 11 2" fill="none" stroke="#29474f" stroke-width="2" stroke-linecap="round"/></g></g></svg>';
+  document.getElementById('catModeIcon').innerHTML=catSVG;document.getElementById('resultCat').innerHTML=catSVG;
+  function heartSVG(){return '<svg class="heart" viewBox="0 0 24 22" fill="currentColor" aria-hidden="true"><path d="M12 21S1 14.5 1 7.4C1 3.8 3.5 1 7 1c2.1 0 4 1.1 5 2.8C13 2.1 14.9 1 17 1c3.5 0 6 2.8 6 6.4C23 14.5 12 21 12 21Z"/><path class="heart-crack" d="m13.5 3.5-3 5 3 2.8-3.2 5.2 1.2 4"/></svg>'}
+  function paintHearts(){state.hearts=Math.min(MAX_HEARTS,Math.max(0,state.hearts));var h=document.getElementById('hearts');h.innerHTML='';for(var i=0;i<MAX_HEARTS;i++){var w=document.createElement('span');w.innerHTML=heartSVG();var svg=w.firstChild;if(i>=state.hearts)svg.classList.add('lost');h.appendChild(svg)}h.setAttribute('aria-label','剩餘'+state.hearts+'次機會')}
+  function paintScore(){state.score=Math.max(0,state.score);document.getElementById('scoreValue').textContent=state.score.toLocaleString('zh-Hant')}
+  function changeScore(delta){state.score=Math.max(0,state.score+delta);paintScore();persistProgress()}
+  function paintMode(){document.getElementById('xModeBtn').setAttribute('aria-pressed',state.mode==='x'?'true':'false');document.getElementById('catModeBtn').setAttribute('aria-pressed',state.mode==='cat'?'true':'false')}
+  function chooseMode(mode){state.mode=mode;paintMode();setLogic(mode==='cat'?'已選擇放貓':'已選擇標 X',mode==='cat'?'單擊空白格放貓；玩家手動標記可取消，鎖定 X 不可更改。':'單擊空白格標 X；玩家手動標記可取消，鎖定 X 不可更改。',mode==='cat'?'●':'×')}
+  function paintHintButton(){var btn=document.getElementById('hintBtn'),label=document.getElementById('hintLabel'),used=state.hintsRemaining<=0;label.textContent=used?'找貓提示 · 已用完':'找貓提示 · 剩餘 '+state.hintsRemaining+' 次';btn.setAttribute('aria-label',used?'找貓提示，本關已用完':'找貓提示，本關剩餘'+state.hintsRemaining+'次');btn.classList.toggle('hint-used',used)}
+  function paintOpeningButton(){var btn=document.getElementById('openingBtn'),label=document.getElementById('openingLabel');btn.hidden=state.restoredEntry;if(state.restoredEntry){btn.disabled=true;return}label.textContent=state.openingAvailable?'開局指引 · 免費':'開局指引 · 已看';btn.disabled=!state.openingAvailable;btn.classList.toggle('guide-used',!state.openingAvailable);btn.setAttribute('aria-label',state.openingAvailable?'查看本關免費開局指引':'本關開局指引已看')}
+  function render(){var p=currentPuzzle();board.innerHTML='';board.style.gridTemplateColumns='repeat('+p.size+',1fr)';board.style.gridTemplateRows='repeat('+p.size+',1fr)';document.getElementById('levelCount').textContent='第 '+(state.level+1)+'／'+TOTAL+' 關 · '+p.label+' · '+p.size+'×'+p.size+' · '+p.colors+' 色';document.getElementById('levelName').textContent=p.name;for(var r=0;r<p.size;r++)for(var c=0;c<p.size;c++){var i=r*p.size+c,b=document.createElement('button');b.type='button';b.className='cell';b.dataset.i=i;b.setAttribute('role','gridcell');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，空白');b.tabIndex=i===state.focus?0:-1;b.style.setProperty('--cell-bg',palette[p.regionHues[p.regions[r][c]]]);b.addEventListener('keydown',onKey);board.appendChild(b)}paintHearts();paintScore();paintMode();paintHintButton();paintOpeningButton();updateAll(false)}
+  function updateCell(i,animate){var b=board.children[i],p=currentPuzzle(),r=Math.floor(i/p.size),c=i%p.size,v=state.cells[i],lockedX=!!state.lockedXs[i];b.innerHTML=v==='cat'?catSVG:(v==='x'?'<span class="cross" aria-hidden="true"></span>':'');if(v==='cat'&&animate)b.querySelector('.cat').classList.add('pop');b.setAttribute('aria-disabled',lockedX?'true':'false');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，'+(v==='cat'?'貓咪':v==='x'?(lockedX?'已排除，鎖定':'已排除'):'空白'))}
+  function snapshot(){state.history.push(state.cells.slice());if(state.history.length>100)state.history.shift()}
+  function focusCell(i){state.focus=i;board.querySelectorAll('.cell').forEach(function(x,j){x.tabIndex=j===i?0:-1})}
+  function handleCellTap(i){if(state.locked)return;if(state.pendingCells[i]||state.lockedXs[i])return;focusCell(i);if(state.cells[i]!==''){removeMark(i);return}if(state.mode==='cat')placeCat(i);else placeX(i)}
+  function placeX(i){
+    if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]!=='')return;
+    snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();setLogic('已標記不能放','目前是「標 X」模式；玩家手動標記可取消，鎖定 X 不可更改。','×');persistProgress()
+  }
+  function removeMark(i){if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]==='')return;snapshot();state.moves++;state.cells[i]='';updateCell(i,false);setLogic('已取消標記','目前選擇的標記模式保持不變。','↶');persistProgress()}
+  function conflicts(a,b,p){var ar=Math.floor(a/p.size),ac=a%p.size,br=Math.floor(b/p.size),bc=b%p.size;return ar===br||ac===bc||p.regions[ar][ac]===p.regions[br][bc]||(Math.abs(ar-br)<=1&&Math.abs(ac-bc)<=1)}
+  function commitWrongPlacement(i){
+    var scoreBeforePenalty=state.score;
+    state.cells[i]='x';
+    state.lockedXs[i]=true;
+    state.pendingCells[i]=true;
+    state.hearts=Math.max(0,state.hearts-1);
+    state.mistakes++;
+    state.score=Math.max(0,state.score-500);
+    if(state.hearts<=0)state.locked=true;
+    persistProgress();
+    return{hearts:state.hearts,deducted:scoreBeforePenalty-state.score};
+  }
+  function placeCat(i){
+    if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]!=='')return;
+    snapshot();state.moves++;state.cells[i]='cat';
+    var p=currentPuzzle(),validationCells=state.cells.slice();
+    Object.keys(state.pendingCells).forEach(function(key){validationCells[+key]='x'});
+    updateCell(i,true);soundMeow();state.mode='x';paintMode();
+    if(!findLegalSolution(p,validationCells,-1)){
+      var beforeCat=state.history[state.history.length-1].slice();
+      Object.keys(state.pendingCells).forEach(function(key){beforeCat[+key]='x'});
+      if(!findLegalSolution(p,beforeCat,-1)){
+        state.cells=state.history.pop();state.moves--;updateCell(i,false);state.mode='cat';paintMode();
+        setLogic('棋面已有矛盾','放貓前棋面已無合法解，這隻貓未必放錯，已還原這步；請先用「復原」或「全部清除」修正較早的標記，不扣心。','!');
+        showToast('請先修正較早標記的矛盾');vibrate(35);persistProgress();return;
+      }
+      var cell=board.children[i],penalty=commitWrongPlacement(i),heartAfterHit=penalty.hearts;cell.setAttribute('aria-busy','true');
+      setLogic('正在檢查這隻貓','先看清楚剛放下的貓咪，棋面正在確認是否仍有合法解。','…');
+      setTimeout(function(){
+        paintScore();paintHearts();
+        var heartBox=document.getElementById('hearts'),lostHeart=heartBox.querySelectorAll('.heart')[heartAfterHit];
+        heartBox.classList.remove('heart-hit');void heartBox.offsetWidth;heartBox.classList.add('heart-hit');if(lostHeart)lostHeart.classList.add('breaking');
+        cell.classList.add('wrong');soundClick();vibrate([70,45,110]);
+        var penaltyText=penalty.deducted?'扣除 1 顆心及 '+penalty.deducted+' 分。':'扣除 1 顆心；積分已是 0 分，不再扣分。';
+        setLogic('這格不能放貓','棋面已沒有合法解，'+penaltyText,'!');
+        showToast(penalty.deducted?'放錯了：扣 1 顆心及 '+penalty.deducted+' 分':'放錯了：扣 1 顆心，積分維持 0 分');
+      },700);
+      setTimeout(function(){
+        delete state.pendingCells[i];cell.classList.remove('wrong');cell.removeAttribute('aria-busy');updateCell(i,false);soundClick();
+        var boardStillValid=!!findLegalSolution(p,state.cells,-1);
+        if(boardStillValid)setLogic('已自動標記 X','錯放的格子已改為 X，可以繼續推理；標記模式為「標 X」。','×');
+        else setLogic('棋面仍有矛盾','錯放的格子已改為 X，但較早的標記可能有誤；建議使用「復原」或「全部清除」。','!');
+        if(state.hearts<=0){state.locked=true;setTimeout(function(){finish(false)},250)}else if(boardStillValid&&!Object.keys(state.pendingCells).length)checkWin();
+      },1500);
+      return;
+    }
+    persistProgress();setLogic('已放置貓咪','目前棋面仍有合法解，已自動切回「標 X」模式。','✓');vibrate(25);checkWin()
+  }
+  function updateAll(animate){for(var i=0;i<state.cells.length;i++)updateCell(i,animate&&state.cells[i]==='cat')}
+  function clearOpeningGuideVisuals(){board.querySelectorAll('.opening-region,.opening-target').forEach(function(cell){cell.classList.remove('opening-region','opening-target')});logicNote.classList.remove('guide-active')}
+  function formatLines(lines,axis){return lines.map(function(line){return '第 '+(line+1)+(axis==='row'?' 行':' 列')}).join('、')}
+  function formatCells(cells,p){return cells.map(function(i){return '第 '+(Math.floor(i/p.size)+1)+' 行第 '+(i%p.size+1)+' 列'}).join('、')}
+  function showOpeningGuide(){
+    if(state.locked)return;
+    if(!state.openingAvailable){showToast('本關開局指引已看');return}
+    var p=currentPuzzle(),guide=findOpeningGuide(p);
+    state.openingAvailable=false;state.openingGuide=guide;paintOpeningButton();persistProgress();clearOpeningGuideVisuals();
+    if(!guide){setLogic('先由限制最多的位置開始','逐一比較每行、每列與色區可放貓的位置；本次不會扣除找貓提示。','↗');return}
+    var targetText=guide.excluded.length<=4?formatCells(guide.excluded,p):('金框的 '+guide.excluded.length+' 格'),reason;
+    if(guide.type==='combined'){
+      guide.cells.forEach(function(i){board.children[i].classList.add('opening-region')});
+      guide.excluded.forEach(function(i){board.children[i].classList.add('opening-target')});
+      var sourceName=guide.kind==='row'?('第 '+(guide.number+1)+' 行'):guide.kind==='col'?('第 '+(guide.number+1)+' 列'):'高亮色區';
+      reason=sourceName+'必定藏一隻貓；無論牠落在高亮範圍的哪一格，金框位置都會與牠同行、同列、同色區或相鄰，因此不能放貓。';
+    }else{
+      var inRegion={};guide.regions.forEach(function(g){inRegion[g]=true});
+      for(var i=0;i<p.size*p.size;i++)if(inRegion[p.regions[Math.floor(i/p.size)][i%p.size]])board.children[i].classList.add('opening-region');
+      guide.excluded.forEach(function(i){board.children[i].classList.add('opening-target')});
+      var axisName=guide.axis==='row'?'行':'列',lineText=formatLines(guide.lines,guide.axis);
+      reason=guide.regions.length===1?'高亮色區只出現在'+lineText+'，所以這'+axisName+'唯一的貓一定藏在高亮色區內。':'高亮的 '+guide.regions.length+' 個色區只佔'+lineText+'；每個色區各藏一隻，剛好填滿這 '+guide.lines.length+' '+axisName+'。';
+    }
+    logicNote.classList.add('guide-active');logicNote.innerHTML='<b>↗</b><p><strong>免費開局指引</strong>'+reason+'先把'+targetText+'標 X 試試。畫面不會替你落子，也不消耗找貓提示。</p><button class="guide-close" type="button">明白，自己試</button>';
+  }
+  function closeOpeningGuide(){state.openingGuide=null;setLogic('輪到你推理','高亮已收起；剛才只示範一步，其餘位置由你判斷。','✓')}
+  function setLogic(title,text,symbol){clearOpeningGuideVisuals();state.openingGuide=null;logicNote.innerHTML='<b>'+symbol+'</b><p><strong>'+title+'</strong>'+text+'</p>'}
+  function checkWin(){if(Object.keys(state.pendingCells).length)return false;var p=currentPuzzle(),cats=[],rows=new Array(p.size).fill(0),cols=new Array(p.size).fill(0),regions=new Array(p.size).fill(0);for(var i=0;i<state.cells.length;i++)if(state.cells[i]==='cat'){var r=Math.floor(i/p.size),c=i%p.size;cats.push(i);rows[r]++;cols[c]++;regions[p.regions[r][c]]++}if(cats.length!==p.size)return false;for(var n=0;n<p.size;n++)if(rows[n]!==1||cols[n]!==1||regions[n]!==1)return false;for(var a=0;a<cats.length;a++)for(var b=a+1;b<cats.length;b++)if(conflicts(cats[a],cats[b],p))return false;state.locked=true;setTimeout(function(){finish(true)},350);return true}
+  var lockedScrollY=0,pageScrollLocked=false,modalTouchY=0;
+  function modalSheetFromTarget(target){return target&&target.closest?target.closest('dialog[open] .sheet'):null}
+  function rememberModalTouch(e){if(pageScrollLocked&&e.touches.length)modalTouchY=e.touches[0].clientY}
+  function stopBackgroundTouch(e){
+    if(!pageScrollLocked||!e.touches.length)return;
+    var sheet=modalSheetFromTarget(e.target),nextY=e.touches[0].clientY;
+    if(!sheet||sheet.scrollHeight<=sheet.clientHeight){e.preventDefault();return}
+    var delta=nextY-modalTouchY,atTop=sheet.scrollTop<=0,atBottom=sheet.scrollTop+sheet.clientHeight>=sheet.scrollHeight-1;
+    if((atTop&&delta>0)||(atBottom&&delta<0))e.preventDefault();
+    modalTouchY=nextY;
+  }
+  function lockPageScroll(){
+    if(pageScrollLocked)return;
+    pageScrollLocked=true;lockedScrollY=window.scrollY||window.pageYOffset||0;
+    document.documentElement.classList.add('dialog-open');document.body.classList.add('dialog-open');document.body.style.top='-'+lockedScrollY+'px';
+    document.addEventListener('touchstart',rememberModalTouch,{passive:true});document.addEventListener('touchmove',stopBackgroundTouch,{passive:false});
+  }
+  function unlockPageScroll(){
+    if(!pageScrollLocked)return;
+    pageScrollLocked=false;document.removeEventListener('touchstart',rememberModalTouch);document.removeEventListener('touchmove',stopBackgroundTouch);
+    document.documentElement.classList.remove('dialog-open');document.body.classList.remove('dialog-open');document.body.style.top='';window.scrollTo(0,lockedScrollY);
+  }
+  function openResultDialog(dialog){lockPageScroll();dialog.showModal();dialog.scrollTop=0}
+  function closeResultDialog(){var dialog=document.getElementById('resultDialog');if(dialog.open)dialog.close();unlockPageScroll()}
+  function doRestartFromFirst(){
+    clearToast();state.hearts=MAX_HEARTS;state.score=0;state.mode='x';state.milestoneRewards={};newLevel(0,true);clearProgress();
+  }
+  function askRestartConfirm(){
+    var c=document.getElementById('confirmDialog');
+    if(c.open)return;
+    c.showModal();
+    document.getElementById('confirmNo').focus();
+  }
+  function finish(win){
+    if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
+    var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
+    if(firstCompletion){state.levelAwarded=true;changeScore(1000);earned=true}
+    if(firstCompletion&&completed%5===0&&!state.milestoneRewards[completed]){
+      state.milestoneRewards[completed]=true;
+      if(state.hearts<MAX_HEARTS){state.hearts=Math.min(MAX_HEARTS,state.hearts+1);recovered=true;paintHearts();persistProgress()}
+    }
+    var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor((Date.now()-state.start)/1000)),nextBtn=document.getElementById('nextBtn'),retryBtn=document.getElementById('retryBtn');document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';document.getElementById('resultText').textContent=win?(state.level===TOTAL-1?('你已完成現階段全部 10 關'+(earned?'，本關獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。'):('本關完成'+(earned?'，獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。')):'5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。';nextBtn.textContent=win?(state.level===TOTAL-1?'再玩一輪':'下一關'):'重新開始';retryBtn.textContent=win?'重新開始':'繼續玩';retryBtn.style.display='block';if(win){nextBtn.className='primary';retryBtn.className='secondary';nextBtn.autofocus=true;retryBtn.autofocus=false;retryBtn.parentNode.insertBefore(nextBtn,retryBtn)}else{retryBtn.className='primary';nextBtn.className='secondary';retryBtn.autofocus=true;nextBtn.autofocus=false;nextBtn.parentNode.insertBefore(retryBtn,nextBtn)}d.dataset.win=win?'1':'0';openResultDialog(d);if(win){soundComplete();burst()}
+  }
+  function newLevel(index,skipSave,preserveVariant){clearToast();state.level=index;if(!preserveVariant)state.variant=Math.floor(Math.random()*3);var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=true;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','先查看免費「開局指引」，或直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress()}
+  function restartLevel(){
+    if(state.locked)return;if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}
+    var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.focus=0;
+    render();setLogic('已清除所有標記','所有標記（含錯放後鎖定的 X）已全部清除；版圖、積分、心數、失誤數及計時保持不變，可由空白棋盤重新推理。','↻');showToast('已清除所有標記');persistProgress()
+  }
+  function undo(){if(state.locked||!state.history.length){showToast('沒有可復原的步驟');return}if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}state.cells=state.history.pop();Object.keys(state.lockedXs).forEach(function(key){state.cells[+key]='x'});updateAll(false);setLogic('已復原一步','錯放後鎖定的 X 會保留；可繼續推理下一個位置。','↶');persistProgress()}
+  function healPoisonedLocks(p){
+    var lockKeys=Object.keys(state.lockedXs);
+    if(!lockKeys.length)return false;
+    var probe=new Array(p.size*p.size).fill('');
+    lockKeys.forEach(function(key){probe[+key]='x'});
+    if(findLegalSolution(p,probe,-1))return false;
+    lockKeys.forEach(function(key){delete state.lockedXs[key];if(state.cells[+key]==='x')state.cells[+key]=''});
+    return true;
+  }
+  function findLegalSolution(p,cells,forbidden){
+    var n=p.size,fixedRows=new Array(n).fill(-1),cats=[];
+    for(var i=0;i<cells.length;i++)if(cells[i]==='cat'){
+      var row=Math.floor(i/n);
+      if(fixedRows[row]>=0)return null;
+      fixedRows[row]=i;cats.push(i);
+    }
+    for(var a=0;a<cats.length;a++)for(var b=a+1;b<cats.length;b++)if(conflicts(cats[a],cats[b],p))return null;
+    var rows=[];
+    for(var r=0;r<n;r++){
+      var options=[];
+      if(fixedRows[r]>=0){
+        if(fixedRows[r]===forbidden)return null;
+        options.push(fixedRows[r]);
+      }else for(var c=0;c<n;c++){
+        var idx=r*n+c;
+        if(idx!==forbidden&&cells[idx]!=='x')options.push(idx);
+      }
+      if(!options.length)return null;
+      rows.push({row:r,options:options});
+    }
+    rows.sort(function(x,y){return x.options.length-y.options.length});
+    var chosen=[],usedCols=new Array(n).fill(false),usedRegions=new Array(n).fill(false),answer=new Array(n);
+    function search(k){
+      if(k===rows.length)return true;
+      var item=rows[k];
+      for(var q=0;q<item.options.length;q++){
+        var idx=item.options[q],rr=Math.floor(idx/n),cc=idx%n,reg=p.regions[rr][cc],ok=true;
+        if(usedCols[cc]||usedRegions[reg])continue;
+        for(var j=0;j<chosen.length;j++)if(conflicts(idx,chosen[j],p)){ok=false;break}
+        if(!ok)continue;
+        chosen.push(idx);usedCols[cc]=true;usedRegions[reg]=true;answer[rr]=idx;
+        if(search(k+1))return true;
+        chosen.pop();usedCols[cc]=false;usedRegions[reg]=false;answer[rr]=undefined;
+      }
+      return false;
+    }
+    return search(0)?answer:null;
+  }
+  function directConflictMessage(p){
+    var cats=[];
+    for(var i=0;i<state.cells.length;i++)if(state.cells[i]==='cat')cats.push(i);
+    for(var a=0;a<cats.length;a++)for(var b=a+1;b<cats.length;b++)if(conflicts(cats[a],cats[b],p)){
+      var ar=Math.floor(cats[a]/p.size)+1,ac=cats[a]%p.size+1,br=Math.floor(cats[b]/p.size)+1,bc=cats[b]%p.size+1,reason;
+      if(ar===br)reason='兩隻貓在同一行，違反「每行只可有一隻貓」';
+      else if(ac===bc)reason='兩隻貓在同一列，違反「每列只可有一隻貓」';
+      else if(p.regions[ar-1][ac-1]===p.regions[br-1][bc-1])reason='兩隻貓在同一色區，違反「每色區只可有一隻貓」';
+      else reason='兩隻貓彼此相鄰（包括斜角），違反「貓咪不能彼此相鄰」';
+      return '第 '+ar+' 行第 '+ac+' 列的貓與第 '+br+' 行第 '+bc+' 列的貓：'+reason+'。請先取消其中一隻。';
+    }
+    var core=state.cells.slice();
+    for(var x=0;x<core.length;x++)if(core[x]!==''){
+      var withoutMark=core.slice();withoutMark[x]='';
+      if(!findLegalSolution(p,withoutMark,-1))core=withoutMark;
+    }
+    var bad=[];
+    for(var j=0;j<core.length;j++)if(core[j]!=='')bad.push({i:j,mark:core[j]});
+    for(var k=0;k<bad.length;k++)if(bad[k].mark==='x'){
+      var xr=Math.floor(bad[k].i/p.size)+1,xc=bad[k].i%p.size+1,withoutX=core.slice();withoutX[bad[k].i]='';
+      var recovered=findLegalSolution(p,withoutX,-1);
+      if(recovered&&recovered[xr-1]===bad[k].i)return '第 '+xr+' 行第 '+xc+' 列的 X 排除了目前唯一能完成棋面的貓位；保留其他標記時，只有把貓放在這格，才能同時滿足「每行、每列、每色區各一隻」及「貓咪不能相鄰」。請取消這個 X。';
+    }
+    if(bad.length){
+      var badX=bad.find(function(item){return item.mark==='x'});
+      if(badX){
+        var badXR=Math.floor(badX.i/p.size)+1,badXC=badX.i%p.size+1;
+        return '第 '+badXR+' 行第 '+badXC+' 列的 X 與其他標記矛盾，令棋面無法同時滿足所有規則。請先取消其中一個標記。';
+      }
+      var shown=bad.slice(0,4).map(function(item){return '第 '+(Math.floor(item.i/p.size)+1)+' 行第 '+(item.i%p.size+1)+' 列的 '+(item.mark==='cat'?'貓':'X')});
+      return '這組標記（'+shown.join('、')+(bad.length>4?'等共 '+bad.length+' 個標記':'')+'）令「每行、每列、每色區各一隻」及「貓咪不能相鄰」無法同時成立。請取消其中一個再推理。';
+    }
+    return '目前沒有任何位置能同時滿足「每行、每列、每色區各一隻」及「貓咪不能相鄰」。請按「全部清除」後重新推理。';
+  }
+  function hint(){
+    if(state.locked)return;
+    if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}
+    if(state.hintsRemaining<=0){setLogic('本關找貓提示已用完','下一關會回復 2 次；找貓提示不扣心，但每次扣 100 分。','!');showToast('本關找貓提示已用完');return}
+    var p=currentPuzzle(),sol=p.solution;
+    if(!findLegalSolution(p,state.cells,-1)){setLogic('棋面有矛盾',directConflictMessage(p),'!');showToast('請先修正矛盾');vibrate(35);return}
+    var target=-1,certain=false;
+    for(var r=0;r<p.size;r++){
+      var candidate=r*p.size+sol[r];
+      if(state.cells[candidate]==='cat')continue;
+      if(!findLegalSolution(p,state.cells,candidate)){target=candidate;certain=true;break}
+    }
+    if(target<0)for(var sr=0;sr<p.size;sr++){var fallbackCell=sr*p.size+sol[sr];if(state.cells[fallbackCell]!=='cat'){target=fallbackCell;break}}
+    if(target<0){checkWin();return}
+    snapshot();state.cells[target]='cat';state.moves++;state.hintsUsed++;state.hintsRemaining--;
+    var scoreBeforeHint=state.score;changeScore(-100);var deducted=scoreBeforeHint-state.score;
+    state.mode='x';paintMode();updateAll(false);soundMeow();paintHintButton();board.children[target].classList.add('hinted');vibrate(35);
+    var tr=Math.floor(target/p.size)+1,tc=target%p.size+1,scoreText=deducted?'已扣 '+deducted+' 分，不扣心。':'積分已是 0 分，不再扣分；找貓提示不扣心。';
+    if(certain)setLogic('找貓提示：確定貓位','所有符合目前棋面的解法，都會在第 '+tr+' 行第 '+tc+' 列放貓。'+scoreText+'已自動切回「標 X」模式。','✓');
+    else setLogic('找貓提示：其中一個解','第 '+tr+' 行第 '+tc+' 列是其中一個符合目前標記的合法解位置。'+scoreText+'已自動切回「標 X」模式。','✓');
+    showToast(deducted?'找貓提示已放置貓咪：扣 '+deducted+' 分':'找貓提示已放置貓咪：積分維持 0 分');
+    persistProgress();checkWin()
+  }
+  function onKey(e){var p=currentPuzzle(),i=+e.currentTarget.dataset.i,r=Math.floor(i/p.size),c=i%p.size,ni=i;if(e.key==='ArrowUp')ni=Math.max(0,r-1)*p.size+c;else if(e.key==='ArrowDown')ni=Math.min(p.size-1,r+1)*p.size+c;else if(e.key==='ArrowLeft')ni=r*p.size+Math.max(0,c-1);else if(e.key==='ArrowRight')ni=r*p.size+Math.min(p.size-1,c+1);else if(e.key===' '||e.key==='Enter'){e.preventDefault();handleCellTap(i);return}else if(e.key.toLowerCase()==='c'){e.preventDefault();chooseMode('cat');return}else if(e.key.toLowerCase()==='x'){e.preventDefault();chooseMode('x');return}else return;e.preventDefault();focusCell(ni);board.children[ni].focus()}
+  var toastTimer=null;function clearToast(){if(toastTimer!==null){clearTimeout(toastTimer);toastTimer=null}toast.classList.remove('show');toast.textContent=''}function showToast(t){clearToast();toast.textContent=t;void toast.offsetWidth;toast.classList.add('show');var id=setTimeout(function(){if(toastTimer===id){toastTimer=null;toast.classList.remove('show')}},2500);toastTimer=id}function vibrate(ms){if(navigator.vibrate)navigator.vibrate(ms)}
+  function burst(){var box=document.getElementById('confetti'),colors=['#ec6f5c','#f2b84b','#4aa98e','#6b8fd8'];box.innerHTML='';for(var i=0;i<26;i++){var x=document.createElement('i');x.style.left=(5+Math.random()*90)+'%';x.style.background=colors[i%colors.length];x.style.setProperty('--drift',(Math.random()*160-80)+'px');x.style.animationDelay=(Math.random()*.45)+'s';box.appendChild(x)}setTimeout(function(){box.innerHTML=''},2400)}
+  function toggleSound(){
+    muted=!muted;
+    ensureAudio().then(function(ready){if(ready&&masterGain){masterGain.gain.cancelScheduledValues(audioCtx.currentTime);masterGain.gain.setValueAtTime(muted?0:.42,audioCtx.currentTime);if(!muted)audioQueueTime=audioCtx.currentTime}});
+    var btn=document.getElementById('soundBtn');btn.setAttribute('aria-pressed',muted?'true':'false');btn.setAttribute('aria-label',muted?'開啟音效':'靜音');btn.title=muted?'開啟音效':'靜音';showToast(muted?'音效已關閉':'音效已開啟')
+  }
+  function unlockAudio(){if(!muted)ensureAudio()}
+  document.addEventListener('pointerdown',unlockAudio,{capture:true,passive:true});document.addEventListener('keydown',unlockAudio,{capture:true});document.addEventListener('visibilitychange',function(){if(!document.hidden&&!muted)ensureAudio()});
+  var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(!won||finishedAll){askRestartConfirm();return}closeResultDialog();newLevel(state.level+1)};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}askRestartConfirm()};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);var confirmDialog=document.getElementById('confirmDialog');document.getElementById('confirmYes').onclick=function(){if(confirmDialog.open)confirmDialog.close();closeResultDialog();doRestartFromFirst()};document.getElementById('confirmNo').onclick=function(){if(confirmDialog.open)confirmDialog.close()};confirmDialog.addEventListener('click',function(e){if(e.target===confirmDialog)confirmDialog.close()});[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
+  if(IS_TEST){
+    /* 測試版專屬：跳關功能。IS_TEST=false（玩家版）時此整塊不執行，
+       頁面上無按鈕、無入口，功能完全不可觸達。 */
+    (function(){
+      var nav=document.querySelector('.top-actions');
+      if(!nav)return;
+      var jumpBtn=document.createElement('button');
+      jumpBtn.className='quiet-btn';
+      jumpBtn.type='button';
+      jumpBtn.id='jumpBtn';
+      jumpBtn.setAttribute('aria-label','跳到指定關卡（測試專用）');
+      jumpBtn.textContent='跳關（測試）';
+      var jumpDialog=document.getElementById('jumpDialog'),jumpForm=document.getElementById('jumpForm'),jumpInput=document.getElementById('jumpInput'),jumpError=document.getElementById('jumpError');
+      jumpBtn.onclick=function(){jumpInput.value=String(state.level+1);jumpError.hidden=true;jumpDialog.showModal();jumpInput.focus();jumpInput.select()};
+      document.getElementById('jumpCancel').onclick=function(){jumpDialog.close()};
+      jumpDialog.addEventListener('click',function(e){if(e.target===jumpDialog)jumpDialog.close()});
+      jumpForm.onsubmit=function(e){
+        e.preventDefault();
+        var n=Number(jumpInput.value);
+        if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.hidden=false;showToast('請輸入 1–10 的關號');jumpInput.focus();return}
+        jumpDialog.close();closeResultDialog();clearToast();newLevel(n-1);
+      };
+      nav.appendChild(jumpBtn);
+    })();
+  }
+  if(restoreProgress()){
+    var restoredPuzzle=currentPuzzle(),healedOnLoad=healPoisonedLocks(restoredPuzzle);
+    render();updateAll(false);
+    if(state.hearts<=0){
+      state.locked=true;setLogic('已恢復上次進度','錯放懲罰已保存；5 顆心已用完。','!');setTimeout(function(){finish(false)},120)
+    }else{
+      setLogic('已恢復上次進度','第 '+(state.level+1)+' 關的棋盤、積分、心數及找貓提示次數已恢復。'+(healedOnLoad?'舊版本誤判留下的無解鎖定已自動清除。':''),'↻');setTimeout(function(){showToast(healedOnLoad?'已恢復進度並自動修復無解鎖定':'已恢復上次進度：第 '+(state.level+1)+' 關')},120)
+    }
+  }else{clearProgress();newLevel(0,true)}
+})();
+</script>
+</body>
+</html>
