@@ -106,6 +106,8 @@
       border-radius:4px;
     }
     .cell::after { content:""; position:absolute; inset:3px; border:2px solid transparent; border-radius:7px; pointer-events:none; }
+    .cell.x-flash { animation:xFlash .3s ease-out; }
+    @keyframes xFlash { 0%{ background:var(--sun); } 100%{ background:var(--cell-bg); } }
     .cell:hover::after { border-color:rgba(255,255,255,.62); }
     .cell:focus-visible::after, .cell.keyboard-focus::after { border-color:var(--cell-ink); }
     .cell.wrong { animation:shake .45s ease; }
@@ -307,7 +309,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.26.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.27.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -834,9 +836,10 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
   function handleCellTap(i){if(state.locked)return;if(state.pendingCells[i]||state.lockedXs[i])return;focusCell(i);if(state.cells[i]!==''){removeMark(i);return}if(state.mode==='cat')placeCat(i);else placeX(i)}
   function placeX(i){
     if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]!=='')return;
-    snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);vibrate(25);setLogic('已標記不能放','目前是「標 X」模式；玩家手動標記可取消，鎖定 X 不可更改。','×');persistProgress()
+    snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();flashCell(i);setLogic('已標記不能放','目前是「標 X」模式；玩家手動標記可取消，鎖定 X 不可更改。','×');persistProgress()
   }
   function removeMark(i){if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]==='')return;snapshot();state.moves++;state.cells[i]='';updateCell(i,false);setLogic('已取消標記','目前選擇的標記模式保持不變。','↶');persistProgress()}
+  function flashCell(i){var b=board.children[i];if(!b)return;b.classList.remove('x-flash');void b.offsetWidth;b.classList.add('x-flash');setTimeout(function(){b.classList.remove('x-flash')},300)}
   function conflicts(a,b,p){var ar=Math.floor(a/p.size),ac=a%p.size,br=Math.floor(b/p.size),bc=b%p.size;return ar===br||ac===bc||p.regions[ar][ac]===p.regions[br][bc]||(Math.abs(ar-br)<=1&&Math.abs(ac-bc)<=1)}
   function commitWrongPlacement(i){
     var scoreBeforePenalty=state.score;
