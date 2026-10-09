@@ -299,7 +299,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.09.35.7.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.09.35.8.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -791,7 +791,7 @@ window.VERIFIED_50_DATA=[[6,"110000122244122244332444352545355555","503142"],[6,
   function chooseMode(mode){state.mode=mode;paintMode();setLogic(mode==='cat'?'已選擇放貓':'已選擇標 X',mode==='cat'?'單擊空白格放貓；玩家手動標記可取消，鎖定 X 不可更改。':'單擊空白格標 X；玩家手動標記可取消，鎖定 X 不可更改。',mode==='cat'?'●':'×')}
   function paintHintButton(){var btn=document.getElementById('hintBtn'),label=document.getElementById('hintLabel'),used=state.hintsRemaining<=0;label.textContent=used?'找貓提示 · 已用完':'找貓提示 · 剩餘 '+state.hintsRemaining+' 次';btn.setAttribute('aria-label',used?'找貓提示，本關已用完':'找貓提示，本關剩餘'+state.hintsRemaining+'次');btn.classList.toggle('hint-used',used)}
   function paintOpeningButton(){var btn=document.getElementById('openingBtn'),label=document.getElementById('openingLabel');btn.hidden=state.restoredEntry;if(state.restoredEntry){btn.disabled=true;return}label.textContent=state.openingAvailable?'開局指引 · 免費':'開局指引 · 已看';btn.disabled=!state.openingAvailable;btn.classList.toggle('guide-used',!state.openingAvailable);btn.setAttribute('aria-label',state.openingAvailable?'查看本關免費開局指引':'本關開局指引已看')}
-  function render(){var p=currentPuzzle();board.innerHTML='';board.style.gridTemplateColumns='repeat('+p.size+',1fr)';board.style.gridTemplateRows='repeat('+p.size+',1fr)';document.getElementById('levelCount').textContent='第 '+(state.level+1)+'／'+TOTAL+' 關 · '+p.label+' · '+p.size+'×'+p.size+' · '+p.colors+' 色';document.getElementById('levelName').textContent=p.name;for(var r=0;r<p.size;r++)for(var c=0;c<p.size;c++){var i=r*p.size+c,b=document.createElement('button');b.type='button';b.className='cell';b.dataset.i=i;b.setAttribute('role','gridcell');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，空白');b.tabIndex=i===state.focus?0:-1;b.style.setProperty('--cell-bg',palette[p.regionHues[p.regions[r][c]]]);b.addEventListener('keydown',onKey);board.appendChild(b)}paintHearts();paintScore();paintMode();paintHintButton();paintOpeningButton()}
+  function render(){var p=currentPuzzle();board.innerHTML='';board.style.gridTemplateColumns='repeat('+p.size+',1fr)';board.style.gridTemplateRows='repeat('+p.size+',1fr)';document.getElementById('levelCount').textContent='第 '+(state.level+1)+'／'+TOTAL+' 關 · '+p.label+' · '+p.size+'×'+p.size+' · '+p.colors+' 色';document.getElementById('levelName').textContent=p.name;for(var r=0;r<p.size;r++)for(var c=0;c<p.size;c++){var i=r*p.size+c,b=document.createElement('button');b.type='button';b.className='cell';b.dataset.i=i;b.setAttribute('role','gridcell');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，空白');b.tabIndex=i===state.focus?0:-1;b.style.setProperty('--cell-bg',palette[p.regionHues[p.regions[r][c]]]);b.addEventListener('keydown',onKey);board.appendChild(b)}paintHearts();paintScore();paintMode();paintHintButton();paintOpeningButton();updateAll(false)}
   function updateCell(i,animate){var b=board.children[i],p=currentPuzzle(),r=Math.floor(i/p.size),c=i%p.size,v=state.cells[i],lockedX=!!state.lockedXs[i];b.innerHTML=v==='cat'?catSVG:(v==='x'?'<span class="cross" aria-hidden="true"></span>':'');if(v==='cat'&&animate)b.querySelector('.cat').classList.add('pop');b.setAttribute('aria-disabled',lockedX?'true':'false');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，'+(v==='cat'?'貓咪':v==='x'?(lockedX?'已排除，鎖定':'已排除'):'空白'))}
   function snapshot(){state.history.push(state.cells.slice());if(state.history.length>100)state.history.shift()}
   function focusCell(i){state.focus=i;board.querySelectorAll('.cell').forEach(function(x,j){x.tabIndex=j===i?0:-1})}
@@ -821,6 +821,13 @@ window.VERIFIED_50_DATA=[[6,"110000122244122244332444352545355555","503142"],[6,
     Object.keys(state.pendingCells).forEach(function(key){validationCells[+key]='x'});
     updateCell(i,true);soundMeow();state.mode='x';paintMode();
     if(!findLegalSolution(p,validationCells,-1)){
+      var beforeCat=state.history[state.history.length-1].slice();
+      Object.keys(state.pendingCells).forEach(function(key){beforeCat[+key]='x'});
+      if(!findLegalSolution(p,beforeCat,-1)){
+        state.cells=state.history.pop();state.moves--;updateCell(i,false);state.mode='cat';paintMode();
+        setLogic('棋面已有矛盾','放貓前棋面已無合法解，這隻貓未必放錯，已還原這步；請先用「復原」或「全部清除」修正較早的標記，不扣心。','!');
+        showToast('請先修正較早標記的矛盾');vibrate(35);persistProgress();return;
+      }
       var cell=board.children[i],penalty=commitWrongPlacement(i),heartAfterHit=penalty.hearts;cell.setAttribute('aria-busy','true');
       setLogic('正在檢查這隻貓','先看清楚剛放下的貓咪，棋面正在確認是否仍有合法解。','…');
       setTimeout(function(){
@@ -917,9 +924,19 @@ window.VERIFIED_50_DATA=[[6,"110000122244122244332444352545355555","503142"],[6,
   function newLevel(index,skipSave,preserveVariant){clearToast();state.level=index;if(!preserveVariant)state.variant=Math.floor(Math.random()*3);var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=true;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','先查看免費「開局指引」，或直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress()}
   function restartLevel(){
     if(state.locked)return;if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}
-    var p=currentPuzzle(),lockKeys=Object.keys(state.lockedXs);state.cells=new Array(p.size*p.size).fill('');lockKeys.forEach(function(key){state.cells[+key]='x'});state.history=[];state.focus=0;render();setLogic(lockKeys.length?'已清除可移除標記':'已清除所有標記',lockKeys.length?'錯放後鎖定的 X 已保留；版圖、積分、心數、失誤數及計時保持不變。':'版圖、積分、心數、失誤數及計時保持不變；可由空白棋盤重新推理。','↻');showToast(lockKeys.length?'已清除可移除標記':'已清除所有標記');persistProgress()
+    var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.focus=0;
+    render();setLogic('已清除所有標記','所有標記（含錯放後鎖定的 X）已全部清除；版圖、積分、心數、失誤數及計時保持不變，可由空白棋盤重新推理。','↻');showToast('已清除所有標記');persistProgress()
   }
   function undo(){if(state.locked||!state.history.length){showToast('沒有可復原的步驟');return}if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}state.cells=state.history.pop();Object.keys(state.lockedXs).forEach(function(key){state.cells[+key]='x'});updateAll(false);setLogic('已復原一步','錯放後鎖定的 X 會保留；可繼續推理下一個位置。','↶');persistProgress()}
+  function healPoisonedLocks(p){
+    var lockKeys=Object.keys(state.lockedXs);
+    if(!lockKeys.length)return false;
+    var probe=new Array(p.size*p.size).fill('');
+    lockKeys.forEach(function(key){probe[+key]='x'});
+    if(findLegalSolution(p,probe,-1))return false;
+    lockKeys.forEach(function(key){delete state.lockedXs[key];if(state.cells[+key]==='x')state.cells[+key]=''});
+    return true;
+  }
   function findLegalSolution(p,cells,forbidden){
     var n=p.size,fixedRows=new Array(n).fill(-1),cats=[];
     for(var i=0;i<cells.length;i++)if(cells[i]==='cat'){
@@ -997,15 +1014,15 @@ window.VERIFIED_50_DATA=[[6,"110000122244122244332444352545355555","503142"],[6,
     if(state.locked)return;
     if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}
     if(state.hintsRemaining<=0){setLogic('本關找貓提示已用完','下一關會回復 2 次；找貓提示不扣心，但每次扣 100 分。','!');showToast('本關找貓提示已用完');return}
-    var p=currentPuzzle(),solution=findLegalSolution(p,state.cells,-1);
-    if(!solution){setLogic('棋面有矛盾',directConflictMessage(p),'!');showToast('請先修正矛盾');vibrate(35);return}
+    var p=currentPuzzle(),sol=p.solution;
+    if(!findLegalSolution(p,state.cells,-1)){setLogic('棋面有矛盾',directConflictMessage(p),'!');showToast('請先修正矛盾');vibrate(35);return}
     var target=-1,certain=false;
     for(var r=0;r<p.size;r++){
-      var candidate=solution[r];
+      var candidate=r*p.size+sol[r];
       if(state.cells[candidate]==='cat')continue;
       if(!findLegalSolution(p,state.cells,candidate)){target=candidate;certain=true;break}
     }
-    if(target<0)for(var sr=0;sr<p.size;sr++)if(state.cells[solution[sr]]!=='cat'){target=solution[sr];break}
+    if(target<0)for(var sr=0;sr<p.size;sr++){var fallbackCell=sr*p.size+sol[sr];if(state.cells[fallbackCell]!=='cat'){target=fallbackCell;break}}
     if(target<0){checkWin();return}
     snapshot();state.cells[target]='cat';state.moves++;state.hintsUsed++;state.hintsRemaining--;
     var scoreBeforeHint=state.score;changeScore(-100);var deducted=scoreBeforeHint-state.score;
@@ -1028,11 +1045,12 @@ window.VERIFIED_50_DATA=[[6,"110000122244122244332444352545355555","503142"],[6,
   document.addEventListener('pointerdown',unlockAudio,{capture:true,passive:true});document.addEventListener('keydown',unlockAudio,{capture:true});document.addEventListener('visibilitychange',function(){if(!document.hidden&&!muted)ensureAudio()});
   var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(!won||finishedAll){askRestartConfirm();return}closeResultDialog();newLevel(state.level+1)};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}askRestartConfirm()};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);var confirmDialog=document.getElementById('confirmDialog');document.getElementById('confirmYes').onclick=function(){if(confirmDialog.open)confirmDialog.close();closeResultDialog();doRestartFromFirst()};document.getElementById('confirmNo').onclick=function(){if(confirmDialog.open)confirmDialog.close()};confirmDialog.addEventListener('click',function(e){if(e.target===confirmDialog)confirmDialog.close()});[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
   if(restoreProgress()){
+    var restoredPuzzle=currentPuzzle(),healedOnLoad=healPoisonedLocks(restoredPuzzle);
     render();updateAll(false);
     if(state.hearts<=0){
       state.locked=true;setLogic('已恢復上次進度','錯放懲罰已保存；5 顆心已用完。','!');setTimeout(function(){finish(false)},120)
     }else{
-      setLogic('已恢復上次進度','第 '+(state.level+1)+' 關的棋盤、積分、心數及找貓提示次數已恢復。','↻');setTimeout(function(){showToast('已恢復上次進度：第 '+(state.level+1)+' 關')},120)
+      setLogic('已恢復上次進度','第 '+(state.level+1)+' 關的棋盤、積分、心數及找貓提示次數已恢復。'+(healedOnLoad?'舊版本誤判留下的無解鎖定已自動清除。':''),'↻');setTimeout(function(){showToast(healedOnLoad?'已恢復進度並自動修復無解鎖定':'已恢復上次進度：第 '+(state.level+1)+' 關')},120)
     }
   }else{clearProgress();newLevel(0,true)}
 })();
