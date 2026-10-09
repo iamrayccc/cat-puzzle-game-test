@@ -103,6 +103,7 @@
     .cell {
       position:relative; border:0; margin:0; padding:0; min-width:0; cursor:pointer;
       background:var(--cell-bg); outline:0; display:grid; place-items:center; touch-action:manipulation;
+      border-radius:8px;
     }
     .cell::after { content:""; position:absolute; inset:3px; border:2px solid transparent; border-radius:7px; pointer-events:none; }
     .cell:hover::after { border-color:rgba(255,255,255,.62); }
@@ -146,7 +147,7 @@
     .mode-btn[aria-pressed="true"] { border-color:var(--line); background:var(--line); color:var(--panel); box-shadow:0 6px 0 color-mix(in srgb,var(--line) 35%, transparent); transform:translateY(-2px); }
     .mode-icon { width:28px; height:28px; display:grid; place-items:center; }
     .mini-x { width:18px; height:18px; position:relative; }
-    .mini-x::before,.mini-x::after { content:""; position:absolute; left:8px; top:0; width:3px; height:19px; border-radius:2px; background:currentColor; transform:rotate(45deg); }
+    .mini-x::before,.mini-x::after { content:""; position:absolute; left:6px; top:0; width:5px; height:19px; border-radius:3px; background:currentColor; transform:rotate(45deg); }
     .mini-x::after{transform:rotate(-45deg)}
     .mode-icon svg { width:30px; height:30px; }
     .footer-note { text-align:center; font-size:.78rem; color:var(--muted); margin:13px 0 0; }
@@ -306,7 +307,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.19.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.20.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
