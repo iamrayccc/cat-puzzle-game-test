@@ -99,6 +99,7 @@
     .board {
       width:100%; max-width:560px; aspect-ratio:1; margin:auto; display:grid;
       border:2px solid var(--grid-line); border-radius:12px; overflow:hidden; background:var(--grid-line); gap:1px;
+      touch-action:none;
     }
     .cell {
       position:relative; border:0; margin:0; padding:0; min-width:0; cursor:pointer;
@@ -106,8 +107,6 @@
       border-radius:4px;
     }
     .cell::after { content:""; position:absolute; inset:3px; border:2px solid transparent; border-radius:7px; pointer-events:none; }
-    .cell.x-flash { animation:xFlash .3s ease-out; }
-    @keyframes xFlash { 0%{ background:var(--sun); } 100%{ background:var(--cell-bg); } }
     .cell:hover::after { border-color:rgba(255,255,255,.62); }
     .cell:focus-visible::after, .cell.keyboard-focus::after { border-color:var(--cell-ink); }
     .cell.wrong { animation:shake .45s ease; }
@@ -309,7 +308,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.27.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.29.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -731,6 +730,52 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
     handleCellTap(r*n+c);
   }
   board.addEventListener('click',onBoardClick);
+  // 掃動標 X：只在標 X 模式生效（2026-10-10 CC 要求）
+  var swipeActive=false,swipeSeen={},swipeMoved=false,swipeStartCell=-1;
+  function cellFromTouch(t){
+    var p=currentPuzzle(),n=p.size,rect=board.getBoundingClientRect();
+    var x=t.clientX-rect.left,y=t.clientY-rect.top;
+    if(x<0||y<0||x>rect.width||y>rect.height)return -1;
+    var cellW=rect.width/n,cellH=rect.height/n;
+    var c=Math.floor(x/cellW),r=Math.floor(y/cellH);
+    if(c<0||c>=n||r<0||r>=n)return -1;
+    return r*n+c;
+  }
+  function trySwipeMark(i){
+    if(i<0||swipeSeen[i])return;
+    swipeSeen[i]=true;
+    // 只標空白格：跳過已有標記、鎖定、待定
+    if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]!=='')return;
+    snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();
+  }
+  board.addEventListener('touchstart',function(e){
+    if(state.mode!=='x'||state.locked)return;
+    var t=e.touches[0],i=cellFromTouch(t);
+    if(i<0)return;
+    swipeActive=true;swipeMoved=false;swipeSeen={};
+    swipeStartCell=i;
+    // 不在 touchstart 標記：點按走正常 click 流程，只在掃動時標記
+  },{passive:true});
+  board.addEventListener('touchmove',function(e){
+    if(!swipeActive)return;
+    e.preventDefault();
+    var t=e.touches[0],i=cellFromTouch(t);
+    if(i>=0&&!swipeSeen[i]){swipeMoved=true;trySwipeMark(i);}
+  },{passive:false});
+  board.addEventListener('touchend',function(e){
+    if(!swipeActive)return;
+    swipeActive=false;
+    if(swipeMoved){
+      // 是掃動不是點按：阻止隨後的 click 事件重複處理
+      e.preventDefault();
+      setLogic('已掃動標記','掃過的空格已標記為 X。','×');persistProgress();
+    }
+    swipeSeen={};
+  },{passive:false});
+  // 掃動後阻止 click 誤觸發
+  board.addEventListener('click',function(e){
+    if(swipeMoved){e.stopImmediatePropagation();e.preventDefault();swipeMoved=false;}
+  },true);
 
   function encodeProgress(){
     var bytes=[3,state.level,state.variant,(state.score>>>24)&255,(state.score>>>16)&255,(state.score>>>8)&255,state.score&255,state.hearts,state.hintsRemaining,state.levelAwarded?1:0],power=[1,3,9,27,81];
@@ -836,10 +881,9 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
   function handleCellTap(i){if(state.locked)return;if(state.pendingCells[i]||state.lockedXs[i])return;focusCell(i);if(state.cells[i]!==''){removeMark(i);return}if(state.mode==='cat')placeCat(i);else placeX(i)}
   function placeX(i){
     if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]!=='')return;
-    snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();flashCell(i);setLogic('已標記不能放','目前是「標 X」模式；玩家手動標記可取消，鎖定 X 不可更改。','×');persistProgress()
+    snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();setLogic('已標記不能放','目前是「標 X」模式；玩家手動標記可取消，鎖定 X 不可更改。','×');persistProgress()
   }
   function removeMark(i){if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]==='')return;snapshot();state.moves++;state.cells[i]='';updateCell(i,false);setLogic('已取消標記','目前選擇的標記模式保持不變。','↶');persistProgress()}
-  function flashCell(i){var b=board.children[i];if(!b)return;b.classList.remove('x-flash');void b.offsetWidth;b.classList.add('x-flash');setTimeout(function(){b.classList.remove('x-flash')},300)}
   function conflicts(a,b,p){var ar=Math.floor(a/p.size),ac=a%p.size,br=Math.floor(b/p.size),bc=b%p.size;return ar===br||ac===bc||p.regions[ar][ac]===p.regions[br][bc]||(Math.abs(ar-br)<=1&&Math.abs(ac-bc)<=1)}
   function commitWrongPlacement(i){
     var scoreBeforePenalty=state.score;
