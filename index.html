@@ -308,7 +308,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.31.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.32.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -731,7 +731,13 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
   }
   board.addEventListener('click',onBoardClick);
   // 掃動標 X：只在標 X 模式生效（2026-10-10 CC 要求）
-  var swipeActive=false,swipeSeen={},swipeMoved=false,swipeStartCell=-1;
+  var swipeActive=false,swipeSeen={},swipeMoved=false,swipeStartCell=-1,swipeLastCell=-1;
+  function cellsBetween(a,b,n){
+    var ar=Math.floor(a/n),ac=a%n,br=Math.floor(b/n),bc=b%n,cells=[];
+    var dx=Math.abs(bc-ac),dy=Math.abs(br-ar),sx=ac<bc?1:-1,sy=ar<br?1:-1,err=dx-dy,c=ac,r=ar;
+    while(true){cells.push(r*n+c);if(c===bc&&r===br)break;var e2=2*err;if(e2>-dy){err-=dy;c+=sx}if(e2<dx){err+=dx;r+=sy}}
+    return cells;
+  }
   function cellFromTouch(t){
     var p=currentPuzzle(),n=p.size,rect=board.getBoundingClientRect();
     var x=t.clientX-rect.left,y=t.clientY-rect.top;
@@ -759,19 +765,18 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
     var t=e.touches[0],i=cellFromTouch(t);
     if(i<0)return;
     swipeActive=true;swipeMoved=false;swipeSeen={};
-    swipeStartCell=i;
+    swipeStartCell=i;swipeLastCell=i;
     // 不在 touchstart 標記：點按走正常 click 流程，只在掃動時標記
   },{passive:true});
   board.addEventListener('touchmove',function(e){
     if(!swipeActive)return;
     e.preventDefault();
     var t=e.touches[0],i=cellFromTouch(t);
-    if(i>=0&&!swipeSeen[i]){
-      if(!swipeMoved){
-        // 首次掃動：起點格也要切換
-        swipeMoved=true;trySwipeMark(swipeStartCell);
-      }
-      trySwipeMark(i);
+    if(i>=0){
+      if(!swipeMoved){swipeMoved=true}
+      var p=currentPuzzle(),path=cellsBetween(swipeLastCell,i,p.size);
+      for(var k=0;k<path.length;k++)trySwipeMark(path[k]);
+      swipeLastCell=i;
     }
   },{passive:false});
   board.addEventListener('touchend',function(e){
