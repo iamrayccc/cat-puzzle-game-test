@@ -299,7 +299,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.09.35.12.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.09.35.13.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -346,6 +346,10 @@ window.VERIFIED_50_DATA=[[6,"111022111422115422355422554442555544","315042"],[6,
 <script>
 (function(){
   'use strict';
+  /* ===== 測試版專屬旗標 =====
+     IS_TEST = true  → 顯示跳關按鈕（測試版專用）
+     玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
+  var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
   var TOTAL=50, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
   var palette=['var(--r1)','var(--r2)','var(--r3)','var(--r4)','var(--r5)','var(--r6)','var(--r7)','var(--r8)','var(--r9)','var(--r10)','var(--r11)','var(--r12)','var(--r13)','var(--r14)'];
   var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -653,7 +657,10 @@ window.VERIFIED_50_DATA=[[6,"111022111422115422355422554442555544","315042"],[6,
     for(var level=0;level<5;level++)for(var variant=0;variant<3;variant++){
       var p=all[level][variant],sizes=new Array(p.size).fill(0);
       for(var r=0;r<p.size;r++)for(var c=0;c<p.size;c++)sizes[p.regions[r][c]]++;
-      var balanced=sizes.every(function(value){return value>=4&&value<=8});
+      // 第 1 關入門特例（CC 2026-10-09 明令，只限第 1 關）：允許恰 2 個 1 格區，其餘 4 區 [7,10]
+      var balanced=level===0
+        ? sizes.filter(function(v){return v===1}).length===2&&sizes.filter(function(v){return v!==1}).every(function(v){return v>=7&&v<=10})
+        : sizes.every(function(value){return value>=4&&value<=8});
       if(p.size!==6||!balanced||!regionsConnected(p.regions,p.size)||countPuzzleSolutions(p,2)!==1||!logicalSolvePuzzle(p).solved||!findOpeningGuide(p))throw new Error('第 '+(level+1)+' 關第 '+(variant+1)+' 幅未通過開局版圖驗證');
     }
   }
@@ -670,7 +677,11 @@ window.VERIFIED_50_DATA=[[6,"111022111422115422355422554442555544","315042"],[6,
         var signature=canonicalPartitionSignature(puzzle),limits={6:[4,8],9:[6,12],10:[7,13],12:[9,15]}[n],regionSizes=new Array(n).fill(0);
         flat.forEach(function(value){regionSizes[value]++});
         if(seen[signature])throw new Error('發現旋轉或鏡像重複版圖：第 '+(level+1)+' 關第 '+(variant+1)+' 幅');
-        if(!regionSizes.every(function(value){return value>=limits[0]&&value<=limits[1]})||!regionsConnected(regions,n))throw new Error('第 '+(level+1)+' 關第 '+(variant+1)+' 幅色區結構未通過驗證');
+        // 第 1 關入門特例（CC 2026-10-09 明令，只限第 1 關）：允許恰 2 個 1 格區，其餘 4 區 [7,10]
+        var sizesOk=level===0
+          ? regionSizes.filter(function(v){return v===1}).length===2&&regionSizes.filter(function(v){return v!==1}).every(function(v){return v>=7&&v<=10})
+          : regionSizes.every(function(value){return value>=limits[0]&&value<=limits[1]});
+        if(!sizesOk||!regionsConnected(regions,n))throw new Error('第 '+(level+1)+' 關第 '+(variant+1)+' 幅色區結構未通過驗證');
         seen[signature]=true;
         variants.push(puzzle);
       }
@@ -1044,6 +1055,30 @@ window.VERIFIED_50_DATA=[[6,"111022111422115422355422554442555544","315042"],[6,
   function unlockAudio(){if(!muted)ensureAudio()}
   document.addEventListener('pointerdown',unlockAudio,{capture:true,passive:true});document.addEventListener('keydown',unlockAudio,{capture:true});document.addEventListener('visibilitychange',function(){if(!document.hidden&&!muted)ensureAudio()});
   var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(!won||finishedAll){askRestartConfirm();return}closeResultDialog();newLevel(state.level+1)};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}askRestartConfirm()};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);var confirmDialog=document.getElementById('confirmDialog');document.getElementById('confirmYes').onclick=function(){if(confirmDialog.open)confirmDialog.close();closeResultDialog();doRestartFromFirst()};document.getElementById('confirmNo').onclick=function(){if(confirmDialog.open)confirmDialog.close()};confirmDialog.addEventListener('click',function(e){if(e.target===confirmDialog)confirmDialog.close()});[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
+  if(IS_TEST){
+    /* 測試版專屬：跳關功能。IS_TEST=false（玩家版）時此整塊不執行，
+       頁面上無按鈕、無入口，功能完全不可觸達。 */
+    (function(){
+      var nav=document.querySelector('.top-actions');
+      if(!nav)return;
+      var jumpBtn=document.createElement('button');
+      jumpBtn.className='quiet-btn';
+      jumpBtn.type='button';
+      jumpBtn.id='jumpBtn';
+      jumpBtn.setAttribute('aria-label','跳到指定關卡（測試專用）');
+      jumpBtn.textContent='跳關（測試）';
+      jumpBtn.onclick=function(){
+        var input=prompt('跳到第幾關？（1–50）',String(state.level+1));
+        if(input===null)return;
+        var n=parseInt(input,10);
+        if(isNaN(n)||n<1||n>TOTAL){showToast('請輸入 1–50 的關號');return}
+        closeResultDialog();
+        clearToast();
+        newLevel(n-1);
+      };
+      nav.appendChild(jumpBtn);
+    })();
+  }
   if(restoreProgress()){
     var restoredPuzzle=currentPuzzle(),healedOnLoad=healPoisonedLocks(restoredPuzzle);
     render();updateAll(false);
