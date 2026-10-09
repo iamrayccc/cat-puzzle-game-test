@@ -308,7 +308,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.33.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.34.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -784,9 +784,8 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
     if(!swipeActive)return;
     swipeActive=false;
     if(swipeMoved){
-      // 是掃動不是點按：阻止隨後的 click 事件重複處理
       e.preventDefault();
-      setLogic('已掃動標記','掃過的空格已標記為 X。','×');persistProgress();
+      setLogic('已掃動'+(swipeMode==='clear'?'清除':'標記'),'模式：'+swipeMode+'，起點格：'+swipeStartCell,'×');persistProgress();
     }
     swipeSeen={};
   },{passive:false});
