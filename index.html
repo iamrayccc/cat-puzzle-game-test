@@ -308,7 +308,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.29.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.30.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -351,7 +351,7 @@
   <dialog id="jumpDialog">
     <form class="sheet" id="jumpForm" method="dialog">
       <label for="jumpInput">跳到第幾關？（1–30）</label>
-      <input id="jumpInput" type="number" min="1" max="10" step="1" inputmode="numeric" required />
+      <input id="jumpInput" type="number" min="1" max="30" step="1" inputmode="numeric" required />
       <p class="jump-error" id="jumpError" role="alert" hidden>請輸入 1–10 的關號</p>
       <div class="jump-actions">
         <button class="secondary" id="jumpCancel" type="button">取消</button>
@@ -744,9 +744,15 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
   function trySwipeMark(i){
     if(i<0||swipeSeen[i])return;
     swipeSeen[i]=true;
-    // 只標空白格：跳過已有標記、鎖定、待定
-    if(state.locked||state.pendingCells[i]||state.lockedXs[i]||state.cells[i]!=='')return;
-    snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();
+    if(state.locked||state.pendingCells[i]||state.lockedXs[i])return;
+    // 貓不可清除：跳過
+    if(state.cells[i]==='cat')return;
+    snapshot();state.moves++;
+    if(state.cells[i]==='x'){
+      state.cells[i]='';updateCell(i,false);
+    }else{
+      state.cells[i]='x';updateCell(i,false);soundClick();
+    }
   }
   board.addEventListener('touchstart',function(e){
     if(state.mode!=='x'||state.locked)return;
@@ -1140,7 +1146,7 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
       jumpForm.onsubmit=function(e){
         e.preventDefault();
         var n=Number(jumpInput.value);
-        if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.hidden=false;showToast('請輸入 1–10 的關號');jumpInput.focus();return}
+        if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.hidden=false;showToast('請輸入 1–30 的關號');jumpInput.focus();return}
         jumpDialog.close();closeResultDialog();clearToast();newLevel(n-1);
       };
       nav.appendChild(jumpBtn);
