@@ -308,7 +308,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.35.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.36.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -739,12 +739,18 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
     return cells;
   }
   function cellFromTouch(t){
-    var el=document.elementFromPoint(t.clientX,t.clientY);
-    if(!el)return -1;
-    var cell=el.closest?el.closest('.cell'):null;
-    if(!cell||!board.contains(cell))return -1;
-    var idx=Array.prototype.indexOf.call(board.children,cell);
-    return idx>=0?idx:-1;
+    var el=document.elementFromPoint(t.clientX,t.clientY),cell=el&&el.closest?el.closest('.cell'):null;
+    if(cell&&board.contains(cell)){
+      var idx=Array.prototype.indexOf.call(board.children,cell);
+      if(idx>=0)return idx;
+    }
+    var p=currentPuzzle(),n=p.size,rect=board.getBoundingClientRect();
+    var x=t.clientX-rect.left-2,y=t.clientY-rect.top-2;
+    if(x<0||y<0||x>rect.width-4||y>rect.height-4)return -1;
+    var cellW=(rect.width-4)/n,cellH=(rect.height-4)/n;
+    var c=Math.floor(x/cellW),r=Math.floor(y/cellH);
+    if(c<0||c>=n||r<0||r>=n)return -1;
+    return r*n+c;
   }
   function trySwipeMark(i){
     if(i<0||swipeSeen[i])return;
@@ -759,14 +765,18 @@ window.VERIFIED_50_DATA=[[9,"555555888555578888262558888222558888222288831222888
       snapshot();state.moves++;state.cells[i]='x';updateCell(i,false);soundClick();
     }
   }
+  function cellFromTarget(target){
+    var cell=target&&target.closest?target.closest('.cell'):null;
+    if(!cell||!board.contains(cell))return -1;
+    return Array.prototype.indexOf.call(board.children,cell);
+  }
   board.addEventListener('touchstart',function(e){
     if(state.mode!=='x'||state.locked)return;
-    var t=e.touches[0],i=cellFromTouch(t);
+    var i=cellFromTarget(e.target);
     if(i<0)return;
     swipeActive=true;swipeMoved=false;swipeSeen={};
     swipeStartCell=i;swipeLastCell=i;
     swipeMode=(state.cells[i]==='x')?'clear':'mark';
-    // 不在 touchstart 標記：點按走正常 click 流程，只在掃動時標記
   },{passive:true});
   board.addEventListener('touchmove',function(e){
     if(!swipeActive)return;
