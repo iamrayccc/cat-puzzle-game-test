@@ -320,7 +320,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.51.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.52.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -882,6 +882,44 @@
       return true;
     }catch(err){return false}
   }
+  /* ===== 本機進度存檔：localStorage＋SHA-256 校驗碼防篡改 =====
+     只在轉關卡時寫入（nextBtn → newLevel 後呼叫 saveLocalProgress）。
+     啟動時優先讀取：校驗通過則恢復，否則回退 URL hash 或從第 1 關開始。 */
+  var LS_KEY='meowdoku-progress-v1',LS_SECRET='meowdoku-cat-2026';
+  function sha256hex(str){
+    try{
+      if(!(window.crypto&&crypto.subtle&&crypto.subtle.digest))return Promise.resolve(null);
+      return crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)).then(function(buf){
+        return Array.prototype.map.call(new Uint8Array(buf),function(b){return('0'+b.toString(16)).slice(-2)}).join('');
+      }).catch(function(){return null});
+    }catch(e){return Promise.resolve(null)}
+  }
+  function saveLocalProgress(){
+    try{
+      if(!(window.localStorage&&window.crypto&&crypto.subtle&&crypto.subtle.digest))return;
+      var level=state.level,hearts=state.hearts,score=state.score;
+      sha256hex(level+'|'+hearts+'|'+score+'|'+LS_SECRET).then(function(sum){
+        if(!sum)return;
+        try{localStorage.setItem(LS_KEY,JSON.stringify({v:1,level:level,hearts:hearts,score:score,sum:sum}))}catch(e){}
+      }).catch(function(){});
+    }catch(e){}
+  }
+  function loadLocalProgress(){
+    try{
+      if(!(window.localStorage&&window.crypto&&crypto.subtle&&crypto.subtle.digest))return Promise.resolve(null);
+      var raw=null;
+      try{raw=localStorage.getItem(LS_KEY)}catch(e){return Promise.resolve(null)}
+      if(!raw)return Promise.resolve(null);
+      var d;
+      try{d=JSON.parse(raw)}catch(e){return Promise.resolve(null)}
+      if(!d||d.v!==1||typeof d.level!=='number'||typeof d.hearts!=='number'||typeof d.score!=='number'||typeof d.sum!=='string')return Promise.resolve(null);
+      if(d.level<0||d.level>=TOTAL||d.hearts<1||d.hearts>MAX_HEARTS||d.score<0||!isFinite(d.score))return Promise.resolve(null);
+      return sha256hex(d.level+'|'+d.hearts+'|'+d.score+'|'+LS_SECRET).then(function(sum){
+        if(!sum||sum!==d.sum)return null;
+        return{level:d.level,hearts:d.hearts,score:Math.floor(d.score)};
+      }).catch(function(){return null});
+    }catch(e){return Promise.resolve(null)}
+  }
   var audioCtx=null,masterGain=null,muted=false,audioQueueTime=0,meowBufferPromise=null;
   var MEOW_AUDIO_URI='data:audio/mpeg;base64,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';
   function ensureAudio(){
@@ -1188,7 +1226,7 @@
   }
   function unlockAudio(){if(!muted)ensureAudio()}
   document.addEventListener('pointerdown',unlockAudio,{capture:true,passive:true});document.addEventListener('keydown',unlockAudio,{capture:true});document.addEventListener('visibilitychange',function(){if(!document.hidden&&!muted)ensureAudio()});
-  var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('promoteBtn').onclick=hidePromoteVeil;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();newLevel(state.level+1)};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
+  var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('promoteBtn').onclick=hidePromoteVeil;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();newLevel(state.level+1);saveLocalProgress()};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
   if(IS_TEST){
     /* 測試版專屬：跳關功能。IS_TEST=false（玩家版）時此整塊不執行，
        頁面上無按鈕、無入口，功能完全不可觸達。 */
@@ -1214,15 +1252,29 @@
       nav.appendChild(jumpBtn);
     })();
   }
-  if(restoreProgress()){
-    var restoredPuzzle=currentPuzzle(),healedOnLoad=healPoisonedLocks(restoredPuzzle);
-    render();updateAll(false);
-    if(state.hearts<=0){
-      state.locked=true;setLogic('已恢復上次進度','錯放懲罰已保存；5 顆心已用完。','!');setTimeout(function(){finish(false)},120)
-    }else{
-      setLogic('已恢復上次進度','第 '+(state.level+1)+' 關的棋盤、積分、心數及找貓提示次數已恢復。'+(healedOnLoad?'舊版本誤判留下的無解鎖定已自動清除。':''),'↻');setTimeout(function(){showToast(healedOnLoad?'已恢復進度並自動修復無解鎖定':'已恢復上次進度：第 '+(state.level+1)+' 關')},120)
-    }
-  }else{clearProgress();newLevel(0,true)}
+  (async function boot(){
+    var lsDone=false;
+    try{
+      var saved=await loadLocalProgress();
+      if(saved){
+        state.hearts=saved.hearts;state.score=saved.score;
+        newLevel(saved.level);
+        setLogic('已恢復上次進度','已從本機存檔恢復：第 '+(saved.level+1)+' 關，積分 '+saved.score.toLocaleString('zh-Hant')+'。','↻');
+        setTimeout(function(){showToast('已恢復上次進度：第 '+(saved.level+1)+' 關')},120);
+        lsDone=true;
+      }
+    }catch(e){lsDone=false}
+    if(lsDone)return;
+    if(restoreProgress()){
+      var restoredPuzzle=currentPuzzle(),healedOnLoad=healPoisonedLocks(restoredPuzzle);
+      render();updateAll(false);
+      if(state.hearts<=0){
+        state.locked=true;setLogic('已恢復上次進度','錯放懲罰已保存；5 顆心已用完。','!');setTimeout(function(){finish(false)},120)
+      }else{
+        setLogic('已恢復上次進度','第 '+(state.level+1)+' 關的棋盤、積分、心數及找貓提示次數已恢復。'+(healedOnLoad?'舊版本誤判留下的無解鎖定已自動清除。':''),'↻');setTimeout(function(){showToast(healedOnLoad?'已恢復進度並自動修復無解鎖定':'已恢復上次進度：第 '+(state.level+1)+' 關')},120)
+      }
+    }else{clearProgress();newLevel(0,true)}
+  })();
 })();
 </script>
 </body>
