@@ -308,7 +308,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.41.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.43.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -350,8 +350,8 @@
   </dialog>
   <dialog id="jumpDialog">
     <form class="sheet" id="jumpForm" method="dialog">
-      <label for="jumpInput">跳到第幾關？（1–30）</label>
-      <input id="jumpInput" type="number" min="1" max="30" step="1" inputmode="numeric" required />
+      <label for="jumpInput">跳到第幾關？（1–150）</label>
+      <input id="jumpInput" type="number" min="1" max="150" step="1" inputmode="numeric" required />
       <p class="jump-error" id="jumpError" role="alert" hidden>請輸入 1–10 的關號</p>
       <div class="jump-actions">
         <button class="secondary" id="jumpCancel" type="button">取消</button>
@@ -369,9 +369,21 @@
     var _parts=await Promise.all([
       fetch('data/boards_1.json').then(function(r){return r.json()}),
       fetch('data/boards_2.json').then(function(r){return r.json()}),
-      fetch('data/boards_3.json').then(function(r){return r.json()})
+      fetch('data/boards_3.json').then(function(r){return r.json()}),
+      fetch('data/boards_4.json').then(function(r){return r.json()}),
+      fetch('data/boards_5.json').then(function(r){return r.json()}),
+      fetch('data/boards_6.json').then(function(r){return r.json()}),
+      fetch('data/boards_7.json').then(function(r){return r.json()}),
+      fetch('data/boards_8.json').then(function(r){return r.json()}),
+      fetch('data/boards_9.json').then(function(r){return r.json()}),
+      fetch('data/boards_10.json').then(function(r){return r.json()}),
+      fetch('data/boards_11.json').then(function(r){return r.json()}),
+      fetch('data/boards_12.json').then(function(r){return r.json()}),
+      fetch('data/boards_13.json').then(function(r){return r.json()}),
+      fetch('data/boards_14.json').then(function(r){return r.json()}),
+      fetch('data/boards_15.json').then(function(r){return r.json()})
     ]);
-    window.VERIFIED_50_DATA=_parts[0].concat(_parts[1],_parts[2]);
+    window.VERIFIED_50_DATA=.concat(_parts[0],_parts[1],_parts[2],_parts[3],_parts[4],_parts[5],_parts[6],_parts[7],_parts[8],_parts[9],_parts[10],_parts[11],_parts[12],_parts[13],_parts[14]);
   }catch(_e){
     document.body.innerHTML='<div style="padding:40px;text-align:center;font-size:18px;">版圖數據載入失敗，請檢查網路後重新整理。</div>';
     return;
@@ -381,13 +393,13 @@
      IS_TEST = true  → 顯示跳關按鈕（測試版專用）
      玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
   var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-  var TOTAL=30, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
+  var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
   var palette=['var(--r1)','var(--r2)','var(--r3)','var(--r4)','var(--r5)','var(--r6)','var(--r7)','var(--r8)','var(--r9)','var(--r10)','var(--r11)','var(--r12)','var(--r13)','var(--r14)'];
   var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
   var second=['角落','小徑','迷宮','窗台','走廊','花園','書架','屋頂','庭院','秘境'];
   function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
   function shuffle(a,rand){for(var j=a.length-1;j>0;j--){var k=Math.floor(rand()*(j+1)),v=a[j];a[j]=a[k];a[k]=v}return a}
-  function levelSpec(index){var no=index+1,difficulty=index/(TOTAL-1);return{size:9,colors:9,label:no<=5?'入門':no<=15?'初階':no<=25?'中階':'高階',difficulty:difficulty}}
+  function levelSpec(index){var no=index+1,difficulty=index/(TOTAL-1),isBig=no>50;return{size:isBig?10:9,colors:isBig?10:9,label:no<=5?'入門':no<=15?'初階':no<=30?'中階':no<=50?'高階':'大師',difficulty:difficulty}}
   var VERIFIED_BASES=[{"n":6,"r":"001111011111211111211311255334255444","s":"140352"},{"n":6,"r":"000111241111244444244443444443444455","s":"130524"},{"n":6,"r":"113300113300113322333333433333455333","s":"415302"},{"n":9,"r":"000333333000331112333333322333333333333343333553343333555543663777743333788743333","s":"258640731"},{"n":9,"r":"440000113444444113442444443442444443444444444444455555644447778644447778444447888","s":"362814057"},{"n":9,"r":"211100885221188885228888885448888385848888385888888885888668885887788888888888888","s":"530618427"},{"n":9,"r":"111444400111444444224444444224444334244444444244445444664445744664488744644488444","s":"820735164"},{"n":11,"r":"aa000aa3344aa0011a3344aaa111a3224aaa56aa3224aaa56aaaa44a5556aaaaaaaaa66aaaaaaaaa8aaaa7aaaaa8aaaa7aa99aaaaaaaaaaaaaaaaaaaa","s":"2597a148306"},{"n":11,"r":"11117700000222117000002227777777755777777773557777774737577777746677777777766777777777777777777877777797778777aa997777777","s":"642a8195730"},{"n":11,"r":"110000666661116006666246663366662466633666664666666666666666655666666666666666686676666666866796666666667966666666699aa66","s":"31a40795268"},{"n":11,"r":"000004444410002244444133442444444334444444443344444444488444444555884444665778844444447788944444444999444444449994444aaaa","s":"3a415869027"},{"n":11,"r":"33333111000333332211003333322333333333333333443533333333335333333333333663333377333333333393338833333933388aa33333338aaa3","s":"a8640351729"},{"n":11,"r":"221100aaaaa2211aaaaaaa22aaaaaaaaa55533aa44445553aaa44445557aaaa666aaa7aaaa666aaa7aaaaaaaaaaaaaaaa88aaaaaaaa998aaaaaaaaaaa","s":"52047193a86"},{"n":11,"r":"1100000666611330026666113336266661133366666655533666644555566666666667666666686676666666866666666696666666666966666666aa9","s":"516492730a8"}];
   function transformVerified(base,turn){
     var n=base.n,flat=base.r.split('').map(function(v){return parseInt(v,36)}),solution=base.s.split('').map(function(v){return parseInt(v,36)}),out=new Array(n*n),nextSolution=new Array(n);
@@ -712,7 +724,7 @@
         flat.forEach(function(value){regionSizes[value]++});
         if(seen[signature])throw new Error('發現旋轉或鏡像重複版圖：第 '+(level+1)+' 關第 '+(variant+1)+' 幅');
         // 第 1 關入門特例（CC 2026-10-09 明令，只限 6×6 第 1 關）：允許恰 2 個 1 格區，其餘 4 區 [7,10]
-        var sizesOk=n===9
+        var sizesOk=(n===9||n===10)
           ? regionSizes.every(function(v){return v>0})
           : n===6&&level===0
             ? regionSizes.filter(function(v){return v===1}).length===2&&regionSizes.filter(function(v){return v!==1}).every(function(v){return v>=7&&v<=10})
@@ -1191,7 +1203,7 @@
       jumpForm.onsubmit=function(e){
         e.preventDefault();
         var n=Number(jumpInput.value);
-        if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.hidden=false;showToast('請輸入 1–30 的關號');jumpInput.focus();return}
+        if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.hidden=false;showToast('請輸入 1–150 的關號');jumpInput.focus();return}
         jumpDialog.close();closeResultDialog();clearToast();newLevel(n-1);
       };
       nav.appendChild(jumpBtn);
