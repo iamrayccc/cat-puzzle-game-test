@@ -29,7 +29,7 @@
       --bad: #c74343;
       --shadow: 0 14px 34px rgba(26,60,66,.14);
       --r1:#f3a6a6; --r2:#f6c184; --r3:#e8da72; --r4:#b8db76;
-      --r5:#b08968; --r6:#7fd6bc; --r7:#78cfd9; --r8:#82bde5; --r9:#8ea3e1; --r10:#aa92dc; --r11:#c895d8; --r12:#e89bc8; --r13:#d4b191; --r14:#a7b8c4;
+      --r5:#b08968; --r6:#7fd6bc; --r7:#a7b8c4; --r8:#82bde5; --r9:#8ea3e1; --r10:#aa92dc;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -39,7 +39,7 @@
         --good:#65d2ae; --bad:#ff7e7a; --shadow:0 16px 38px rgba(0,0,0,.3);
         --grid-line:#ffffff; --cell-ink:#29474f;
         --r1:#f3a6a6; --r2:#f6c184; --r3:#e8da72; --r4:#b8db76;
-        --r5:#b08968; --r6:#7fd6bc; --r7:#78cfd9; --r8:#82bde5; --r9:#8ea3e1; --r10:#aa92dc; --r11:#c895d8; --r12:#e89bc8; --r13:#d4b191; --r14:#a7b8c4;
+        --r5:#b08968; --r6:#7fd6bc; --r7:#a7b8c4; --r8:#82bde5; --r9:#8ea3e1; --r10:#aa92dc;
       }
     }
     * { box-sizing:border-box; }
@@ -155,6 +155,8 @@
     .mini-x::after{transform:rotate(-45deg)}
     .mode-icon svg { width:30px; height:30px; }
     .footer-note { text-align:center; font-size:.78rem; color:var(--muted); margin:13px 0 0; }
+    .jump-bottom-btn { display:block; margin:18px auto 0; border:1px solid var(--line); background:var(--panel);
+      color:var(--muted); padding:8px 18px; border-radius:10px; font-size:.78rem; font-weight:800; cursor:pointer; }
     .version { display:block; margin-top:7px; font-size:.7rem; font-variant-numeric:tabular-nums; opacity:.82; }
     dialog { border:0; padding:0; max-width:none; max-height:none; background:transparent; color:inherit; }
     dialog::backdrop { background:rgba(12,28,31,.62); backdrop-filter:blur(4px); }
@@ -276,6 +278,20 @@
       .rule-strip { padding:8px 0 0; }
     }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
+
+    /* ===== 深淺色主題：深色版色區（v35.63）===== */
+    /* 深色版 r1-r9 取自 CC 截圖，r10 按截圖風格推導；淺色版維持 :root 原色 */
+    body.theme-dark {
+      --r1:#dc89b5; --r2:#7fbae2; --r3:#eeb7ce; --r4:#ddbc5d; --r5:#a3734f;
+      --r6:#67b1b0; --r7:#b5d79b; --r8:#9179cf; --r9:#acbed6; --r10:#f1ae77;
+    }
+    /* 主題切換按鈕樣式（沿用 sound-btn 風格） */
+    .theme-seg { display:inline-flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel); }
+    .theme-seg-btn { border:0; background:transparent; color:var(--muted); padding:8px 12px; font-size:.78rem; font-weight:800; cursor:pointer; }
+    .theme-seg-btn.active { background:var(--accent); color:#fff; }
+    .theme-seg-btn + .theme-seg-btn { border-left:1px solid var(--line); }
+    .theme-btn svg { width:16px; height:16px; }
+    .theme-btn:hover { filter:brightness(1.05); }
   </style>
 </head>
 <body>
@@ -296,6 +312,9 @@
       <button class="quiet-btn" id="rulesBtn" type="button" aria-label="查看玩法">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 3.1 2.3c-.8.3-1.3.9-1.3 1.7"/><path d="M12 17h.01"/></svg>玩法
       </button>
+      <div class="theme-seg" role="group" aria-label="主題選擇">
+        <button class="theme-seg-btn" id="themeDarkBtn" type="button">深色</button><button class="theme-seg-btn" id="themeLightBtn" type="button">淺色</button>
+      </div>
       <div class="cats-remaining" id="catsRemaining" aria-label="剩餘 9 隻貓">
         <span class="cats-icon" id="catsRemainingIcon" aria-hidden="true"></span><span>剩餘 <b id="catsRemainingNum">9</b> 隻</span>
       </div>
@@ -333,7 +352,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.62.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.64.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -429,9 +448,9 @@
      IS_TEST = true  → 顯示跳關按鈕（測試版專用）
      玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
   var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-  var CURRENT_VERSION='2026.10.10.35.62.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+  var CURRENT_VERSION='2026.10.10.35.64.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
   var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
-  var palette=['var(--r1)','var(--r2)','var(--r3)','var(--r4)','var(--r5)','var(--r6)','var(--r7)','var(--r8)','var(--r9)','var(--r10)','var(--r11)','var(--r12)','var(--r13)','var(--r14)'];
+  var palette=['var(--r1)','var(--r2)','var(--r3)','var(--r4)','var(--r5)','var(--r6)','var(--r7)','var(--r8)','var(--r9)','var(--r10)'];
   var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
   var second=['角落','小徑','迷宮','窗台','走廊','花園','書架','屋頂','庭院','秘境'];
   function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -909,7 +928,8 @@
   /* ===== 本機進度存檔：localStorage＋SHA-256 校驗碼防篡改 =====
      只在轉關卡時寫入（nextBtn → newLevel 後呼叫 saveLocalProgress）。
      啟動時優先讀取：校驗通過則恢復，否則回退 URL hash 或從第 1 關開始。 */
-  var LS_KEY='meowdoku-progress-v1',LS_SECRET='meowdoku-cat-2026';
+  var LS_KEY='meowdoku-progress-v1',LS_SECRET='meowdoku-cat-2026',THEME_KEY='meowdoku-theme-v1';
+  var currentTheme='light'; /* 主題記憶體變數：切換即時生效，升關存檔時才寫入 localStorage */
   function sha256hex(str){
     try{
       if(!(window.crypto&&crypto.subtle&&crypto.subtle.digest))return Promise.resolve(null);
@@ -921,10 +941,11 @@
   function saveLocalProgress(){
     try{
       if(!(window.localStorage&&window.crypto&&crypto.subtle&&crypto.subtle.digest))return Promise.resolve();
-      var level=state.level,hearts=state.hearts,score=state.score;
-      return sha256hex(level+'|'+hearts+'|'+score+'|'+LS_SECRET).then(function(sum){
+      var level=state.level,hearts=state.hearts,score=state.score,theme=getTheme();
+      try{localStorage.setItem(THEME_KEY,theme)}catch(e){}
+      return sha256hex(level+'|'+hearts+'|'+score+'|'+theme+'|'+LS_SECRET).then(function(sum){
         if(!sum)return;
-        try{localStorage.setItem(LS_KEY,JSON.stringify({v:1,level:level,hearts:hearts,score:score,sum:sum}))}catch(e){}
+        try{localStorage.setItem(LS_KEY,JSON.stringify({v:2,level:level,hearts:hearts,score:score,theme:theme,sum:sum}))}catch(e){}
       }).catch(function(){});
     }catch(e){return Promise.resolve()}
   }
@@ -936,11 +957,15 @@
       if(!raw)return Promise.resolve(null);
       var d;
       try{d=JSON.parse(raw)}catch(e){return Promise.resolve(null)}
-      if(!d||d.v!==1||typeof d.level!=='number'||typeof d.hearts!=='number'||typeof d.score!=='number'||typeof d.sum!=='string')return Promise.resolve(null);
+      if(!d||(d.v!==1&&d.v!==2)||typeof d.level!=='number'||typeof d.hearts!=='number'||typeof d.score!=='number'||typeof d.sum!=='string')return Promise.resolve(null);
       if(d.level<0||d.level>=TOTAL||d.hearts<1||d.hearts>MAX_HEARTS||d.score<0||!isFinite(d.score))return Promise.resolve(null);
-      return sha256hex(d.level+'|'+d.hearts+'|'+d.score+'|'+LS_SECRET).then(function(sum){
+      var theme2=(d.v===2&&d.theme==='dark')?'dark':'light';
+      var hashInput=d.v===2?(d.level+'|'+d.hearts+'|'+d.score+'|'+theme2+'|'+LS_SECRET):(d.level+'|'+d.hearts+'|'+d.score+'|'+LS_SECRET);
+      return sha256hex(hashInput).then(function(sum){
         if(!sum||sum!==d.sum)return null;
-        return{level:d.level,hearts:d.hearts,score:Math.floor(d.score)};
+        var out={level:d.level,hearts:d.hearts,score:Math.floor(d.score)};
+        if(d.v===2)out.theme=theme2;
+        return out;
       }).catch(function(){return null});
     }catch(e){return Promise.resolve(null)}
   }
@@ -1283,8 +1308,8 @@
     /* 測試版專屬：跳關功能。IS_TEST=false（玩家版）時此整塊不執行，
        頁面上無按鈕、無入口，功能完全不可觸達。 */
     (function(){
-      var nav=document.querySelector('.top-actions');
-      if(!nav)return;
+      var footer=document.querySelector('.footer-note');
+      if(!footer||!footer.parentNode)return;
       var jumpBtn=document.createElement('button');
       jumpBtn.className='quiet-btn';
       jumpBtn.type='button';
@@ -1305,15 +1330,37 @@
         if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.hidden=false;showToast('請輸入 1–150 的關號');jumpInput.focus();return}
         jumpDialog.close();closeResultDialog();clearToast();newLevel(n-1);
       };
-      nav.appendChild(jumpBtn);
+      jumpBtn.className='jump-bottom-btn';
+      footer.parentNode.insertBefore(jumpBtn,footer);
     })();
   }
+
+  /* ===== 深淺色主題切換（v35.63）：淺色為預設，深色用截圖色系 ===== */
+  function getTheme(){return currentTheme}
+  function applyTheme(theme){
+    var dark=theme==='dark';
+    document.body.classList.toggle('theme-dark',dark);
+    var db=document.getElementById('themeDarkBtn'),lb=document.getElementById('themeLightBtn');
+    if(db)db.classList.toggle('active',dark);
+    if(lb)lb.classList.toggle('active',!dark);
+  }
+  function setTheme(theme){currentTheme=(theme==='dark')?'dark':'light';applyTheme(currentTheme)}
+  function toggleTheme(){setTheme(getTheme()==='dark'?'light':'dark')}
+  /* 啟動時：從 localStorage 恢復主題到記憶體（同步，避免閃爍），按鈕接線 */
+  try{var _st=localStorage.getItem(THEME_KEY);if(_st==='dark')currentTheme='dark'}catch(e){}
+  applyTheme(getTheme());
+  (function(){
+    var db=document.getElementById('themeDarkBtn'),lb=document.getElementById('themeLightBtn');
+    if(db)db.addEventListener('click',function(){setTheme('dark')});
+    if(lb)lb.addEventListener('click',function(){setTheme('light')});
+  })();
   (async function boot(){
     var lsDone=false;
     try{
       var saved=await loadLocalProgress();
       if(saved){
         state.hearts=saved.hearts;state.score=saved.score;
+        if(saved.theme)setTheme(saved.theme);
         newLevel(saved.level);
         setLogic('已恢復上次進度','已從本機存檔恢復：第 '+(saved.level+1)+' 關，積分 '+saved.score.toLocaleString('zh-Hant')+'。','↻');
         setTimeout(function(){showToast('已恢復上次進度：第 '+(saved.level+1)+' 關')},120);
