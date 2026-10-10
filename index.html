@@ -358,7 +358,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.66.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.67.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -454,7 +454,7 @@
      IS_TEST = true  → 顯示跳關按鈕（測試版專用）
      玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
   var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-  var CURRENT_VERSION='2026.10.10.35.66.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+  var CURRENT_VERSION='2026.10.10.35.67.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
   var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
   var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
   var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1338,6 +1338,119 @@
       };
       jumpBtn.className='jump-bottom-btn';
       footer.parentNode.insertBefore(jumpBtn,footer);
+
+      /* ===== 白格除錯功能（v35.67，測試版專屬，IS_TEST=false 時完全消除）===== */
+      (function(){
+        /* 注入除錯面板樣式 */
+        var st=document.createElement('style');
+        st.textContent=
+          '#debugDialog .sheet{max-width:94vw;width:620px;max-height:88vh;display:flex;flex-direction:column;}'+
+          '#debugSummary{font-size:13px;line-height:1.8;padding:4px 2px;}'+
+          '.debug-pal{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0;}'+
+          '.debug-swatch{width:28px;height:28px;border-radius:6px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}'+
+          '#debugCells{overflow-y:auto;max-height:50vh;border-top:1px solid var(--line);margin-top:8px;padding-top:8px;}'+
+          '.debug-badcount{font-weight:800;color:#c74343;margin-bottom:6px;font-size:13px;}'+
+          '.debug-row{display:flex;flex-wrap:wrap;gap:2px 8px;align-items:center;font-size:11px;font-family:monospace;padding:4px 6px;border:1px solid #e8e8e8;border-radius:6px;margin-bottom:4px;background:#fafafa;}'+
+          '.debug-row.bad{border:2px solid #c74343;background:#ffe9e9;}'+
+          '.dr-idx{font-weight:800;min-width:64px;}'+
+          '.dr-c{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}'+
+          '.debug-raw{font-size:11px;color:#666;word-break:break-all;margin-top:4px;}';
+        document.head.appendChild(st);
+
+        /* 創建除錯對話框（動態創建，玩家版無痕跡） */
+        var dlg=document.createElement('dialog');
+        dlg.id='debugDialog';
+        dlg.innerHTML='<div class="sheet"><div class="sheet-head"><div><h2>白格除錯</h2></div><button class="close-btn" type="button" id="debugClose" aria-label="關閉">\u00d7</button></div><div id="debugSummary"></div><div id="debugCells"></div></div>';
+        document.body.appendChild(dlg);
+        document.getElementById('debugClose').onclick=function(){dlg.close();};
+        dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close();});
+
+        function hexToRgb(hex){
+          try{
+            var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+            return 'rgb('+r+', '+g+', '+b+')';
+          }catch(e){return '';}
+        }
+        function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+        function openDebugDialog(){
+          try{
+            var p=currentPuzzle();
+            var pal=(currentTheme==='dark'?paletteDark:paletteLight);
+            var summary=document.getElementById('debugSummary');
+            var cellsDiv=document.getElementById('debugCells');
+            /* --- 摘要：主題／關卡／palette --- */
+            var regionSet={},rr,cc;
+            for(rr=0;rr<p.size;rr++)for(cc=0;cc<p.size;cc++){regionSet[p.regions[rr][cc]]=1;}
+            var regionIDs=Object.keys(regionSet).sort(function(a,b){return a-b;});
+            var shtml='<div><b>主題：</b>'+esc(currentTheme)+'</div>';
+            shtml+='<div><b>關卡：</b>第 '+(state.level+1)+'／'+TOTAL+' 關，'+p.size+'\u00d7'+p.size+'，'+p.colors+' 色</div>';
+            shtml+='<div><b>Region IDs：</b>'+esc(regionIDs.join(','))+'（共 '+regionIDs.length+' 個）</div>';
+            shtml+='<div><b>regionHues：</b>'+esc(JSON.stringify(p.regionHues))+'</div>';
+            shtml+='<div><b>使用中 palette（'+esc(currentTheme)+'，'+pal.length+' 色）：</b></div><div class="debug-pal">';
+            for(var pi=0;pi<pal.length;pi++){
+              shtml+='<span class="debug-swatch" style="background:'+pal[pi]+'" title="index '+pi+' (r'+(pi+1)+'): '+pal[pi]+'"></span>';
+            }
+            shtml+='</div>';
+            shtml+='<div class="debug-raw">懷疑對象：深色 r6 paletteDark[5]=#67b1b0（青綠）／淺色 r6 paletteLight[5]=#7fd6bc（薄荷綠）</div>';
+            summary.innerHTML=shtml;
+            /* --- 逐格診斷 --- */
+            var badRows=[],okRows=[],badCount=0;
+            var n=board.children.length;
+            for(var i=0;i<n;i++){
+              var r=Math.floor(i/p.size),c=i%p.size;
+              var regionID=p.regions[r][c];
+              var palIdx=(p.regionHues&&regionID!=null&&p.regionHues[regionID]!=null)?p.regionHues[regionID]:undefined;
+              var expected=(palIdx!=null&&pal[palIdx])?pal[palIdx]:'(無效索引 palIdx='+palIdx+')';
+              var el=board.children[i];
+              var inlineBg='';
+              try{inlineBg=el.style.background||'(空)';}catch(e){inlineBg='(讀取失敗)';}
+              var computed='';
+              try{computed=getComputedStyle(el).backgroundColor;}catch(e){computed='(讀取失敗)';}
+              var expectedRgb=(typeof expected==='string'&&expected.charAt(0)==='#')?hexToRgb(expected):'';
+              var isBad=(computed==='rgba(0, 0, 0, 0)'||computed==='rgb(255, 255, 255)'||computed==='transparent'||computed==='(空)');
+              var match=(expectedRgb&&computed===expectedRgb)?'\u2705':'\u274c';
+              if(isBad)badCount++;
+              var rowHtml='<div class="debug-row'+(isBad?' bad':'')+'">'+
+                '<span class="dr-idx">('+r+','+c+')#'+i+'</span>'+
+                '<span>region='+esc(String(regionID))+'</span>'+
+                '<span>palIdx='+esc(String(palIdx))+'</span>'+
+                '<span>預期 '+(typeof expected==='string'&&expected.charAt(0)==='#'?'<i class="dr-c" style="background:'+expected+'"></i>':'')+esc(expected)+'</span>'+
+                '<span>inline='+esc(inlineBg.length>40?inlineBg.slice(0,40)+'\u2026':inlineBg)+'</span>'+
+                '<span>computed='+esc(computed)+'</span>'+
+                '<span>'+match+'</span></div>';
+              if(isBad)badRows.push(rowHtml);else okRows.push(rowHtml);
+            }
+            cellsDiv.innerHTML='<div class="debug-badcount">\u26a0\ufe0f 異常格（白／透明）：'+badCount+' / '+n+'（異常置頂顯示）</div>'+badRows.join('')+okRows.join('');
+            dlg.showModal();
+          }catch(err){
+            try{showToast('除錯面板開啟失敗：'+err.message);}catch(e2){}
+          }
+        }
+
+        /* 除錯按鈕（跳關按鈕旁，版本號上方） */
+        var dbgBtn=document.createElement('button');
+        dbgBtn.className='jump-bottom-btn';
+        dbgBtn.type='button';
+        dbgBtn.id='debugBtn';
+        dbgBtn.setAttribute('aria-label','開啟白格除錯面板（測試專用）');
+        dbgBtn.textContent='除錯';
+        dbgBtn.style.marginTop='8px';
+        dbgBtn.onclick=function(){openDebugDialog();};
+        footer.parentNode.insertBefore(dbgBtn,footer);
+
+        /* 版本號連點 5 次開啟除錯（備用入口） */
+        var tapCount=0,tapTimer=null;
+        var verSpan=document.querySelector('.footer-note .version');
+        if(verSpan){
+          verSpan.style.cursor='pointer';
+          verSpan.addEventListener('click',function(){
+            tapCount++;clearTimeout(tapTimer);
+            tapTimer=setTimeout(function(){tapCount=0;},2000);
+            if(tapCount>=5){tapCount=0;openDebugDialog();}
+          });
+        }
+      })();
     })();
   }
 
