@@ -216,6 +216,14 @@
       pointer-events:auto;
     }
     #jumpDialog .sheet { width:min(92vw,400px); text-align:center; }
+    #updateDialog[open] {
+      position:fixed; inset:0; width:auto; height:100dvh; margin:0;
+      padding:14px; display:flex; flex-direction:column; align-items:center; justify-content:safe center;
+      pointer-events:auto;
+    }
+    #updateDialog .sheet { width:min(92vw,400px); text-align:center; }
+    #updateDialog .sheet h2 { margin-bottom:12px; }
+    #updateDialog .sheet p { margin-bottom:18px; }
     #jumpDialog .sheet label { font-size:1.1rem; font-weight:800; margin:0 0 18px; color:var(--ink); }
     #jumpDialog .sheet label { display:block; }
     #jumpInput { width:100%; min-height:52px; margin-bottom:10px; border:2px solid var(--soft-line); border-radius:14px; background:var(--panel); color:var(--ink); padding:8px 12px; font:inherit; font-size:1.05rem; text-align:center; }
@@ -325,7 +333,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.55.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.56.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -377,6 +385,16 @@
       </div>
     </form>
   </dialog>
+  <dialog id="updateDialog">
+    <div class="sheet">
+      <h2>發現新版本</h2>
+      <p>遊戲已更新，建議立即更新以獲得最新內容</p>
+      <div class="jump-actions">
+        <button class="secondary" id="updateLater" type="button">稍後</button>
+        <button class="primary" id="updateNow" type="button">立即更新</button>
+      </div>
+    </div>
+  </dialog>
 
 
 <script>
@@ -411,6 +429,7 @@
      IS_TEST = true  → 顯示跳關按鈕（測試版專用）
      玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
   var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
+  var CURRENT_VERSION='2026.10.10.35.56.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
   var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
   var palette=['var(--r1)','var(--r2)','var(--r3)','var(--r4)','var(--r5)','var(--r6)','var(--r7)','var(--r8)','var(--r9)','var(--r10)','var(--r11)','var(--r12)','var(--r13)','var(--r14)'];
   var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1099,6 +1118,33 @@
   }
   function openResultDialog(dialog){lockPageScroll();dialog.showModal();dialog.scrollTop=0}
   function closeResultDialog(){var dialog=document.getElementById('resultDialog');if(dialog.open)dialog.close();unlockPageScroll()}
+  /* ===== 過關時版本檢查（v35.56） =====
+     玩家點擊「下一關」時檢查 version.txt；有新版則彈提示，
+     無新版或檢查失敗時靜默繼續，不打擾玩家 */
+  var pendingProceed=null;
+  function showUpdateDialog(proceed){
+    pendingProceed=proceed;
+    var d=document.getElementById('updateDialog');
+    if(d&&d.showModal){lockPageScroll();d.showModal()}
+    else if(proceed){proceed()}
+  }
+  function closeUpdateDialog(){
+    var d=document.getElementById('updateDialog');
+    if(d&&d.open)d.close();
+    unlockPageScroll();
+    var p=pendingProceed;pendingProceed=null;
+    if(p)p();
+  }
+  function checkVersionThen(proceed){
+    try{
+      fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){
+        if(!r.ok)throw 0;return r.text();
+      }).then(function(t){
+        t=(t||'').trim();
+        if(t&&t!==CURRENT_VERSION){showUpdateDialog(proceed)}else{proceed()}
+      }).catch(function(){proceed()});
+    }catch(e){proceed()}
+  }
   function showPromoteVeil(completed){var veil=document.getElementById('promoteVeil');if(!veil)return;var titles={10:['恭喜您，升至初階關卡！','第 11–30 關，迎接新的挑戰'],30:['恭喜您，升至中階關卡！','第 31–50 關，推理難度再提升'],50:['恭喜您，升至高階關卡！','第 51–150 關，10×10 大棋盤全新境界']};if(!titles[completed]){veil.hidden=true;return}document.getElementById('promoteTitle').textContent=titles[completed][0];document.getElementById('promoteSub').textContent=titles[completed][1];var pc=document.getElementById('promoteCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;veil.classList.remove('closing');veil.hidden=false;var btn=document.getElementById('promoteBtn');if(btn)btn.focus()}
   function hidePromoteVeil(){var veil=document.getElementById('promoteVeil');if(!veil||veil.hidden)return;veil.classList.add('closing');setTimeout(function(){veil.hidden=true;veil.classList.remove('closing')},300)}
   function finish(win){
@@ -1232,7 +1278,7 @@
   }
   function unlockAudio(){if(!muted)ensureAudio()}
   document.addEventListener('pointerdown',unlockAudio,{capture:true,passive:true});document.addEventListener('keydown',unlockAudio,{capture:true});document.addEventListener('visibilitychange',function(){if(!document.hidden&&!muted)ensureAudio()});
-  var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('promoteBtn').onclick=hidePromoteVeil;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();newLevel(state.level+1);saveLocalProgress()};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
+  var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('promoteBtn').onclick=hidePromoteVeil;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
   if(IS_TEST){
     /* 測試版專屬：跳關功能。IS_TEST=false（玩家版）時此整塊不執行，
        頁面上無按鈕、無入口，功能完全不可觸達。 */
@@ -1248,6 +1294,10 @@
       var jumpDialog=document.getElementById('jumpDialog'),jumpForm=document.getElementById('jumpForm'),jumpInput=document.getElementById('jumpInput'),jumpError=document.getElementById('jumpError');
       jumpBtn.onclick=function(){jumpInput.value=String(state.level+1);jumpError.hidden=true;jumpDialog.showModal();jumpInput.focus();jumpInput.select()};
       document.getElementById('jumpCancel').onclick=function(){jumpDialog.close()};
+      /* 版本更新對話框按鈕 */
+      document.getElementById('updateNow').onclick=function(){location.reload()};
+      document.getElementById('updateLater').onclick=function(){closeUpdateDialog()};
+      (function(){var ud=document.getElementById('updateDialog');ud.addEventListener('cancel',function(e){e.preventDefault();closeUpdateDialog()});ud.addEventListener('click',function(e){if(e.target===ud)closeUpdateDialog()})})();
       jumpDialog.addEventListener('click',function(e){if(e.target===jumpDialog)jumpDialog.close()});
       jumpForm.onsubmit=function(e){
         e.preventDefault();
