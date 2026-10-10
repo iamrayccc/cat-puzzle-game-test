@@ -93,7 +93,7 @@
     #openingBtn[hidden] { display:none; }
     #openingBtn svg { color:var(--good); }
     #openingBtn.guide-used { opacity:.68; cursor:default; }
-    #hintBtn { margin-left:auto; }
+    #hintBtn { margin-left:auto; background:var(--panel-2); color:var(--ink); }
     #hintBtn .lit-bulb { color:var(--sun); filter:drop-shadow(0 0 3px color-mix(in srgb,var(--sun) 62%,transparent)); }
     #hintBtn .bulb-glow { fill:currentColor; stroke:var(--line); }
     #hintBtn.hint-used .lit-bulb { color:var(--muted); filter:none; }
@@ -291,14 +291,14 @@
       <div class="cats-remaining" id="catsRemaining" aria-label="剩餘 9 隻貓">
         <span class="cats-icon" id="catsRemainingIcon" aria-hidden="true"></span><span>剩餘 <b id="catsRemainingNum">9</b> 隻</span>
       </div>
-      <button class="quiet-btn" id="undoBtn" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 8-4 4 4 4"/><path d="M5 12h8a6 6 0 0 1 6 6"/></svg>復原
-      </button>
       <button class="quiet-btn" id="restartBtn" type="button" aria-label="清除本關所有標記，保留同一版圖">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 11a8 8 0 1 1 2.3 6.7"/><path d="M4 5v6h6"/></svg>全部清除
       </button>
       <button class="quiet-btn" id="openingBtn" type="button" aria-label="查看本關免費開局指引">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 19c3-7 7-11 14-14"/><path d="M9 5h10v10"/><circle cx="6" cy="18" r="2"/></svg><span id="openingLabel">開局指引 · 免費</span>
+      </button>
+      <button class="quiet-btn" id="undoBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 8-4 4 4 4"/><path d="M5 12h8a6 6 0 0 1 6 6"/></svg>復原
       </button>
       <button class="quiet-btn" id="hintBtn" type="button" aria-label="找貓提示，本關剩餘兩次">
         <svg class="lit-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1v2M4.2 4.2l1.4 1.4M1 12h2m16 0h2M18.4 5.6l1.4-1.4"/><path class="bulb-glow" d="M8.5 14.5A6 6 0 1 1 15.5 14.5c-.8.7-1.5 1.5-1.5 2.5h-4c0-1-.7-1.8-1.5-2.5Z"/><path d="M9 19h6M10 22h4"/></svg><span id="hintLabel">找貓提示 · 剩餘 2 次</span>
@@ -325,7 +325,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.53.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.54.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
