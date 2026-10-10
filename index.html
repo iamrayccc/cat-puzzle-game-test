@@ -207,13 +207,13 @@
     .stat b { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; }
     .stat span { display:block; margin-top:3px; font-size:.78rem; color:var(--muted); font-weight:800; line-height:1.25; }
     .secondary { width:100%; min-height:48px; margin-top:10px; border:1px solid var(--soft-line); border-radius:14px; background:transparent; cursor:pointer; font-weight:900; }
-    #confirmDialog[open], #jumpDialog[open] {
+    #jumpDialog[open] {
       position:fixed; inset:0; width:auto; height:100dvh; margin:0;
       padding:14px; display:flex; flex-direction:column; align-items:center; justify-content:safe center;
       pointer-events:auto;
     }
-    #confirmDialog .sheet, #jumpDialog .sheet { width:min(92vw,400px); text-align:center; }
-    #confirmDialog .sheet p, #jumpDialog .sheet label { font-size:1.1rem; font-weight:800; margin:0 0 18px; color:var(--ink); }
+    #jumpDialog .sheet { width:min(92vw,400px); text-align:center; }
+    #jumpDialog .sheet label { font-size:1.1rem; font-weight:800; margin:0 0 18px; color:var(--ink); }
     #jumpDialog .sheet label { display:block; }
     #jumpInput { width:100%; min-height:52px; margin-bottom:10px; border:2px solid var(--soft-line); border-radius:14px; background:var(--panel); color:var(--ink); padding:8px 12px; font:inherit; font-size:1.05rem; text-align:center; }
     #jumpInput:focus { outline:2px solid var(--line); outline-offset:2px; }
@@ -320,7 +320,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.48.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.49.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -334,7 +334,7 @@
         <li><span class="rule-number">5</span><div><strong>每關一次免費開局指引</strong><span>非進度恢復進入關卡時，可查看一次不直接落子的起手推理；高亮只教一步，由你親自標記，也不會消耗找貓提示。</span></div></li>
         <li><span class="rule-number">6</span><div><strong>每關兩次找貓提示</strong><span>每關可使用 2 次「找貓提示」，提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
         <li><span class="rule-number">7</span><div><strong>積分與補心</strong><span>完成一關 +1000 分；每次使用找貓提示扣 100 分；每扣 1 顆心扣 500 分；積分最低為 0 分。每通過五關最多補回 1 顆心，心數上限為 5 顆。</span></div></li>
-        <li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。</span></div></li>
+        <li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
       </ol>
       <button class="primary close-rules" type="button">開始動腦</button>
     </div>
@@ -349,7 +349,7 @@
       <p id="resultText">本關統計如下。</p>
       <div class="stats"><div class="stat"><b id="timeStat">0:00</b><span>用時</span></div><div class="stat"><b id="mistakeStat">0</b><span>失誤</span></div><div class="stat"><b id="hintStat">0</b><span>找貓提示</span></div><div class="stat"><b id="moveStat">0</b><span>步數</span></div><div class="stat"><b id="scoreStat">0</b><span>累計積分</span></div></div>
       <button class="primary" id="nextBtn" type="button">下一關</button>
-      <button class="secondary" id="retryBtn" type="button">重新開始</button>
+      <button class="secondary" id="retryBtn" type="button">繼續玩</button>
       <div class="promote-veil" id="promoteVeil" hidden>
         <div class="promote-card">
           <div class="result-cat promote-cat" id="promoteCat"></div>
@@ -360,13 +360,6 @@
       </div>
     </div>
     <div class="confetti" id="confetti" aria-hidden="true"></div>
-  </dialog>
-  <dialog id="confirmDialog">
-    <div class="sheet">
-      <p id="confirmText">從第1關開始玩？</p>
-      <button class="secondary" id="confirmYes" type="button">是</button>
-      <button class="primary" id="confirmNo" type="button" autofocus>否</button>
-    </div>
   </dialog>
   <dialog id="jumpDialog">
     <form class="sheet" id="jumpForm" method="dialog">
@@ -1066,15 +1059,6 @@
   function closeResultDialog(){var dialog=document.getElementById('resultDialog');if(dialog.open)dialog.close();unlockPageScroll()}
   function showPromoteVeil(completed){var veil=document.getElementById('promoteVeil');if(!veil)return;var titles={10:['恭喜您，升至初階關卡！','第 11–30 關，迎接新的挑戰'],30:['恭喜您，升至中階關卡！','第 31–50 關，推理難度再提升'],50:['恭喜您，升至高階關卡！','第 51–150 關，10×10 大棋盤全新境界']};if(!titles[completed]){veil.hidden=true;return}document.getElementById('promoteTitle').textContent=titles[completed][0];document.getElementById('promoteSub').textContent=titles[completed][1];var pc=document.getElementById('promoteCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;veil.classList.remove('closing');veil.hidden=false;var btn=document.getElementById('promoteBtn');if(btn)btn.focus()}
   function hidePromoteVeil(){var veil=document.getElementById('promoteVeil');if(!veil||veil.hidden)return;veil.classList.add('closing');setTimeout(function(){veil.hidden=true;veil.classList.remove('closing')},300)}
-  function doRestartFromFirst(){
-    clearToast();state.hearts=MAX_HEARTS;state.score=0;state.mode='x';state.milestoneRewards={};newLevel(0,true);clearProgress();
-  }
-  function askRestartConfirm(){
-    var c=document.getElementById('confirmDialog');
-    if(c.open)return;
-    c.showModal();
-    document.getElementById('confirmNo').focus();
-  }
   function finish(win){
     if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
     var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
@@ -1083,7 +1067,7 @@
       state.milestoneRewards[completed]=true;
       if(state.hearts<MAX_HEARTS){state.hearts=Math.min(MAX_HEARTS,state.hearts+1);recovered=true;paintHearts();persistProgress()}
     }
-    var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor((Date.now()-state.start)/1000)),nextBtn=document.getElementById('nextBtn'),retryBtn=document.getElementById('retryBtn');document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';document.getElementById('resultText').textContent=win?(state.level===TOTAL-1?('你已完成現階段全部 30 關'+(earned?'，本關獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。'):('本關完成'+(earned?'，獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。')):'5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。重新開始：回到第 1 關、積分歸 0，開始新遊戲。';nextBtn.textContent=win?(state.level===TOTAL-1?'再玩一輪':'下一關'):'重新開始';retryBtn.textContent=win?'重新開始':'繼續玩';retryBtn.style.display='block';if(win){nextBtn.className='primary';retryBtn.className='secondary';nextBtn.autofocus=true;retryBtn.autofocus=false;retryBtn.parentNode.insertBefore(nextBtn,retryBtn)}else{retryBtn.className='primary';nextBtn.className='secondary';retryBtn.autofocus=true;nextBtn.autofocus=false;nextBtn.parentNode.insertBefore(retryBtn,nextBtn)}d.dataset.win=win?'1':'0';openResultDialog(d);if(win){soundComplete();burst();showPromoteVeil(completed)}
+    var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor((Date.now()-state.start)/1000)),nextBtn=document.getElementById('nextBtn'),retryBtn=document.getElementById('retryBtn');document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';document.getElementById('resultText').textContent=win?(state.level===TOTAL-1?('你已完成現階段全部 30 關'+(earned?'，本關獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。'):('本關完成'+(earned?'，獲得 1000 分':'')+(recovered?'，並補回 1 顆心':'')+'。')):'5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。';if(win){var finishedAll=state.level===TOTAL-1;nextBtn.textContent=finishedAll?'完成':'下一關';nextBtn.style.display='block';nextBtn.className='primary';nextBtn.autofocus=true;retryBtn.style.display='none';retryBtn.autofocus=false;nextBtn.parentNode.insertBefore(nextBtn,retryBtn)}else{nextBtn.style.display='none';nextBtn.autofocus=false;retryBtn.textContent='繼續玩';retryBtn.style.display='block';retryBtn.className='primary';retryBtn.autofocus=true;nextBtn.parentNode.insertBefore(retryBtn,nextBtn)}d.dataset.win=win?'1':'0';openResultDialog(d);if(win){soundComplete();burst();showPromoteVeil(completed)}
   }
   function newLevel(index,skipSave,preserveVariant){clearToast();state.level=index;if(!preserveVariant)state.variant=HARDEST_VARIANT[index];var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=true;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','先查看免費「開局指引」，或直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress()}
   function restartLevel(){
@@ -1206,7 +1190,7 @@
   }
   function unlockAudio(){if(!muted)ensureAudio()}
   document.addEventListener('pointerdown',unlockAudio,{capture:true,passive:true});document.addEventListener('keydown',unlockAudio,{capture:true});document.addEventListener('visibilitychange',function(){if(!document.hidden&&!muted)ensureAudio()});
-  var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('promoteBtn').onclick=hidePromoteVeil;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(!won||finishedAll){askRestartConfirm();return}closeResultDialog();newLevel(state.level+1)};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}askRestartConfirm()};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);var confirmDialog=document.getElementById('confirmDialog');document.getElementById('confirmYes').onclick=function(){if(confirmDialog.open)confirmDialog.close();closeResultDialog();doRestartFromFirst()};document.getElementById('confirmNo').onclick=function(){if(confirmDialog.open)confirmDialog.close()};confirmDialog.addEventListener('click',function(e){if(e.target===confirmDialog)confirmDialog.close()});[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
+  var rules=document.getElementById('rulesDialog'),result=document.getElementById('resultDialog');document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('promoteBtn').onclick=hidePromoteVeil;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();newLevel(state.level+1)};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
   if(IS_TEST){
     /* 測試版專屬：跳關功能。IS_TEST=false（玩家版）時此整塊不執行，
        頁面上無按鈕、無入口，功能完全不可觸達。 */
