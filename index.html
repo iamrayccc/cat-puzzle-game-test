@@ -116,7 +116,7 @@
     /* v35.69：標 X／放貓的格子 — 白底＋2px 深灰加粗內框線（陰影不變） */
     .cell.marked {
       background:#ffffff !important;
-      box-shadow:inset 0 0 0 2px #555;
+      box-shadow:0 3px 8px rgba(24,50,58,.20), inset 0 0 0 1px #555;
     }
     .cell::after { content:""; position:absolute; inset:3px; border:2px solid transparent; border-radius:7px; pointer-events:none; }
     .cell:hover::after { border-color:rgba(255,255,255,.62); }
@@ -363,7 +363,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.69.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.71.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -459,7 +459,7 @@
      IS_TEST = true  → 顯示跳關按鈕（測試版專用）
      玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
   var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-  var CURRENT_VERSION='2026.10.10.35.69.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+  var CURRENT_VERSION='2026.10.10.35.71.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
   var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
   var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
   var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
