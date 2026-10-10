@@ -333,7 +333,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.58.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.59.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -429,7 +429,7 @@
      IS_TEST = true  → 顯示跳關按鈕（測試版專用）
      玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
   var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-  var CURRENT_VERSION='2026.10.10.35.58.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+  var CURRENT_VERSION='2026.10.10.35.59.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
   var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
   var palette=['var(--r1)','var(--r2)','var(--r3)','var(--r4)','var(--r5)','var(--r6)','var(--r7)','var(--r8)','var(--r9)','var(--r10)','var(--r11)','var(--r12)','var(--r13)','var(--r14)'];
   var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -920,13 +920,13 @@
   }
   function saveLocalProgress(){
     try{
-      if(!(window.localStorage&&window.crypto&&crypto.subtle&&crypto.subtle.digest))return;
+      if(!(window.localStorage&&window.crypto&&crypto.subtle&&crypto.subtle.digest))return Promise.resolve();
       var level=state.level,hearts=state.hearts,score=state.score;
-      sha256hex(level+'|'+hearts+'|'+score+'|'+LS_SECRET).then(function(sum){
+      return sha256hex(level+'|'+hearts+'|'+score+'|'+LS_SECRET).then(function(sum){
         if(!sum)return;
         try{localStorage.setItem(LS_KEY,JSON.stringify({v:1,level:level,hearts:hearts,score:score,sum:sum}))}catch(e){}
       }).catch(function(){});
-    }catch(e){}
+    }catch(e){return Promise.resolve()}
   }
   function loadLocalProgress(){
     try{
@@ -1128,12 +1128,12 @@
     if(d&&d.showModal){lockPageScroll();d.showModal()}
     else if(proceed){proceed()}
   }
-  function closeUpdateDialog(){
+  function closeUpdateDialog(runProceed){
     var d=document.getElementById('updateDialog');
     if(d&&d.open)d.close();
     unlockPageScroll();
     var p=pendingProceed;pendingProceed=null;
-    if(p)p();
+    if(runProceed!==false&&p)p();
   }
   function checkVersionThen(proceed){
     try{
@@ -1295,7 +1295,7 @@
       jumpBtn.onclick=function(){jumpInput.value=String(state.level+1);jumpError.hidden=true;jumpDialog.showModal();jumpInput.focus();jumpInput.select()};
       document.getElementById('jumpCancel').onclick=function(){jumpDialog.close()};
       /* 版本更新對話框按鈕 */
-      document.getElementById('updateNow').onclick=function(){location.reload()};
+      document.getElementById('updateNow').onclick=async function(){closeUpdateDialog(false);newLevel(state.level+1);try{await saveLocalProgress()}catch(e){}location.reload()};
       document.getElementById('updateLater').onclick=function(){closeUpdateDialog()};
       (function(){var ud=document.getElementById('updateDialog');ud.addEventListener('cancel',function(e){e.preventDefault();closeUpdateDialog()});ud.addEventListener('click',function(e){if(e.target===ud)closeUpdateDialog()})})();
       jumpDialog.addEventListener('click',function(e){if(e.target===jumpDialog)jumpDialog.close()});
