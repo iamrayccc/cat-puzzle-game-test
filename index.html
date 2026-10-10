@@ -358,7 +358,7 @@
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </section>
 
-    <p class="footer-note"><span class="version">Version 2026.10.10.35.67.beta</span></p>
+    <p class="footer-note"><span class="version">Version 2026.10.10.35.68.beta</span></p>
   </main>
 
   <dialog id="rulesDialog">
@@ -454,7 +454,7 @@
      IS_TEST = true  → 顯示跳關按鈕（測試版專用）
      玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
   var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-  var CURRENT_VERSION='2026.10.10.35.67.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+  var CURRENT_VERSION='2026.10.10.35.68.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
   var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
   var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
   var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -646,8 +646,8 @@
     search(0);return answer;
   }
   function colorRegions(regions,n,seed){
-    var adjacent=Array.from({length:n},function(){return{}}),hues=new Array(n),used=new Array(14).fill(false),preferred=[0,5,10,8,3,7,2,4,12,6,1,11,9,13],offset=seed%preferred.length,calls=0;
-    var rgb=[[243,166,166],[246,193,132],[232,218,114],[184,219,118],[141,211,155],[127,214,188],[120,207,217],[130,189,229],[142,163,225],[170,146,220],[200,149,216],[232,155,200],[212,177,145],[167,184,196]];
+    var adjacent=Array.from({length:n},function(){return{}}),hues=new Array(n),used=new Array(10).fill(false),preferred=[0,5,8,3,7,2,9,4,1,6],offset=seed%preferred.length,calls=0;
+    var rgb=[[243,166,166],[246,193,132],[232,218,114],[184,219,118],[176,137,104],[127,214,188],[167,184,196],[130,189,229],[142,163,225],[170,146,220]];
     function distance(a,b){var dr=rgb[a][0]-rgb[b][0],dg=rgb[a][1]-rgb[b][1],db=rgb[a][2]-rgb[b][2];return Math.sqrt(.3*dr*dr+.59*dg*dg+.11*db*db)}
     for(var r=0;r<n;r++)for(var c=0;c<n;c++){var a=regions[r][c],b;if(r<n-1&&(b=regions[r+1][c])!==a){adjacent[a][b]=1;adjacent[b][a]=1}if(c<n-1&&(b=regions[r][c+1])!==a){adjacent[a][b]=1;adjacent[b][a]=1}}
     function assign(colored){
@@ -662,8 +662,6 @@
       for(var j=0;j<preferred.length;j++){
         var candidate=preferred[(j+offset+colored)%preferred.length];
         if(used[candidate])continue;
-        if((candidate===9&&used[10])||(candidate===10&&used[9]))continue;
-        if((candidate===5&&used[6])||(candidate===6&&used[5]))continue;
         var distances=neighbors.map(function(k){return distance(candidate,hues[k])});
         if(distances.some(function(value){return value<40}))continue;
         choices.push({value:candidate,score:distances.length?Math.min.apply(null,distances):999,tie:j});
@@ -684,8 +682,6 @@
       for(var j=0;j<preferred.length;j++){
         var candidate=preferred[(j+offset+index)%preferred.length];
         if(hues.indexOf(candidate)>=0)continue;
-        if((candidate===9&&hues.indexOf(10)>=0)||(candidate===10&&hues.indexOf(9)>=0))continue;
-        if((candidate===5&&hues.indexOf(6)>=0)||(candidate===6&&hues.indexOf(5)>=0))continue;
         var score=neighbors.length?Math.min.apply(null,neighbors.map(function(k){return distance(candidate,hues[k])})):200-j;
         if(score>bestScore){best=candidate;bestScore=score}
       }
