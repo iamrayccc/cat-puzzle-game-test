@@ -57,9 +57,10 @@ padding:max(18px,env(safe-area-inset-top)) clamp(12px,3vw,24px) calc(32px + env(
 display:flex; flex-direction:column;
 }
 .statusbar { display:flex; align-items:center; justify-content:flex-end; margin-bottom:12px; }
-.level-meta { min-width:0; margin-bottom:16px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; }
+.level-meta { min-width:0; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; }
 .level-meta h1 { justify-self:start; }
 .level-meta .theme-seg { justify-self:center; }
+.level-meta .theme-seg-btn { font-size:.62rem; }
 .level-meta small { justify-self:end; }
 .status-actions { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; width:100%; }
 .score { min-height:42px; display:flex; flex-direction:column; justify-content:center; align-items:flex-end; background:var(--panel); border:1px solid var(--soft-line); padding:5px 11px; border-radius:13px; box-shadow:0 5px 16px rgba(26,60,66,.08); font-variant-numeric:tabular-nums; }
@@ -367,7 +368,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.24.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.25.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -483,7 +484,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.24.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.25.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
