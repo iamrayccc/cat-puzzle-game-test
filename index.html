@@ -77,6 +77,8 @@ display:flex; flex-direction:column;
 .level-meta h1 { min-width:0; font-size:clamp(1.15rem,4.7vw,1.8rem); line-height:1.1; margin:0; font-weight:900; }
 .hearts { display:flex; align-items:center; gap:5px; background:var(--panel); border:1px solid var(--soft-line); padding:9px 12px; border-radius:999px; box-shadow:0 5px 16px rgba(26,60,66,.08); }
 .heart { width:18px; height:17px; color:var(--accent); overflow:visible; transition:opacity .2s, transform .2s, filter .2s; }
+.heart-wrap{display:inline-flex;align-items:center}
+.heart-wrap .heart{display:block}
 .heart.lost { opacity:.18; transform:scale(.78); filter:grayscale(1); }
 .heart-num { font-size:1.05rem; font-weight:900; min-width:1.1em; text-align:center; font-variant-numeric:tabular-nums; }
 .heart-crack { fill:none; stroke:var(--panel); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; opacity:0; }
@@ -215,7 +217,7 @@ pointer-events:auto; -webkit-overflow-scrolling:touch;
 .result-heading { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:8px; }
 .result-heading h2 { margin:0; }
 .level-up-name { font-weight:900; font-size:1.25em; color:var(--accent); }
-.level-next { font-size:.72em; color:var(--muted); font-weight:700; }
+.level-next { font-size:.72em; color:var(--muted); font-weight:700; white-space:nowrap; }
 .result-cat { flex:0 0 auto; width:48px; height:48px; margin:0; color:var(--accent); animation:celebrate .7s ease; }
 @keyframes celebrate { 0%{transform:translateY(20px) scale(.6);opacity:0} 70%{transform:translateY(-8px) scale(1.05)} 100%{transform:none;opacity:1} }
 #resultDialog .sheet { position:relative; }
@@ -377,7 +379,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.10.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.12.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -493,7 +495,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.10.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.12.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1224,7 +1226,7 @@ if(t&&t!==CURRENT_VERSION){showUpdateDialog(proceed)}else{proceed()}
 /* ===== 玩家等級提升恭喜（v37.0）：取代舊晉級恭喜彈窗 ===== */
 var LEVEL_ORDER=['新手','初階','中階','高階','好手','高手','精英','專家','大師','宗師','傳奇','殿堂','皇者','至尊','神話'];
 function nextLevelName(name){var i=LEVEL_ORDER.indexOf(name);return(i>=0&&i<LEVEL_ORDER.length-1)?LEVEL_ORDER[i+1]:null}
-function showLevelUpVeil(levelName){var next=nextLevelName(levelName),html='恭喜您！升級至 <span class="level-up-name">'+levelName+'</span>';if(next)html+=' <span class="level-next">(等待挑戰：'+next+'等級）</span>';document.getElementById('levelUpTitle').innerHTML=html;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
+function showLevelUpVeil(levelName){var next=nextLevelName(levelName),html='恭喜您！升級至 <span class="level-up-name">'+levelName+'</span>';if(next)html+='<br><span class="level-next">(等待挑戰：'+next+'等級）</span>';document.getElementById('levelUpTitle').innerHTML=html;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
 function finish(win){
 if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
 var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
