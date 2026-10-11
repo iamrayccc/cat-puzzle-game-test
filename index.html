@@ -6,7 +6,6 @@
 <meta name="color-scheme" content="light dark" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20class%3D%22cat-sway%22%3E%3Cg%20class%3D%22cat-breathe%22%3E%3Cpath%20d%3D%22M14%2025%2011%208l15%209a27%2027%200%200%201%2012%200l15-9-3%2017c4%204%206%2010%206%2016%200%2011-10%2018-24%2018S8%2052%208%2041c0-6%202-12%206-16Z%22%20fill%3D%22%23fffdf8%22%20stroke%3D%22%2329474f%22%20stroke-width%3D%222.7%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22m15%2013%203%2010%207-4Z%22%20fill%3D%22%23f5b4ae%22%2F%3E%3Cpath%20d%3D%22m49%2013-3%2010-7-4Z%22%20fill%3D%22%23f5b4ae%22%2F%3E%3Cg%20class%3D%22cat-blink%22%3E%3Cpath%20d%3D%22M21%2035h.1M43%2035h.1%22%20stroke%3D%22%2329474f%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22m29%2041%203-2%203%202-3%203Z%22%20fill%3D%22%23ee7b70%22%20stroke%3D%22%2329474f%22%20stroke-width%3D%221.2%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M32%2044c-1%203-5%203-6%201m6-1c1%203%205%203%206%201%22%20fill%3D%22none%22%20stroke%3D%22%2329474f%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M19%2043%207%2040m12%208L8%2050m37-7%2012-3m-12%208%2011%202%22%20fill%3D%22none%22%20stroke%3D%22%2329474f%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" />
 <title>貓咪邏輯解謎遊戲</title>
-<link rel="preload" as="image" href="assets/cat-anim.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -135,10 +134,17 @@ border-radius:4px;
 .cross { width:72%; height:72%; position:relative; opacity:1; filter:drop-shadow(0 1px 1px rgba(24,50,58,.55)); }
 .cross::before,.cross::after { content:""; position:absolute; left:35%; top:-8%; width:30%; height:116%; border-radius:999px; background:#ffffff; transform:rotate(45deg); }
 .cross::after { transform:rotate(-45deg); }
-.cat-img { width:82%; height:82%; filter:drop-shadow(0 2px 0 rgba(255,255,255,.5)); }
-.cat-img.pop { animation:catPop .28s cubic-bezier(.2,1.8,.4,1); }
+.cat-svg { width:82%; height:82%; filter:drop-shadow(0 2px 0 rgba(255,255,255,.5)); }
+.cat-svg.pop { animation:catPop .28s cubic-bezier(.2,1.8,.4,1); }
 @keyframes catPop { from{transform:scale(.2) rotate(-12deg)} to{transform:scale(1) rotate(0)} }
-.cat-img.sway-once { animation:swayOnce 1s ease-in-out; }
+/* 有限動畫（v37.4）：放貓時播放一次後自動停止，無 infinite */
+.cat-svg.animate-once .cat-sway { animation:catSway 3.6s ease-in-out 1; transform-box:fill-box; transform-origin:50% 85%; }
+.cat-svg.animate-once .cat-breathe { animation:catBreathe 3s ease-in-out 1; transform-box:fill-box; transform-origin:center; }
+.cat-svg.animate-once .cat-blink { animation:catBlink 4.2s ease-in-out 1; transform-box:fill-box; transform-origin:center; }
+@keyframes catSway { 0%,100%{transform:rotate(-10deg)} 50%{transform:rotate(10deg)} }
+@keyframes catBreathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
+@keyframes catBlink { 0%,90%,100%{transform:scaleY(1)} 93%,97%{transform:scaleY(.08)} }
+.cat-svg.sway-once { animation:swayOnce 1s ease-in-out; }
 @keyframes swayOnce { 0%,100% { transform:rotate(0); } 30% { transform:rotate(-10deg); } 70% { transform:rotate(10deg); } }
 .toast { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) translateY(10px); opacity:0; pointer-events:none; z-index:3; background:var(--line); color:var(--panel); border-radius:999px; padding:9px 14px; font-weight:900; font-size:.86rem; transition:.18s; white-space:nowrap; }
 .toast.show { opacity:1; transform:translate(-50%,-50%) translateY(0); }
@@ -367,7 +373,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.3.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.4.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -483,7 +489,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.3.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.4.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1080,10 +1086,9 @@ function paintHintButton(){var btn=document.getElementById('hintBtn'),label=docu
 function paintCatsRemaining(){var el=document.getElementById('catsRemaining'),num=document.getElementById('catsRemainingNum'),n=state.catsRemaining;if(!el||!num)return;num.textContent=n;el.setAttribute('aria-label','剩餘 '+n+' 隻貓')}
 function paintOpeningButton(){var btn=document.getElementById('openingBtn'),label=document.getElementById('openingLabel');btn.hidden=state.restoredEntry;if(state.restoredEntry){btn.disabled=true;return}label.textContent=state.openingAvailable?'開局指引 · 免費':'開局指引 · 已看';btn.disabled=!state.openingAvailable;btn.classList.toggle('guide-used',!state.openingAvailable);btn.setAttribute('aria-label',state.openingAvailable?'查看本關免費開局指引':'本關開局指引已看')}
 function render(){var p=currentPuzzle();board.querySelectorAll('.cell').forEach(function(b){if(b._catTimer){clearTimeout(b._catTimer);b._catTimer=null}});board.innerHTML='';board.style.gridTemplateColumns='repeat('+p.size+',1fr)';board.style.gridTemplateRows='repeat('+p.size+',1fr)';document.getElementById('levelCount').textContent='第 '+(state.level+1)+'／'+TOTAL+' 關 · '+p.label;document.getElementById('levelName').textContent=p.name;for(var r=0;r<p.size;r++)for(var c=0;c<p.size;c++){var i=r*p.size+c,b=document.createElement('button');b.type='button';b.className='cell';b.dataset.i=i;b.setAttribute('role','gridcell');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，空白');b.tabIndex=i===state.focus?0:-1;b.style.background=(currentTheme==='dark'?paletteDark:paletteLight)[p.regionHues[p.regions[r][c]]];b.addEventListener('keydown',onKey);board.appendChild(b)}paintHearts();paintScore();paintLevelChip();paintMode();paintHintButton();paintOpeningButton();paintCatsRemaining();updateAll(false)}
-var CAT_ANIM='assets/cat-anim.webp',CAT_STATIC='assets/cat-static.png',CAT_ANIM_MS=4300;
-function updateCell(i,animate){var b=board.children[i],p=currentPuzzle(),r=Math.floor(i/p.size),c=i%p.size,v=state.cells[i],lockedX=!!state.lockedXs[i];if(b._catTimer){clearTimeout(b._catTimer);b._catTimer=null}if(v==='cat'){b.innerHTML=animate?'<img class="cat-img pop" src="'+CAT_ANIM+'" alt="" aria-hidden="true">':'<img class="cat-img" src="'+CAT_STATIC+'" alt="" aria-hidden="true">';if(animate){b._catTimer=setTimeout(function(){b._catTimer=null;var img=b.querySelector('.cat-img');if(img&&state.cells[i]==='cat')img.src=CAT_STATIC},CAT_ANIM_MS)}}else{b.innerHTML=v==='x'?'<span class="cross" aria-hidden="true"></span>':''}b.setAttribute('aria-disabled',lockedX?'true':'false');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，'+(v==='cat'?'貓咪':v==='x'?(lockedX?'已排除，鎖定':'已排除'):'空白'))}
+function updateCell(i,animate){var b=board.children[i],p=currentPuzzle(),r=Math.floor(i/p.size),c=i%p.size,v=state.cells[i],lockedX=!!state.lockedXs[i];if(b._catTimer){clearTimeout(b._catTimer);b._catTimer=null}if(v==='cat'){b.innerHTML=catSVG.replace('class="cat"','class="cat cat-svg'+(animate?' animate-once pop':'')+'"');if(animate){b._catTimer=setTimeout(function(){b._catTimer=null;var svg=b.querySelector('.cat-svg');if(svg&&state.cells[i]==='cat'){svg.classList.remove('animate-once');svg.classList.remove('pop')}},4300)}}else{b.innerHTML=v==='x'?'<span class="cross" aria-hidden="true"></span>':''}b.setAttribute('aria-disabled',lockedX?'true':'false');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，'+(v==='cat'?'貓咪':v==='x'?(lockedX?'已排除，鎖定':'已排除'):'空白'))}
 var swayTimer=null;
-function scheduleSway(){if(swayTimer){clearTimeout(swayTimer);swayTimer=null}swayTimer=setTimeout(function(){swayTimer=null;if(!state.locked&&!document.querySelector('dialog[open]')){board.querySelectorAll('.cat-img').forEach(function(img){img.classList.remove('sway-once');void img.offsetWidth;img.classList.add('sway-once');setTimeout(function(){img.classList.remove('sway-once')},1100)})}scheduleSway()},30000)}
+function scheduleSway(){if(swayTimer){clearTimeout(swayTimer);swayTimer=null}swayTimer=setTimeout(function(){swayTimer=null;if(!state.locked&&!document.querySelector('dialog[open]')){board.querySelectorAll('.cat-svg').forEach(function(svg){svg.classList.remove('sway-once');void svg.offsetWidth;svg.classList.add('sway-once');setTimeout(function(){svg.classList.remove('sway-once')},1100)})}scheduleSway()},30000)}
 function snapshot(){state.history.push(state.cells.slice());if(state.history.length>100)state.history.shift()}
 function focusCell(i){state.focus=i;board.querySelectorAll('.cell').forEach(function(x,j){x.tabIndex=j===i?0:-1})}
 function handleCellTap(i){if(state.locked)return;if(state.pendingCells[i]||state.lockedXs[i])return;focusCell(i);if(state.cells[i]!==''){removeMark(i);return}if(state.mode==='cat')placeCat(i);else placeX(i)}
