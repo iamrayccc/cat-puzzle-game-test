@@ -58,11 +58,15 @@ display:flex; flex-direction:column;
 }
 .statusbar { display:flex; align-items:center; justify-content:flex-end; margin-bottom:12px; }
 .level-meta { min-width:0; margin-bottom:16px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:baseline; gap:12px; }
-.status-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; flex:0 0 auto; width:100%; }
+.status-actions { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; width:100%; }
 .score { min-height:42px; display:flex; flex-direction:column; justify-content:center; align-items:flex-end; background:var(--panel); border:1px solid var(--soft-line); padding:5px 11px; border-radius:13px; box-shadow:0 5px 16px rgba(26,60,66,.08); font-variant-numeric:tabular-nums; }
 .score span { color:var(--muted); font-size:.65rem; font-weight:900; line-height:1; }
 .score b { font-size:1rem; line-height:1.15; }
 #levelChipValue { font-size:1.12rem; font-weight:900; }
+.level-chip { justify-self:start; flex-direction:row; align-items:center; gap:6px; white-space:nowrap; }
+.level-chip span { font-size:.8rem; }
+.score-center { justify-self:center; align-items:center; }
+.status-right { justify-self:end; display:flex; align-items:center; gap:8px; }
 .sound-btn { width:42px; height:42px; border:1px solid var(--soft-line); border-radius:50%; background:var(--panel); color:var(--ink); display:grid; place-items:center; cursor:pointer; box-shadow:0 5px 16px rgba(26,60,66,.08); }
 .sound-btn:hover, .sound-btn:focus-visible { background:var(--panel-2); outline:2px solid var(--line); outline-offset:2px; }
 .sound-btn svg { width:20px; height:20px; }
@@ -273,8 +277,7 @@ pointer-events:auto;
 .logic-note.guide-active .guide-close { grid-column:2; justify-self:start; }
 }
 @media (max-width:400px) {
-.status-actions { justify-content:flex-end; width:100%; }
-.score { margin-right:auto; }
+.status-actions { gap:6px; }
 }
 @media (max-height:720px) and (orientation:landscape) { 
 .app { width:100%; max-width:980px; display:grid; grid-template-columns:minmax(300px,520px) 1fr; grid-template-rows:auto 1fr; gap:0 28px; padding:12px 24px; }
@@ -308,15 +311,17 @@ body.theme-dark {
 </head>
 <body>
 <main class="app">
-<section class="statusbar" aria-label="積分、音效及剩餘機會">
+<section class="statusbar" aria-label="等級、積分、音效及剩餘機會">
 <div class="status-actions">
-<div class="score" aria-live="polite"><span>等級：</span><b id="levelChipValue">新手</b></div>
-<div class="score" aria-live="polite"><span>積分</span><b id="scoreValue">0</b></div>
+<div class="score level-chip" aria-live="polite"><span>您的等級：</span><b id="levelChipValue">新手</b></div>
+<div class="score score-center" aria-live="polite"><span>積分</span><b id="scoreValue">0</b></div>
+<div class="status-right">
 <button class="sound-btn" id="soundBtn" type="button" aria-label="靜音" aria-pressed="false" title="靜音">
 <svg class="sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/></svg>
 <svg class="sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="m16 9 5 5m0-5-5 5"/></svg>
 </button>
 <div class="hearts" aria-label="剩餘五次機會" id="hearts"></div>
+</div>
 </div>
 </section>
 <section class="level-meta" aria-label="關卡資料"><h1 id="levelName">午睡角落</h1><small id="levelCount">第 1／50 關</small></section>
@@ -363,7 +368,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.0.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.1.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -482,7 +487,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.0.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.1.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
