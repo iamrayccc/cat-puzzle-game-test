@@ -370,7 +370,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.35.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.36.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -404,7 +404,7 @@ body.theme-dark {
 <h2 id="resultTitle">遊戲完結</h2>
 </div>
 <p id="resultText">本關統計如下。</p>
-<div class="top-stats"><div class="stat stat-total"><span id="scoreCrown" class="score-crown" style="display:none" aria-hidden="true"><img src="crown.svg" width="36" height="36" style="display:block"></span><b id="scoreStat">0</b><span>累計積分</span></div><div class="stat stat-level"><b id="levelStat">新手</b><span>等級</span></div></div>
+<div class="top-stats"><div class="stat stat-total"><span id="scoreCrown" class="score-crown" style="display:none" aria-hidden="true"><img src="crown.svg" width="36" height="36" alt="" style="display:block"></span><b id="scoreStat">0</b><span>累計積分</span></div><div class="stat stat-level"><b id="levelStat">新手</b><span>等級</span></div></div>
 <div class="stats"><div class="stat"><b id="timeStat">0:00</b><span>用時</span></div><div class="stat"><b id="mistakeStat">0</b><span>失誤</span></div><div class="stat"><b id="hintStat">0</b><span>找貓提示</span></div><div class="stat"><b id="moveStat">0</b><span>步數</span></div></div>
 <p id="scoreBreakdown" class="score-breakdown" style="display:none"></p>
 <p id="bestStat" class="best-stat" style="display:none"></p>
@@ -486,7 +486,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.35.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.36.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1221,7 +1221,7 @@ if(t&&t!==CURRENT_VERSION){showUpdateDialog(proceed)}else{proceed()}
 /* ===== 玩家等級提升恭喜（v37.0）：取代舊晉級恭喜彈窗 ===== */
 var LEVEL_ORDER=['新手','初階','中階','高階','好手','高手','精英','專家','大師','宗師','傳奇','殿堂','皇者','至尊','神話'];
 function nextLevelName(name){var i=LEVEL_ORDER.indexOf(name);return(i>=0&&i<LEVEL_ORDER.length-1)?LEVEL_ORDER[i+1]:null}
-function showLevelUpVeil(levelName){var next=nextLevelName(levelName),dName=levelName,html='恭喜您！升級至 <span class="level-up-name">'+dName+'</span>';if(next)html+='<br><span class="level-next">（等待挑戰：'+next+'等級）</span>';document.getElementById('levelUpTitle').innerHTML=html;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
+function showLevelUpVeil(levelName){var next=nextLevelName(levelName),html='恭喜您！升級至 <span class="level-up-name">'+levelName+'</span>';if(next)html+='<br><span class="level-next">（等待挑戰：'+next+'等級）</span>';document.getElementById('levelUpTitle').innerHTML=html;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
 function finish(win){
 if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
 var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
@@ -1371,10 +1371,6 @@ jumpBtn.textContent='跳關（測試）';
 var jumpDialog=document.getElementById('jumpDialog'),jumpForm=document.getElementById('jumpForm'),jumpInput=document.getElementById('jumpInput'),jumpError=document.getElementById('jumpError');
 jumpBtn.onclick=function(){jumpInput.value=String(state.level+1);jumpError.hidden=true;jumpDialog.showModal();jumpInput.focus();jumpInput.select()};
 document.getElementById('jumpCancel').onclick=function(){jumpDialog.close()};
-/* 版本更新對話框按鈕 */
-document.getElementById('updateNow').onclick=async function(){closeUpdateDialog(false);newLevel(state.level+1);try{await saveLocalProgress()}catch(e){}location.href=location.pathname+'?_='+Date.now()+location.hash};
-document.getElementById('updateLater').onclick=function(){closeUpdateDialog()};
-(function(){var ud=document.getElementById('updateDialog');ud.addEventListener('cancel',function(e){e.preventDefault();closeUpdateDialog()});ud.addEventListener('click',function(e){if(e.target===ud)closeUpdateDialog()})})();
 jumpDialog.addEventListener('click',function(e){if(e.target===jumpDialog)jumpDialog.close()});
 jumpForm.onsubmit=function(e){
 e.preventDefault();
@@ -1407,6 +1403,10 @@ showToast('最高積分已設為 '+Math.floor(n).toLocaleString('zh-Hant')+'（�
 footer.parentNode.insertBefore(bestBtn,footer);
 })();
 }
+/* 版本更新對話框按鈕 */
+document.getElementById('updateNow').onclick=async function(){closeUpdateDialog(false);newLevel(state.level+1);try{await saveLocalProgress()}catch(e){}location.href=location.pathname+'?_='+Date.now()+location.hash};
+document.getElementById('updateLater').onclick=function(){closeUpdateDialog()};
+(function(){var ud=document.getElementById('updateDialog');ud.addEventListener('cancel',function(e){e.preventDefault();closeUpdateDialog()});ud.addEventListener('click',function(e){if(e.target===ud)closeUpdateDialog()})})();
 /* ===== 深淺色主題切換（v35.63）：淺色為預設，深色用截圖色系 ===== */
 function getTheme(){return currentTheme}
 function repaintBoardColors(){
