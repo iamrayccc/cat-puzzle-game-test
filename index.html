@@ -373,7 +373,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.4.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.5.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -489,7 +489,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.4.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.5.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -829,7 +829,7 @@ out.push(variants);
 return out;
 }
 var puzzles=buildVariantPuzzles();validateFirstFive(puzzles);
-var state={level:0,variant:0,cells:[],lockedXs:{},history:[],hearts:MAX_HEARTS,hintsRemaining:2,mistakes:0,hintsUsed:0,moves:0,score:0,best:undefined,maxCompleted:0,pendingLevelUp:false,pendingLevelUpName:'',mode:'x',start:Date.now(),locked:false,pendingCells:{},resultShown:false,levelAwarded:false,focus:0,milestoneRewards:{},openingAvailable:true,openingGuide:null,restoredEntry:false};
+var state={level:0,variant:0,cells:[],lockedXs:{},history:[],hearts:MAX_HEARTS,hintsRemaining:2,mistakes:0,hintsUsed:0,moves:0,catsRemaining:0,score:0,best:undefined,maxCompleted:0,pendingLevelUp:false,pendingLevelUpName:'',mode:'x',start:Date.now(),locked:false,pendingCells:{},resultShown:false,levelAwarded:false,focus:0,milestoneRewards:{},openingAvailable:true,openingGuide:null,restoredEntry:false};
 function currentPuzzle(){return puzzles[state.level][state.variant]}
 var board=document.getElementById('board'),toast=document.getElementById('toast'),logicNote=document.getElementById('logicNote');
 /* 放大點擊熱區：棋盤層統一處理點擊，判給最近的格子中心（擴展量＝格邊長×0.45） */
@@ -956,7 +956,7 @@ if(score<0||bytes[7]<1||bytes[7]>MAX_HEARTS||bytes[8]>2)return false;
 var cells=[],lockedXs={},power=[1,3,9,27,81];
 for(var n=0;n<needed;n++){var packed=bytes[10+n];if(packed>242)return false;for(var j=0;j<5&&cells.length<p.size*p.size;j++){var value=Math.floor(packed/power[j])%3;cells.push(value===1?'x':(value===2?'cat':''))}}
 for(var k=0;k<lockBytes;k++){var lockBits=bytes[10+needed+k];for(var bit=0;bit<8&&k*8+bit<cells.length;bit++)if(lockBits&(1<<bit)){var lockedIndex=k*8+bit;if(cells[lockedIndex]!=='x')return false;lockedXs[lockedIndex]=true}}
-state.level=level;state.variant=variant;state.cells=cells;state.lockedXs=lockedXs;state.score=score;state.hearts=bytes[7];state.hintsRemaining=bytes[8];state.levelAwarded=!!(bytes[9]&1);state.history=[];state.pendingCells={};state.mistakes=0;state.hintsUsed=2-state.hintsRemaining;state.moves=0;state.start=Date.now();state.locked=false;state.resultShown=false;state.focus=0;state.openingAvailable=false;state.openingGuide=null;state.restoredEntry=true;
+state.level=level;state.variant=variant;state.cells=cells;state.lockedXs=lockedXs;state.score=score;state.hearts=bytes[7];state.hintsRemaining=bytes[8];state.levelAwarded=!!(bytes[9]&1);state.history=[];state.pendingCells={};state.mistakes=0;state.hintsUsed=2-state.hintsRemaining;state.moves=0;state.catsRemaining=p.size-cells.filter(function(c){return c==='cat'}).length;state.start=Date.now();
 return true;
 }catch(err){return false}
 }
