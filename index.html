@@ -207,7 +207,7 @@ pointer-events:auto; -webkit-overflow-scrolling:touch;
 .primary { width:100%; min-height:52px; border:0; border-radius:14px; background:var(--accent); color:#fff; font-weight:900; font-size:1rem; cursor:pointer; box-shadow:0 5px 0 var(--accent-dark); }
 .primary:active { transform:translateY(3px); box-shadow:0 2px 0 var(--accent-dark); }
 .result { text-align:center; padding-top:22px; }
-.score-breakdown { display:none; margin:7px auto 0; padding:10px 14px; border:1px dashed var(--soft-line); border-radius:12px; font-size:.92rem; line-height:1.75; color:var(--ink); background:var(--panel-2); text-align:center; }
+.sheet .score-breakdown { display:none; margin:7px auto 0; padding:10px 14px; border:1px dashed var(--soft-line); border-radius:12px; font-size:.92rem; line-height:1.75; color:var(--ink); background:var(--panel-2); text-align:center; }
 .stat-total { margin:16px 0 0; }
 .top-stats { display:flex; gap:8px; margin:16px 0 0; }
 .top-stats .stat-total { flex:2; margin:0; }
@@ -222,17 +222,6 @@ pointer-events:auto; -webkit-overflow-scrolling:touch;
 .result-cat { flex:0 0 auto; width:48px; height:48px; margin:0; color:var(--accent); animation:celebrate .7s ease; }
 @keyframes celebrate { 0%{transform:translateY(20px) scale(.6);opacity:0} 70%{transform:translateY(-8px) scale(1.05)} 100%{transform:none;opacity:1} }
 #resultDialog .sheet { position:relative; }
-.promote-veil { position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center; background:rgba(120,120,120,.55); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); border-radius:24px; }
-.promote-veil[hidden] { display:none; }
-.promote-card { background:var(--panel); border:1px solid var(--soft-line); border-radius:20px; padding:28px 24px; text-align:center; width:min(82%,340px); box-shadow:0 24px 70px rgba(0,0,0,.32); animation:promoteIn .45s cubic-bezier(.2,1.4,.4,1); }
-.promote-card h2 { margin:0 0 8px; font-size:1.4rem; line-height:1.3; color:var(--ink); }
-.promote-card p { margin:0 0 20px; color:var(--muted); font-size:.92rem; line-height:1.5; }
-.promote-cat { width:56px; height:56px; margin:0 auto 12px; color:var(--accent); animation:celebrate .7s ease; }
-@keyframes promoteIn { 0%{transform:scale(.7) translateY(30px);opacity:0} 100%{transform:none;opacity:1} }
-.promote-veil.closing { opacity:0; transition:opacity .3s ease; }
-.promote-veil.closing .promote-card { transform:scale(.92); transition:transform .3s ease; }
-@media (prefers-color-scheme: dark) { .promote-veil { background:rgba(60,60,60,.6); } }
-@media (max-width:560px) { .promote-card { padding:22px 18px; } .promote-card h2 { font-size:1.25rem; } }
 .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:8px 0; }
 .stat { background:var(--panel-2); padding:12px 6px; border-radius:14px; }
 .stat b { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; }
@@ -380,7 +369,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.16.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.18.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -496,7 +485,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.16.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.18.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
