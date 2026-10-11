@@ -368,7 +368,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.29.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.30.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -484,7 +484,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.29.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.30.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1072,7 +1072,7 @@ function heartSVG(){return '<svg class="heart" viewBox="0 0 24 22" fill="current
 function paintHearts(){state.hearts=Math.min(MAX_HEARTS,Math.max(0,state.hearts));var h=document.getElementById('hearts');h.innerHTML='<span class="heart-wrap">'+heartSVG()+'</span><b class="heart-num">'+state.hearts+'</b>';h.setAttribute('aria-label','剩餘'+state.hearts+'次機會')}
 function paintScore(){state.score=Math.max(0,state.score);document.getElementById('scoreValue').textContent=state.score.toLocaleString('zh-Hant')}
 /* ===== 玩家等級系統（v37.0）：依最高積分評級 ===== */
-function levelForScore(s){s=Math.floor(s);if(s>=200001)return'神話';if(s>=180001)return'至尊';if(s>=160001)return'皇者';if(s>=140001)return'殿堂';if(s>=120001)return'傳奇';if(s>=100001)return'宗師';if(s>=80001)return'大師';if(s>=60001)return'專家';if(s>=40001)return'精英';if(s>=30001)return'高手';if(s>=20001)return'好手';if(s>=10001)return'高階';if(s>=5001)return'中階';if(s>=3001)return'初階';return'新手'}
+function levelForScore(s){s=Math.floor(s);if(s>=260001)return'神話';if(s>=220001)return'至尊';if(s>=180001)return'皇者';if(s>=140001)return'殿堂';if(s>=120001)return'傳奇';if(s>=100001)return'宗師';if(s>=80001)return'大師';if(s>=60001)return'專家';if(s>=40001)return'精英';if(s>=30001)return'高手';if(s>=20001)return'好手';if(s>=10001)return'高階';if(s>=5001)return'中階';if(s>=3001)return'初階';return'新手'}
 function levelForLevel(n){n=Math.floor(n);if(n>=31)return'高階';if(n>=11)return'中階';if(n>=6)return'初階';return'新手'}
 function currentLevelName(){if(state.best!==undefined&&state.best!==null)return levelForScore(state.best);return levelForLevel(state.maxCompleted||0)}
 function paintLevelChip(){var el=document.getElementById('levelChipValue');if(!el)return;el.textContent=currentLevelName()}
