@@ -380,7 +380,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.15.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.16.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -392,7 +392,7 @@ body.theme-dark {
 <li><span class="rule-number">4</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
 <li><span class="rule-number">5</span><div><strong>每關一次免費開局指引</strong><span>非進度恢復進入關卡時，可查看一次不直接落子的起手推理；高亮只教一步，由你親自標記，也不會消耗找貓提示。</span></div></li>
 <li><span class="rule-number">6</span><div><strong>每關兩次找貓提示</strong><span>每關可使用 2 次「找貓提示」，提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
-<li><span class="rule-number">7</span><div><strong>積分與補心</strong><span>完成一關 +1000 分；全程不用找貓提示再 +400 分；5 分鐘內完成再 +200 分。每次使用找貓提示扣 100 分；放錯貓只扣心、不扣分。積分最低為 0 分。每通過五關最多補回 1 顆心，心數上限為 5 顆。</span></div></li>
+<li><span class="rule-number">7</span><div><strong>積分與補心</strong><span>完成一關 +1000 分；全程不用找貓提示再 +400 分；1 分鐘內完成再 +500 分、3 分鐘內完成再 +300 分、5 分鐘內完成再 +100 分。每次使用找貓提示扣 100 分；放錯貓只扣心、不扣分。積分最低為 0 分。每通過五關最多補回 1 顆心，心數上限為 5 顆。</span></div></li>
 <li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
 <li><span class="rule-number">9</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級見下表）；等級提升時會有恭喜提示。</span>
 <table class="level-table">
@@ -496,7 +496,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.15.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.16.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1231,7 +1231,7 @@ function showLevelUpVeil(levelName){var next=nextLevelName(levelName),html='恭�
 function finish(win){
 if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
 var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
-if(firstCompletion){state.levelAwarded=true;changeScore(1000);earned=true;var bonusLines=['過關 ＋1000'],bonusTotal=1000;if(state.hintsUsed===0){changeScore(400);bonusLines.push('不用找貓提示 ＋400');bonusTotal+=400}if(Date.now()-state.start<300000){changeScore(200);bonusLines.push('5 分鐘內完成 ＋200');bonusTotal+=200}var scoreBreakdown={lines:bonusLines,total:bonusTotal}}
+if(firstCompletion){state.levelAwarded=true;changeScore(1000);earned=true;var bonusLines=['過關獎勵 ＋1000'],bonusTotal=1000;if(state.hintsUsed===0){changeScore(400);bonusLines.push('不用找貓提示獎勵 ＋400');bonusTotal+=400}var elMs=Date.now()-state.start;if(elMs<=60000){changeScore(500);bonusLines.push('1 分鐘內完成獎勵 ＋500');bonusTotal+=500}else if(elMs<=180000){changeScore(300);bonusLines.push('3 分鐘內完成獎勵 ＋300');bonusTotal+=300}else if(elMs<=300000){changeScore(100);bonusLines.push('5 分鐘內完成獎勵 ＋100');bonusTotal+=100}var scoreBreakdown={lines:bonusLines,total:bonusTotal}}
 if(win&&firstCompletion){var oldLvName=currentLevelName();if(state.best===undefined||state.best===null||state.score>state.best)state.best=Math.floor(state.score);state.maxCompleted=Math.max(state.maxCompleted,state.level+1);var newLvName=currentLevelName();if(newLvName!==oldLvName){state.pendingLevelUp=true;state.pendingLevelUpName=newLvName}paintLevelChip();saveLocalProgress()}
 if(firstCompletion&&completed%5===0&&!state.milestoneRewards[completed]){
 state.milestoneRewards[completed]=true;
