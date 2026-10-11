@@ -370,7 +370,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.36.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.37.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -486,7 +486,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.36.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.37.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1371,6 +1371,7 @@ jumpBtn.textContent='跳關（測試）';
 var jumpDialog=document.getElementById('jumpDialog'),jumpForm=document.getElementById('jumpForm'),jumpInput=document.getElementById('jumpInput'),jumpError=document.getElementById('jumpError');
 jumpBtn.onclick=function(){jumpInput.value=String(state.level+1);jumpError.hidden=true;jumpDialog.showModal();jumpInput.focus();jumpInput.select()};
 document.getElementById('jumpCancel').onclick=function(){jumpDialog.close()};
+/* 版本更新對話框按鈕 */
 jumpDialog.addEventListener('click',function(e){if(e.target===jumpDialog)jumpDialog.close()});
 jumpForm.onsubmit=function(e){
 e.preventDefault();
@@ -1403,7 +1404,7 @@ showToast('最高積分已設為 '+Math.floor(n).toLocaleString('zh-Hant')+'（�
 footer.parentNode.insertBefore(bestBtn,footer);
 })();
 }
-/* 版本更新對話框按鈕 */
+/* 移出 if(IS_TEST)：玩家版亦需更新對話框正常運作 */
 document.getElementById('updateNow').onclick=async function(){closeUpdateDialog(false);newLevel(state.level+1);try{await saveLocalProgress()}catch(e){}location.href=location.pathname+'?_='+Date.now()+location.hash};
 document.getElementById('updateLater').onclick=function(){closeUpdateDialog()};
 (function(){var ud=document.getElementById('updateDialog');ud.addEventListener('cancel',function(e){e.preventDefault();closeUpdateDialog()});ud.addEventListener('click',function(e){if(e.target===ud)closeUpdateDialog()})})();
