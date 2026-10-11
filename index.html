@@ -202,10 +202,13 @@ pointer-events:auto; -webkit-overflow-scrolling:touch;
 .primary { width:100%; min-height:52px; border:0; border-radius:14px; background:var(--accent); color:#fff; font-weight:900; font-size:1rem; cursor:pointer; box-shadow:0 5px 0 var(--accent-dark); }
 .primary:active { transform:translateY(3px); box-shadow:0 2px 0 var(--accent-dark); }
 .result { text-align:center; padding-top:22px; }
-.score-breakdown { display:none; margin:12px auto 0; padding:10px 14px; border:1px dashed var(--soft-line); border-radius:12px; font-size:.92rem; line-height:1.75; color:var(--ink); background:var(--panel-2); max-width:300px; text-align:center; }
+.score-breakdown { display:none; margin:12px auto 0; padding:10px 14px; border:1px dashed var(--soft-line); border-radius:12px; font-size:.92rem; line-height:1.75; color:var(--ink); background:var(--panel-2); text-align:center; }
+.stat-total { margin:16px 0 0; }
 .best-stat { margin:10px 0 0; font-weight:900; font-size:.95rem; text-align:center; }
 .result-heading { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:8px; }
 .result-heading h2 { margin:0; }
+.level-up-name { font-weight:900; font-size:1.25em; color:var(--accent); }
+.level-next { font-size:.72em; color:var(--muted); font-weight:700; }
 .result-cat { flex:0 0 auto; width:48px; height:48px; margin:0; color:var(--accent); animation:celebrate .7s ease; }
 @keyframes celebrate { 0%{transform:translateY(20px) scale(.6);opacity:0} 70%{transform:translateY(-8px) scale(1.05)} 100%{transform:none;opacity:1} }
 #resultDialog .sheet { position:relative; }
@@ -220,7 +223,7 @@ pointer-events:auto; -webkit-overflow-scrolling:touch;
 .promote-veil.closing .promote-card { transform:scale(.92); transition:transform .3s ease; }
 @media (prefers-color-scheme: dark) { .promote-veil { background:rgba(60,60,60,.6); } }
 @media (max-width:560px) { .promote-card { padding:22px 18px; } .promote-card h2 { font-size:1.25rem; } }
-.stats { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:22px 0; }
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:22px 0; }
 .stat { background:var(--panel-2); padding:12px 6px; border-radius:14px; }
 .stat b { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; }
 .stat span { display:block; margin-top:3px; font-size:.78rem; color:var(--muted); font-weight:800; line-height:1.25; }
@@ -269,7 +272,6 @@ pointer-events:auto;
 .sound-btn { width:40px; height:40px; }
 .score { min-height:40px; padding:5px 9px; }
 .stats { grid-template-columns:repeat(2,1fr); }
-.stat:last-child { grid-column:1/-1; }
 .top-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
 .quiet-btn { justify-content:center; padding:8px 5px; font-size:.78rem; }
 .cats-remaining { justify-content:flex-end; padding:8px 5px; font-size:.78rem; }
@@ -368,7 +370,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.1.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.2.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -382,17 +384,13 @@ body.theme-dark {
 <li><span class="rule-number">6</span><div><strong>每關兩次找貓提示</strong><span>每關可使用 2 次「找貓提示」，提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
 <li><span class="rule-number">7</span><div><strong>積分與補心</strong><span>完成一關 +1000 分；全程不用找貓提示再 +400 分；5 分鐘內完成再 +200 分。每次使用找貓提示扣 100 分；放錯貓只扣心、不扣分。積分最低為 0 分。每通過五關最多補回 1 顆心，心數上限為 5 顆。</span></div></li>
 <li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
-<li><span class="rule-number">9</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分，並依下表評定等級；等級提升時會有恭喜提示。</span>
+<li><span class="rule-number">9</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級見下表）；等級提升時會有恭喜提示。</span>
 <table class="level-table">
-<tr><th>等級</th><th>最高積分</th><th>等級</th><th>最高積分</th></tr>
-<tr><td>新手</td><td>0–3000</td><td>大師</td><td>80001–100000</td></tr>
-<tr><td>初階</td><td>3001–5000</td><td>宗師</td><td>100001–120000</td></tr>
-<tr><td>中階</td><td>5001–10000</td><td>傳奇</td><td>120001–140000</td></tr>
-<tr><td>高階</td><td>10001–20000</td><td>殿堂</td><td>140001–160000</td></tr>
-<tr><td>好手</td><td>20001–30000</td><td>皇者</td><td>160001–180000</td></tr>
-<tr><td>高手</td><td>30001–40000</td><td>至尊</td><td>180001–200000</td></tr>
-<tr><td>精英</td><td>40001–60000</td><td>神話</td><td>200001 以上</td></tr>
-<tr><td>專家</td><td>60001–80000</td><td></td><td></td></tr>
+<tr><td>新手</td><td>初階</td><td>中階</td></tr>
+<tr><td>高階</td><td>好手</td><td>高手</td></tr>
+<tr><td>精英</td><td>專家</td><td>大師</td></tr>
+<tr><td>宗師</td><td>傳奇</td><td>殿堂</td></tr>
+<tr><td>皇者</td><td>至尊</td><td>神話</td></tr>
 </table>
 <p class="level-note">尚未有最高積分紀錄時（例如舊存檔），按最高完成關卡衡量：1–5 關為新手、6–10 關為初階、11–30 關為中階、31 關以上為高階。</p></div></li>
 </ol>
@@ -406,8 +404,9 @@ body.theme-dark {
 <h2 id="resultTitle">遊戲完結</h2>
 </div>
 <p id="resultText">本關統計如下。</p>
+<div class="stat stat-total"><b id="scoreStat">0</b><span>累計積分</span></div>
+<div class="stats"><div class="stat"><b id="timeStat">0:00</b><span>用時</span></div><div class="stat"><b id="mistakeStat">0</b><span>失誤</span></div><div class="stat"><b id="hintStat">0</b><span>找貓提示</span></div><div class="stat"><b id="moveStat">0</b><span>步數</span></div></div>
 <p id="scoreBreakdown" class="score-breakdown" style="display:none"></p>
-<div class="stats"><div class="stat"><b id="timeStat">0:00</b><span>用時</span></div><div class="stat"><b id="mistakeStat">0</b><span>失誤</span></div><div class="stat"><b id="hintStat">0</b><span>找貓提示</span></div><div class="stat"><b id="moveStat">0</b><span>步數</span></div><div class="stat"><b id="scoreStat">0</b><span>累計積分</span></div></div>
 <p id="bestStat" class="best-stat" style="display:none"></p>
 <button class="primary" id="nextBtn" type="button">下一關</button>
 <button class="secondary" id="retryBtn" type="button">繼續玩</button>
@@ -487,7 +486,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.1.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.2.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1214,7 +1213,9 @@ if(t&&t!==CURRENT_VERSION){showUpdateDialog(proceed)}else{proceed()}
 }catch(e){proceed()}
 }
 /* ===== 玩家等級提升恭喜（v37.0）：取代舊晉級恭喜彈窗 ===== */
-function showLevelUpVeil(levelName){document.getElementById('levelUpTitle').textContent='恭喜您！等級提升，新等級是'+levelName;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
+var LEVEL_ORDER=['新手','初階','中階','高階','好手','高手','精英','專家','大師','宗師','傳奇','殿堂','皇者','至尊','神話'];
+function nextLevelName(name){var i=LEVEL_ORDER.indexOf(name);return(i>=0&&i<LEVEL_ORDER.length-1)?LEVEL_ORDER[i+1]:null}
+function showLevelUpVeil(levelName){var next=nextLevelName(levelName),html='恭喜您！升級至 <span class="level-up-name">'+levelName+'</span>';if(next)html+=' <span class="level-next">(等待挑戰：'+next+'等級）</span>';document.getElementById('levelUpTitle').innerHTML=html;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
 function finish(win){
 if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
 var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
@@ -1224,7 +1225,7 @@ if(firstCompletion&&completed%5===0&&!state.milestoneRewards[completed]){
 state.milestoneRewards[completed]=true;
 if(state.hearts<MAX_HEARTS){state.hearts=Math.min(MAX_HEARTS,state.hearts+1);recovered=true;paintHearts();persistProgress()}
 }
-var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor((Date.now()-state.start)/1000)),nextBtn=document.getElementById('nextBtn'),retryBtn=document.getElementById('retryBtn');document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';document.getElementById('resultText').textContent=win?(state.level===TOTAL-1?('你已完成現階段全部 30 關'+(recovered?'，並補回 1 顆心':'')+'。'):('本關完成'+(recovered?'，並補回 1 顆心':'')+'。')):'5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。';var bdEl=document.getElementById('scoreBreakdown');if(win&&earned&&typeof scoreBreakdown!=='undefined'){bdEl.innerHTML='計分明細<br>'+scoreBreakdown.lines.join('<br>')+'<br><b>本關合計 ＋'+scoreBreakdown.total+'</b>';bdEl.style.display='block'}else{bdEl.style.display='none'}var bsEl=document.getElementById('bestStat');if(win&&bsEl){var bTxt=(state.best===undefined||state.best===null)?'–':Math.floor(state.best).toLocaleString('zh-Hant');bsEl.textContent='最高積分：'+bTxt;bsEl.style.display='block'}else if(bsEl){bsEl.style.display='none'}if(win){var finishedAll=state.level===TOTAL-1;nextBtn.textContent=finishedAll?'完成':'下一關';nextBtn.style.display='block';nextBtn.className='primary';nextBtn.autofocus=true;retryBtn.style.display='none';retryBtn.autofocus=false;nextBtn.parentNode.insertBefore(nextBtn,retryBtn)}else{nextBtn.style.display='none';nextBtn.autofocus=false;retryBtn.textContent='繼續玩';retryBtn.style.display='block';retryBtn.className='primary';retryBtn.autofocus=true;nextBtn.parentNode.insertBefore(retryBtn,nextBtn)}d.dataset.win=win?'1':'0';openResultDialog(d);if(win){soundComplete();burst()}
+var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor((Date.now()-state.start)/1000)),nextBtn=document.getElementById('nextBtn'),retryBtn=document.getElementById('retryBtn');document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';var rtEl=document.getElementById('resultText');if(win){rtEl.style.display='none'}else{rtEl.style.display='block';rtEl.textContent='5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。';}var bdEl=document.getElementById('scoreBreakdown');if(win&&earned&&typeof scoreBreakdown!=='undefined'){bdEl.innerHTML='計分明細<br>'+scoreBreakdown.lines.join('<br>')+'<br><b>本關合計 ＋'+scoreBreakdown.total+'</b>';bdEl.style.display='block'}else{bdEl.style.display='none'}var bsEl=document.getElementById('bestStat');if(win&&bsEl){var bTxt=(state.best===undefined||state.best===null)?'–':Math.floor(state.best).toLocaleString('zh-Hant');bsEl.textContent='個人紀錄：累計最高積分 '+bTxt;bsEl.style.display='block'}else if(bsEl){bsEl.style.display='none'}if(win){var finishedAll=state.level===TOTAL-1;nextBtn.textContent=finishedAll?'完成':'下一關';nextBtn.style.display='block';nextBtn.className='primary';nextBtn.autofocus=true;retryBtn.style.display='none';retryBtn.autofocus=false;nextBtn.parentNode.insertBefore(nextBtn,retryBtn)}else{nextBtn.style.display='none';nextBtn.autofocus=false;retryBtn.textContent='繼續玩';retryBtn.style.display='block';retryBtn.className='primary';retryBtn.autofocus=true;nextBtn.parentNode.insertBefore(retryBtn,nextBtn)}d.dataset.win=win?'1':'0';openResultDialog(d);if(win){soundComplete();burst()}
 }
 function newLevel(index,skipSave,preserveVariant){clearToast();state.level=index;if(!preserveVariant)state.variant=HARDEST_VARIANT[index];var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.catsRemaining=p.size;state.start=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=true;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','先查看免費「開局指引」，或直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress()}
 function restartLevel(){
