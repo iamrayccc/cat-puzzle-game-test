@@ -81,13 +81,8 @@ display:flex; flex-direction:column;
 .heart-wrap .heart{display:block}
 .heart.lost { opacity:.18; transform:scale(.78); filter:grayscale(1); }
 .heart-num { font-size:1.05rem; font-weight:900; min-width:1.1em; text-align:center; font-variant-numeric:tabular-nums; }
-.heart-crack { fill:none; stroke:var(--panel); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; opacity:0; }
 .hearts.heart-hit { animation:heartHit .85s ease; }
-.heart.breaking { animation:heartBreak .9s cubic-bezier(.22,.8,.32,1) both; }
-.heart.breaking .heart-crack { animation:crackShow .9s ease both; }
 @keyframes heartHit { 18%{transform:translateX(-3px);background:color-mix(in srgb,var(--bad) 18%,var(--panel))} 36%{transform:translateX(3px)} 54%{transform:translateX(-2px)} 100%{transform:none} }
-@keyframes heartBreak { 0%{opacity:1;transform:translateY(0) scale(1);filter:none} 28%{opacity:1;transform:translateY(-3px) scale(1.38) rotate(-7deg);filter:none} 55%{opacity:.82;transform:translateY(2px) scale(1.02) rotate(8deg);filter:grayscale(.75)} 100%{opacity:.18;transform:translateY(9px) scale(.72) rotate(14deg);filter:grayscale(1)} }
-@keyframes crackShow { 0%,20%{opacity:0;stroke-dasharray:16;stroke-dashoffset:16} 38%,100%{opacity:1;stroke-dasharray:16;stroke-dashoffset:0} }
 .top-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:18px; }
 .top-row { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .top-row .quiet-btn { flex:0 0 auto; padding:8px 10px; }
@@ -369,7 +364,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.18.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.19.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -485,7 +480,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.18.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.19.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=150, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1067,7 +1062,7 @@ osc.connect(gain);gain.connect(masterGain);osc.start(start);osc.stop(start+.3);
 }
 var catSVG='<svg class="cat" viewBox="0 0 64 64" aria-hidden="true"><g class="cat-sway"><g class="cat-breathe"><path d="M14 25 11 8l15 9a27 27 0 0 1 12 0l15-9-3 17c4 4 6 10 6 16 0 11-10 18-24 18S8 52 8 41c0-6 2-12 6-16Z" fill="#fffdf8" stroke="#29474f" stroke-width="2.7" stroke-linejoin="round"/><path d="m15 13 3 10 7-4Z" fill="#f5b4ae"/><path d="m49 13-3 10-7-4Z" fill="#f5b4ae"/><g class="cat-blink"><path d="M21 35h.1M43 35h.1" stroke="#29474f" stroke-width="5" stroke-linecap="round"/></g><path d="m29 41 3-2 3 2-3 3Z" fill="#ee7b70" stroke="#29474f" stroke-width="1.2" stroke-linejoin="round"/><path d="M32 44c-1 3-5 3-6 1m6-1c1 3 5 3 6 1" fill="none" stroke="#29474f" stroke-width="2" stroke-linecap="round"/><path d="M19 43 7 40m12 8L8 50m37-7 12-3m-12 8 11 2" fill="none" stroke="#29474f" stroke-width="2" stroke-linecap="round"/></g></g></svg>';
 document.getElementById('catModeIcon').innerHTML=catSVG;document.getElementById('resultCat').innerHTML=catSVG;document.getElementById('catsRemainingIcon').innerHTML=catSVG;
-function heartSVG(){return '<svg class="heart" viewBox="0 0 24 22" fill="currentColor" aria-hidden="true"><path d="M12 21S1 14.5 1 7.4C1 3.8 3.5 1 7 1c2.1 0 4 1.1 5 2.8C13 2.1 14.9 1 17 1c3.5 0 6 2.8 6 6.4C23 14.5 12 21 12 21Z"/><path class="heart-crack" d="m13.5 3.5-3 5 3 2.8-3.2 5.2 1.2 4"/></svg>'}
+function heartSVG(){return '<svg class="heart" viewBox="0 0 24 22" fill="currentColor" aria-hidden="true"><path d="M12 21S1 14.5 1 7.4C1 3.8 3.5 1 7 1c2.1 0 4 1.1 5 2.8C13 2.1 14.9 1 17 1c3.5 0 6 2.8 6 6.4C23 14.5 12 21 12 21Z"/></svg>'}
 function paintHearts(){state.hearts=Math.min(MAX_HEARTS,Math.max(0,state.hearts));var h=document.getElementById('hearts');h.innerHTML='<span class="heart-wrap">'+heartSVG()+'</span><b class="heart-num">'+state.hearts+'</b>';h.setAttribute('aria-label','剩餘'+state.hearts+'次機會')}
 function paintScore(){state.score=Math.max(0,state.score);document.getElementById('scoreValue').textContent=state.score.toLocaleString('zh-Hant')}
 /* ===== 玩家等級系統（v37.0）：依最高積分評級 ===== */
@@ -1116,8 +1111,8 @@ var cell=board.children[i],heartAfterHit=commitWrongPlacement(i).hearts;cell.set
 setLogic('正在檢查這隻貓','先看清楚剛放下的貓咪，棋面正在確認是否仍有合法解。','…');
 setTimeout(function(){
 paintScore();paintHearts();
-var heartBox=document.getElementById('hearts'),lostHeart=heartBox.querySelector('.heart');
-heartBox.classList.remove('heart-hit');void heartBox.offsetWidth;heartBox.classList.add('heart-hit');if(lostHeart)lostHeart.classList.add('breaking');
+var heartBox=document.getElementById('hearts');
+heartBox.classList.remove('heart-hit');void heartBox.offsetWidth;heartBox.classList.add('heart-hit');
 cell.classList.add('wrong');soundClick();vibrate([70,45,110]);
 var penaltyText='扣除 1 顆心，不扣分。';
 setLogic('這格不能放貓','棋面已沒有合法解，'+penaltyText,'!');
