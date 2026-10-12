@@ -277,6 +277,9 @@ pointer-events:auto;
 .cats-remaining { justify-content:flex-end; padding:8px 5px; font-size:.78rem; }
 .logic-note.guide-active { grid-template-columns:30px 1fr; }
 .logic-note.guide-active .guide-close { grid-column:2; justify-self:start; }
+.rule-strip { flex-wrap:nowrap; gap:8px; font-size:.7rem; }
+.rule { gap:4px; white-space:nowrap; }
+.rule b { width:20px; height:20px; font-size:.75rem; }
 }
 @media (max-width:400px) {
 .status-actions { gap:6px; }
@@ -362,7 +365,7 @@ body.theme-dark {
 <div class="rule-strip" aria-hidden="true">
 <span class="rule"><b>↔</b> 每行一隻</span>
 <span class="rule"><b>↕</b> 每列一隻</span>
-<span class="rule"><b>◇</b> 每顏色區一隻</span>
+<span class="rule"><b>◇</b> 每色區一隻</span>
 <span class="rule"><b>⊘</b> 貓不相鄰</span>
 </div>
 <div class="logic-note" id="logicNote" role="status" aria-live="polite">
