@@ -374,7 +374,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.41.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.44.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -429,8 +429,8 @@ body.theme-dark {
 </dialog>
 <dialog id="jumpDialog">
 <form class="sheet" id="jumpForm" method="dialog">
-<label for="jumpInput">跳到第幾關？（1–150）</label>
-<input id="jumpInput" type="number" min="1" max="150" step="1" inputmode="numeric" required />
+<label for="jumpInput">跳到第幾關？（1–300）</label>
+<input id="jumpInput" type="number" min="1" max="300" step="1" inputmode="numeric" required />
 <p class="jump-error" id="jumpError" role="alert" hidden>請輸入 1–300 的關號</p>
 <div class="jump-actions">
 <button class="secondary" id="jumpCancel" type="button">取消</button>
@@ -506,7 +506,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.41.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.44.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
