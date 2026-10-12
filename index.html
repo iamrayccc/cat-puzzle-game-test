@@ -374,7 +374,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.52.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.53.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -504,7 +504,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.52.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.53.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1425,6 +1425,54 @@ bestDialog.close();state.best=Math.floor(n);paintLevelChip();saveLocalProgress()
 showToast('最高積分已設為 '+Math.floor(n).toLocaleString('zh-Hant')+'（等級：'+currentLevelName()+'）');
 };
 footer.parentNode.insertBefore(bestBtn,footer);
+/* 測試版專屬：清除存檔工具。IS_TEST=false（玩家版）時此整塊不執行，
+頁面上無按鈕、無入口，功能完全不可觸達。 */
+(function(){
+var footer2=document.querySelector('.footer-note');
+if(!footer2||!footer2.parentNode)return;
+/* 動態注入對話框樣式（全部在 IS_TEST 塊內，玩家版無殘留） */
+var csStyle=document.createElement('style');
+csStyle.textContent='#clearSaveDialog[open]{position:fixed;inset:0;width:auto;height:100dvh;margin:0;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:safe center;pointer-events:auto;}'+
+'#clearSaveDialog .sheet{width:min(92vw,400px);text-align:center;}'+
+'#clearSaveDialog .sheet h2{margin-bottom:12px;}'+
+'#clearSaveDialog .sheet p{margin-bottom:18px;}';
+document.head.appendChild(csStyle);
+var clearBtn=document.createElement('button');
+clearBtn.className='jump-bottom-btn';
+clearBtn.type='button';
+clearBtn.id='clearSaveBtn';
+clearBtn.setAttribute('aria-label','清除存檔（測試專用）');
+clearBtn.textContent='清除存檔（測試）';
+/* 對話框動態建立，不寫入靜態 HTML，玩家版無任何痕跡 */
+var clearDialog=document.createElement('dialog');
+clearDialog.id='clearSaveDialog';
+clearDialog.innerHTML='<div class="sheet">'+
+'<h2>清除存檔（測試專用）</h2>'+
+'<p>請選擇要清除的存檔：</p>'+
+'<div class="jump-actions" style="flex-direction:column;gap:2px;">'+
+'<button class="secondary" id="clearTestSave" type="button">清除測試版存檔</button>'+
+'<button class="secondary" id="clearPlayerSave" type="button">清除玩家版存檔</button>'+
+'<button class="secondary" id="clearAllSave" type="button">全部清除</button>'+
+'<button class="secondary" id="clearSaveCancel" type="button">取消</button>'+
+'</div></div>';
+document.body.appendChild(clearDialog);
+var TEST_KEYS=['meowdoku-progress-v1-test','meowdoku-theme-v1-test','meowdoku-automode-v1-test'];
+var PLAYER_KEYS=['meowdoku-progress-v1','meowdoku-theme-v1','meowdoku-automode-v1'];
+function doClearSave(keys,label){
+if(!confirm('確定要清除'+label+'嗎？此操作無法復原'))return;
+try{for(var i=0;i<keys.length;i++){localStorage.removeItem(keys[i]);}}catch(e){}
+clearProgress();
+clearDialog.close();
+showToast(label+'已清除');
+}
+clearBtn.onclick=function(){clearDialog.showModal();};
+clearDialog.querySelector('#clearSaveCancel').onclick=function(){clearDialog.close();};
+clearDialog.querySelector('#clearTestSave').onclick=function(){doClearSave(TEST_KEYS,'測試版存檔');};
+clearDialog.querySelector('#clearPlayerSave').onclick=function(){doClearSave(PLAYER_KEYS,'玩家版存檔');};
+clearDialog.querySelector('#clearAllSave').onclick=function(){doClearSave(TEST_KEYS.concat(PLAYER_KEYS),'全部存檔');};
+clearDialog.addEventListener('click',function(e){if(e.target===clearDialog)clearDialog.close();});
+footer2.parentNode.insertBefore(clearBtn,footer2);
+})();
 })();
 }
 /* 移出 if(IS_TEST)：玩家版亦需更新對話框正常運作 */
