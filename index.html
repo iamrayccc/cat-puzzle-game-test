@@ -70,6 +70,11 @@ display:flex; flex-direction:column;
 .level-chip { justify-self:start; flex-direction:row; align-items:center; gap:6px; white-space:nowrap; }
 .level-chip span { font-size:.8rem; }
 .score-center { justify-self:center; align-items:center; }
+/* 等級框自適應寬度＋積分位置固定（v37.58）：score-center 絕對置中，不隨等級名稱長度移位 */
+.status-actions { position:relative; grid-template-columns:1fr 1fr; }
+.status-actions .score-center { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
+.status-actions .level-chip { grid-column:1; width:auto; }
+.status-actions .status-right { grid-column:2; }
 .status-right { justify-self:end; display:flex; align-items:center; gap:8px; }
 .sound-btn { width:42px; height:42px; border:1px solid var(--soft-line); border-radius:50%; background:var(--panel); color:var(--ink); display:grid; place-items:center; cursor:pointer; box-shadow:0 5px 16px rgba(26,60,66,.08); }
 .sound-btn:hover, .sound-btn:focus-visible { background:var(--panel-2); outline:2px solid var(--line); outline-offset:2px; }
@@ -323,7 +328,7 @@ body.theme-dark {
 <main class="app">
 <section class="statusbar" aria-label="等級、積分、音效及剩餘機會">
 <div class="status-actions">
-<div class="score level-chip" aria-live="polite"><span>您的等級：</span><b id="levelChipValue">新手</b></div>
+<div class="score level-chip" aria-live="polite"><span>等級：</span><b id="levelChipValue">新手</b></div>
 <div class="score score-center" aria-live="polite"><span>積分</span><b id="scoreValue">0</b></div>
 <div class="status-right">
 <button class="sound-btn" id="soundBtn" type="button" aria-label="靜音" aria-pressed="false" title="靜音">
@@ -379,7 +384,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.57.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.58.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -533,7 +538,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.57.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.58.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1125,7 +1130,7 @@ function heartSVG(){return '<svg class="heart" viewBox="0 0 24 22" fill="current
 function paintHearts(){state.hearts=Math.min(MAX_HEARTS,Math.max(0,state.hearts));var h=document.getElementById('hearts');h.innerHTML='<span class="heart-wrap">'+heartSVG()+'</span><b class="heart-num">'+state.hearts+'</b>';h.setAttribute('aria-label','剩餘'+state.hearts+'次機會')}
 function paintScore(){state.score=Math.max(0,state.score);document.getElementById('scoreValue').textContent=state.score.toLocaleString('zh-Hant')}
 /* ===== 玩家等級系統（v37.0）：依最高積分評級 ===== */
-function levelForScore(s){s=Math.floor(s);if(s>=300001)return'神話';if(s>=240001)return'至尊';if(s>=180001)return'皇者';if(s>=140001)return'殿堂';if(s>=120001)return'傳奇';if(s>=100001)return'宗師';if(s>=80001)return'大師';if(s>=60001)return'專家';if(s>=40001)return'精英';if(s>=30001)return'高手';if(s>=20001)return'好手';if(s>=10001)return'高階';if(s>=5001)return'中階';if(s>=3001)return'初階';return'新手'}
+function levelForScore(s){s=Math.floor(s);if(s>=550001)return'神話3段';if(s>=500001)return'神話2段';if(s>=450001)return'神話1段';if(s>=400001)return'至尊3段';if(s>=350001)return'至尊2段';if(s>=300001)return'至尊1段';if(s>=260001)return'皇者3段';if(s>=220001)return'皇者2段';if(s>=180001)return'皇者1段';if(s>=140001)return'殿堂';if(s>=120001)return'傳奇';if(s>=100001)return'宗師';if(s>=80001)return'大師';if(s>=60001)return'專家';if(s>=40001)return'精英';if(s>=30001)return'高手';if(s>=20001)return'好手';if(s>=10001)return'高階';if(s>=5001)return'中階';if(s>=3001)return'初階';return'新手'}
 function levelForLevel(n){n=Math.floor(n);if(n>=31)return'高階';if(n>=11)return'中階';if(n>=6)return'初階';return'新手'}
 function currentLevelName(){if(state.best!==undefined&&state.best!==null)return levelForScore(state.best);return levelForLevel(state.maxCompleted||0)}
 function paintLevelChip(){var el=document.getElementById('levelChipValue');if(!el)return;el.textContent=currentLevelName()}
@@ -1271,7 +1276,7 @@ if(t&&t!==CURRENT_VERSION){showUpdateDialog(proceed)}else{proceed()}
 }catch(e){proceed()}
 }
 /* ===== 玩家等級提升恭喜（v37.0）：取代舊晉級恭喜彈窗 ===== */
-var LEVEL_ORDER=['新手','初階','中階','高階','好手','高手','精英','專家','大師','宗師','傳奇','殿堂','皇者','至尊','神話'];
+var LEVEL_ORDER=['新手','初階','中階','高階','好手','高手','精英','專家','大師','宗師','傳奇','殿堂','皇者1段','皇者2段','皇者3段','至尊1段','至尊2段','至尊3段','神話1段','神話2段','神話3段'];
 function nextLevelName(name){var i=LEVEL_ORDER.indexOf(name);return(i>=0&&i<LEVEL_ORDER.length-1)?LEVEL_ORDER[i+1]:null}
 function showLevelUpVeil(levelName){var next=nextLevelName(levelName),html='恭喜您！升級至 <span class="level-up-name">'+levelName+'</span>';if(next)html+='<br><span class="level-next">（等待挑戰：'+next+'等級）</span>';document.getElementById('levelUpTitle').innerHTML=html;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
 function finish(win){
