@@ -312,6 +312,11 @@ body.theme-dark {
 .level-table th, .level-table td { border:1px solid var(--soft-line); padding:4px 6px; text-align:center; }
 .level-table th { background:var(--panel-2); font-weight:900; }
 .level-note { font-size:.74rem; color:var(--muted); margin:6px 0 0; line-height:1.5; }
+.lvl-flow { display:flex; flex-wrap:wrap; align-items:center; gap:6px 3px; margin:8px 0; font-size:.74rem; }
+.lvl-node { display:inline-flex; flex-direction:column; align-items:center; border:1px solid var(--soft-line); border-radius:10px; padding:4px 9px; background:var(--panel); text-align:center; line-height:1.45; }
+.lvl-node b { font-weight:900; }
+.lvl-node span { color:var(--muted); font-size:.68rem; white-space:nowrap; }
+.lvl-arrow { color:var(--accent); font-weight:900; }
 </style>
 </head>
 <body>
@@ -374,7 +379,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.55.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.56.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -400,14 +405,24 @@ body.theme-dark {
 <tr><td>心數上限</td><td>5 顆</td></tr>
 </table></div></li>
 <li><span class="rule-number">7</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
-<li><span class="rule-number">8</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級見下表）；等級提升時會有恭喜提示。</span>
-<table class="level-table">
-<tr><td>新手</td><td>初階</td><td>中階</td></tr>
-<tr><td>高階</td><td>好手</td><td>高手</td></tr>
-<tr><td>精英</td><td>專家</td><td>大師</td></tr>
-<tr><td>宗師</td><td>傳奇</td><td>殿堂</td></tr>
-<tr><td>皇者</td><td>至尊</td><td>神話</td></tr>
-</table>
+<li><span class="rule-number">8</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級晉升順序如下，括號內為晉升該等級所需的最低積分）；等級提升時會有恭喜提示。</span>
+<div class="lvl-flow" aria-label="玩家等級由低至高晉升順序">
+<span class="lvl-node"><b>新手</b><span>0 分起</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>初階</b><span>3,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>中階</b><span>5,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>高階</b><span>10,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>好手</b><span>20,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>高手</b><span>30,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>精英</b><span>40,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>專家</b><span>60,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>大師</b><span>80,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>宗師</b><span>100,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>傳奇</b><span>120,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>殿堂</b><span>140,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>皇者</b><span>180,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>至尊</b><span>240,001 分</span></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node"><b>神話</b><span>300,001 分</span></span>
+</div>
 <p class="level-note">尚未有最高積分紀錄時（例如舊存檔），按最高完成關卡衡量：1–5 關為新手、6–10 關為初階、11–30 關為中階、31 關以上為高階。</p></div></li>
 
 </ol>
@@ -518,7 +533,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.55.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.56.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
