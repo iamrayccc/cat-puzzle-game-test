@@ -374,7 +374,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.44.debug2</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.45.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -506,7 +506,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.44.debug2'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.45.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -949,7 +949,7 @@ board.addEventListener('click',function(e){
 if(swipeMoved){e.stopImmediatePropagation();e.preventDefault();swipeMoved=false;}
 },true);
 function encodeProgress(){
-var bytes=[3,state.level,state.variant,(state.score>>>24)&255,(state.score>>>16)&255,(state.score>>>8)&255,state.score&255,state.hearts,state.hintsRemaining,state.levelAwarded?1:0],power=[1,3,9,27,81];
+var bytes=[4,(state.level>>8)&255,state.level&255,state.variant,(state.score>>>24)&255,(state.score>>>16)&255,(state.score>>>8)&255,state.score&255,state.hearts,state.hintsRemaining,state.levelAwarded?1:0],power=[1,3,9,27,81];
 for(var i=0;i<state.cells.length;i+=5){var packed=0;for(var j=0;j<5&&i+j<state.cells.length;j++){var value=state.cells[i+j]==='x'?1:(state.cells[i+j]==='cat'?2:0);packed+=value*power[j]}bytes.push(packed)}
 for(var k=0;k<state.cells.length;k+=8){var lockBits=0;for(var bit=0;bit<8&&k+bit<state.cells.length;bit++)if(state.lockedXs[k+bit])lockBits|=1<<bit;bytes.push(lockBits)}
 var raw='';for(var b=0;b<bytes.length;b++)raw+=String.fromCharCode(bytes[b]);
@@ -965,15 +965,19 @@ var match=location.hash.match(/^#p=([A-Za-z0-9_-]+)$/);if(!match)return false;
 try{
 var encoded=match[1].replace(/-/g,'+').replace(/_/g,'/');while(encoded.length%4)encoded+='=';
 var raw=atob(encoded),bytes=[];for(var i=0;i<raw.length;i++)bytes.push(raw.charCodeAt(i));
-if(bytes.length<10||(bytes[0]!==2&&bytes[0]!==3))return false;
-var version=bytes[0],level=bytes[1],variant=bytes[2];if(!puzzles[level]||variant>2)return false;
-var p=puzzles[level][variant],needed=Math.ceil((p.size*p.size)/5),lockBytes=version===3?Math.ceil((p.size*p.size)/8):0;if(bytes.length!==10+needed+lockBytes)return false;
-var score=((bytes[3]*16777216)+(bytes[4]<<16)+(bytes[5]<<8)+bytes[6]);
-if(score<0||bytes[7]<1||bytes[7]>MAX_HEARTS||bytes[8]>2)return false;
+if(bytes.length<10||(bytes[0]!==2&&bytes[0]!==3&&bytes[0]!==4))return false;
+var version=bytes[0],headLen=version===4?11:10,level,variant;
+if(version===4){level=(bytes[1]<<8)|bytes[2];variant=bytes[3];}
+else{level=bytes[1];variant=bytes[2];}
+if(!puzzles[level]||variant>2)return false;
+var p=puzzles[level][variant],needed=Math.ceil((p.size*p.size)/5),lockBytes=(version===3||version===4)?Math.ceil((p.size*p.size)/8):0;if(bytes.length!==headLen+needed+lockBytes)return false;
+var sb=headLen-7;
+var score=((bytes[sb]*16777216)+(bytes[sb+1]<<16)+(bytes[sb+2]<<8)+bytes[sb+3]);
+if(score<0||bytes[sb+4]<1||bytes[sb+4]>MAX_HEARTS||bytes[sb+5]>2)return false;
 var cells=[],lockedXs={},power=[1,3,9,27,81];
-for(var n=0;n<needed;n++){var packed=bytes[10+n];if(packed>242)return false;for(var j=0;j<5&&cells.length<p.size*p.size;j++){var value=Math.floor(packed/power[j])%3;cells.push(value===1?'x':(value===2?'cat':''))}}
-for(var k=0;k<lockBytes;k++){var lockBits=bytes[10+needed+k];for(var bit=0;bit<8&&k*8+bit<cells.length;bit++)if(lockBits&(1<<bit)){var lockedIndex=k*8+bit;if(cells[lockedIndex]!=='x')return false;lockedXs[lockedIndex]=true}}
-state.level=level;state.variant=variant;state.cells=cells;state.lockedXs=lockedXs;state.score=score;state.hearts=bytes[7];state.hintsRemaining=bytes[8];state.levelAwarded=!!(bytes[9]&1);state.history=[];state.pendingCells={};state.mistakes=0;state.hintsUsed=2-state.hintsRemaining;state.moves=0;state.catsRemaining=p.size-cells.filter(function(c){return c==='cat'}).length;state.start=Date.now();
+for(var n=0;n<needed;n++){var packed=bytes[headLen+n];if(packed>242)return false;for(var j=0;j<5&&cells.length<p.size*p.size;j++){var value=Math.floor(packed/power[j])%3;cells.push(value===1?'x':(value===2?'cat':''))}}
+for(var k=0;k<lockBytes;k++){var lockBits=bytes[headLen+needed+k];for(var bit=0;bit<8&&k*8+bit<cells.length;bit++)if(lockBits&(1<<bit)){var lockedIndex=k*8+bit;if(cells[lockedIndex]!=='x')return false;lockedXs[lockedIndex]=true}}
+state.level=level;state.variant=variant;state.cells=cells;state.lockedXs=lockedXs;state.score=score;state.hearts=bytes[sb+4];state.hintsRemaining=bytes[sb+5];state.levelAwarded=!!(bytes[sb+6]&1);state.history=[];state.pendingCells={};state.mistakes=0;state.hintsUsed=2-state.hintsRemaining;state.moves=0;state.catsRemaining=p.size-cells.filter(function(c){return c==='cat'}).length;state.start=Date.now();
 return true;
 }catch(err){return false}
 }
@@ -1134,16 +1138,10 @@ var p=currentPuzzle(),validationCells=state.cells.slice();
 Object.keys(state.pendingCells).forEach(function(key){validationCells[+key]='x'});
 updateCell(i,true);soundMeow();state.mode='x';paintMode();
 var pr=Math.floor(i/p.size),pc=i%p.size,catCorrect=(p.solution[pr]===pc);
-try{var dbg=document.getElementById('debugOverlay');if(!dbg){dbg=document.createElement('div');dbg.id='debugOverlay';dbg.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;font-size:10px;padding:6px;z-index:9999;max-height:150px;overflow:auto;white-space:pre-wrap;';document.body.appendChild(dbg);}dbg.textContent='[placeCat] Lv'+(state.level+1)+' i='+i+' correct='+catCorrect+'\n'+dbg.textContent;}catch(e){}
 if(!catCorrect){
-try{var dbg2=document.getElementById('debugOverlay');dbg2.textContent='[wrong] step1: entering branch\n'+dbg2.textContent;}catch(e){}
-var cell=board.children[i],heartAfterHit=commitWrongPlacement(i).hearts;
-try{var dbg3=document.getElementById('debugOverlay');dbg3.textContent='[wrong] step2: commitWrongPlacement ok, cell='+(cell?'ok':'NULL')+'\n'+dbg3.textContent;}catch(e){}
-cell.setAttribute('aria-busy','true');
-try{var dbg4=document.getElementById('debugOverlay');dbg4.textContent='[wrong] step3: setAttribute ok, scheduling timeouts\n'+dbg4.textContent;}catch(e){}
+var cell=board.children[i],heartAfterHit=commitWrongPlacement(i).hearts;cell.setAttribute('aria-busy','true');
 setLogic('正在檢查這隻貓','先看清楚剛放下的貓咪，棋面正在確認是否仍有合法解。','…');
 setTimeout(function(){
-try{var dbg5=document.getElementById('debugOverlay');dbg5.textContent='[wrong] timeout700 fired\n'+dbg5.textContent;}catch(e){}
 paintScore();paintHearts();
 var heartBox=document.getElementById('hearts');
 heartBox.classList.remove('heart-hit');void heartBox.offsetWidth;heartBox.classList.add('heart-hit');
@@ -1153,7 +1151,6 @@ setLogic('這格不能放貓','棋面已沒有合法解，'+penaltyText,'!');
 showToast('放錯了：扣 1 顆心，不扣分');
 },700);
 setTimeout(function(){
-try{var dbg6=document.getElementById('debugOverlay');dbg6.textContent='[wrong] timeout1500 fired\n'+dbg6.textContent;}catch(e){}
 delete state.pendingCells[i];cell.classList.remove('wrong');cell.removeAttribute('aria-busy');updateCell(i,false);soundClick();
 var boardStillValid=!!findLegalSolution(p,state.cells,-1);
 if(boardStillValid)setLogic('已自動標記 X','錯放的格子已改為 X，可以繼續推理；標記模式為「標 X」。','×');
