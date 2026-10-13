@@ -384,7 +384,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.59.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.62.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -538,7 +538,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.59.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.62.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -981,7 +981,8 @@ board.addEventListener('click',function(e){
 if(swipeMoved){e.stopImmediatePropagation();e.preventDefault();swipeMoved=false;}
 },true);
 function encodeProgress(){
-var bytes=[4,(state.level>>8)&255,state.level&255,state.variant,(state.score>>>24)&255,(state.score>>>16)&255,(state.score>>>8)&255,state.score&255,state.hearts,state.hintsRemaining,state.levelAwarded?1:0],power=[1,3,9,27,81];
+var _best=(state.best===undefined||state.best===null)?0xFFFFFFFF:Math.floor(state.best),_mc=state.maxCompleted||0;
+var bytes=[5,(state.level>>8)&255,state.level&255,state.variant,(state.score>>>24)&255,(state.score>>>16)&255,(state.score>>>8)&255,state.score&255,state.hearts,state.hintsRemaining,state.levelAwarded?1:0,(_best>>>24)&255,(_best>>>16)&255,(_best>>>8)&255,_best&255,(_mc>>8)&255,_mc&255],power=[1,3,9,27,81];
 for(var i=0;i<state.cells.length;i+=5){var packed=0;for(var j=0;j<5&&i+j<state.cells.length;j++){var value=state.cells[i+j]==='x'?1:(state.cells[i+j]==='cat'?2:0);packed+=value*power[j]}bytes.push(packed)}
 for(var k=0;k<state.cells.length;k+=8){var lockBits=0;for(var bit=0;bit<8&&k+bit<state.cells.length;bit++)if(state.lockedXs[k+bit])lockBits|=1<<bit;bytes.push(lockBits)}
 var raw='';for(var b=0;b<bytes.length;b++)raw+=String.fromCharCode(bytes[b]);
@@ -997,19 +998,19 @@ var match=location.hash.match(/^#p=([A-Za-z0-9_-]+)$/);if(!match)return false;
 try{
 var encoded=match[1].replace(/-/g,'+').replace(/_/g,'/');while(encoded.length%4)encoded+='=';
 var raw=atob(encoded),bytes=[];for(var i=0;i<raw.length;i++)bytes.push(raw.charCodeAt(i));
-if(bytes.length<10||(bytes[0]!==2&&bytes[0]!==3&&bytes[0]!==4))return false;
-var version=bytes[0],headLen=version===4?11:10,level,variant;
-if(version===4){level=(bytes[1]<<8)|bytes[2];variant=bytes[3];}
+if(bytes.length<10||(bytes[0]!==2&&bytes[0]!==3&&bytes[0]!==4&&bytes[0]!==5))return false;
+var version=bytes[0],headLen=version===5?17:(version===4?11:10),level,variant;
+if(version===4||version===5){level=(bytes[1]<<8)|bytes[2];variant=bytes[3];}
 else{level=bytes[1];variant=bytes[2];}
 if(!puzzles[level]||variant>2)return false;
-var p=puzzles[level][variant],needed=Math.ceil((p.size*p.size)/5),lockBytes=(version===3||version===4)?Math.ceil((p.size*p.size)/8):0;if(bytes.length!==headLen+needed+lockBytes)return false;
-var sb=headLen-7;
+var p=puzzles[level][variant],needed=Math.ceil((p.size*p.size)/5),lockBytes=(version===3||version===4||version===5)?Math.ceil((p.size*p.size)/8):0;if(bytes.length!==headLen+needed+lockBytes)return false;
+var sb=version===5?4:headLen-7;
 var score=((bytes[sb]*16777216)+(bytes[sb+1]<<16)+(bytes[sb+2]<<8)+bytes[sb+3]);
 if(score<0||bytes[sb+4]<1||bytes[sb+4]>MAX_HEARTS||bytes[sb+5]>2)return false;
 var cells=[],lockedXs={},power=[1,3,9,27,81];
 for(var n=0;n<needed;n++){var packed=bytes[headLen+n];if(packed>242)return false;for(var j=0;j<5&&cells.length<p.size*p.size;j++){var value=Math.floor(packed/power[j])%3;cells.push(value===1?'x':(value===2?'cat':''))}}
 for(var k=0;k<lockBytes;k++){var lockBits=bytes[headLen+needed+k];for(var bit=0;bit<8&&k*8+bit<cells.length;bit++)if(lockBits&(1<<bit)){var lockedIndex=k*8+bit;if(cells[lockedIndex]!=='x')return false;lockedXs[lockedIndex]=true}}
-state.level=level;state.variant=variant;state.cells=cells;state.lockedXs=lockedXs;state.score=score;state.hearts=bytes[sb+4];state.hintsRemaining=Math.min(bytes[sb+5],2);state.levelAwarded=!!(bytes[sb+6]&1);state.history=[];state.pendingCells={};state.mistakes=0;state.hintsUsed=2-state.hintsRemaining;state.moves=0;state.catsRemaining=p.size-cells.filter(function(c){return c==='cat'}).length;state.start=Date.now();
+state.level=level;state.variant=variant;state.cells=cells;state.lockedXs=lockedXs;state.score=score;state.hearts=bytes[sb+4];state.hintsRemaining=Math.min(bytes[sb+5],2);state.levelAwarded=!!(bytes[sb+6]&1);state.history=[];state.pendingCells={};state.mistakes=0;state.hintsUsed=2-state.hintsRemaining;state.moves=0;state.catsRemaining=p.size-cells.filter(function(c){return c==='cat'}).length;state.start=Date.now();if(version===5){var b5=(bytes[11]*16777216)+(bytes[12]<<16)+(bytes[13]<<8)+bytes[14];if(b5!==0xFFFFFFFF)state.best=b5;state.maxCompleted=(bytes[15]<<8)|bytes[16];}
 return true;
 }catch(err){return false}
 }
