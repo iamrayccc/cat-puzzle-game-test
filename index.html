@@ -203,6 +203,7 @@ pointer-events:auto; -webkit-overflow-scrolling:touch;
 .sheet h2 { margin:0 0 6px; font-size:1.55rem; line-height:1.15; }
 .sheet p { margin:0; color:var(--muted); line-height:1.55; }
 .close-btn { width:36px; height:36px; border:0; background:var(--panel-2); border-radius:50%; cursor:pointer; font-size:1.25rem; line-height:1; }
+#leaderboardDialog .close-btn { transform:translateY(-8px); }
 .rules-list { list-style:none; padding:0; margin:22px 0; display:grid; gap:15px; }
 .rules-list li { display:grid; grid-template-columns:38px 1fr; gap:12px; align-items:center; }
 .rule-number { width:38px; height:38px; display:grid; place-items:center; border-radius:12px; background:var(--panel-2); font-weight:900; }
@@ -428,7 +429,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.71.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.75.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -612,7 +613,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.71.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.75.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1590,7 +1591,7 @@ function lbRender(top,self,myNickname){
     var b=document.createElement('b');b.textContent=String(self.rank);selfEl.appendChild(b);
     selfEl.appendChild(document.createTextNode('\uff08\u5171 '+self.total+' \u4f4d\u73a9\u5bb6\uff09'));
   }else if(localBest!==null){
-    selfEl.appendChild(document.createTextNode('\u4f60\u7684\u6700\u4f73\u5206\u6578\uff1a'));
+    selfEl.appendChild(document.createTextNode('\u60a8\u7684\u6700\u4f73\u5206\u6578\uff1a'));
     var b2=document.createElement('b');b2.textContent=localBest.toLocaleString('zh-Hant');selfEl.appendChild(b2);
     selfEl.appendChild(document.createTextNode(' \u5206'));
   }else{
@@ -1658,6 +1659,18 @@ document.getElementById('nicknameForm').addEventListener('submit',function(e){
   var v=document.getElementById('nicknameInput').value.trim();
   if(!LB_NICK_RE.test(v)){e.preventDefault();lbPaintNicknameValidity();return}
   try{localStorage.setItem('meowdoku-nickname-v1',v)}catch(_){}
+})
+/* 輸入／刪除文字時：清除格式錯誤警告（只清顯示，不做即時驗證）＋自動轉大楷 */
+document.getElementById('nicknameInput').addEventListener('input',function(){
+  var err=document.getElementById('nicknameError');
+  if(err)err.hidden=true;
+  this.classList.remove('invalid');
+  var v=this.value,up=v.toUpperCase();
+  if(v!==up){
+    var s=this.selectionStart,e=this.selectionEnd;
+    this.value=up;
+    try{this.setSelectionRange(s,e)}catch(_){}
+  }
 });
 (function(){var d=document.getElementById('nicknameDialog');if(!d)return;d.addEventListener('cancel',function(e){e.preventDefault()});d.addEventListener('close',function(){unlockPageScroll();var cb=lbNickCallback;lbNickCallback=null;if(cb)cb()})})();
 document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();function lbProceedNext(){if(state.pendingLevelUp){state.pendingLevelUp=false;showLevelUpVeil(state.pendingLevelUpName);return}checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})}if(won&&lbNeedNickname&&!lbGetNickname()){lbOpenNicknameDialog(function(){lbNeedNickname=false;lbFireSubmit();if(lbAutoPending){lbAutoPending=false;lbOpenAuto(lbProceedNext)}else{lbProceedNext()}});return}if(lbAutoPending){lbAutoPending=false;lbOpenAuto(lbProceedNext);return}lbProceedNext()};
