@@ -256,7 +256,7 @@ display:flex; flex-direction:column; align-items:center; justify-content:safe ce
 overflow-y:auto; overscroll-behavior:contain; pointer-events:auto; -webkit-overflow-scrolling:touch;
 }
 #leaderboardDialog .sheet { width:min(92vw,440px); }
-.lb-self { margin:12px 0 12px; padding:10px 12px; border-radius:12px; background:var(--panel-2); text-align:center; font-weight:900; font-size:.92rem; }
+.lb-self { margin:24px 0 12px; padding:10px 12px; border-radius:12px; background:var(--panel-2); text-align:center; font-weight:900; font-size:.92rem; }
 .lb-self b { color:var(--accent); font-variant-numeric:tabular-nums; }
 .lb-list { list-style:none; margin:0 0 6px; padding:0; display:grid; gap:8px; }
 .lb-row { display:grid; grid-template-columns:34px 1fr auto; gap:10px; align-items:center; padding:9px 12px; border-radius:12px; background:var(--panel-2); }
@@ -428,7 +428,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.70.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.71.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -612,7 +612,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.70.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.71.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1542,18 +1542,39 @@ function lbOpenAuto(onClose){
   if(nb)nb.hidden=false;if(cb)cb.hidden=true;
   lbLoadAndRender();
 }
+// 可 await 的上傳（10 秒超時；無暱稱或無分數時跳過；任何失敗 resolve(false)，不拋錯）
+function lbSubmitNow(){
+  return new Promise(function(resolve){
+    try{
+      var nick=lbGetNickname();if(!nick){resolve(false);return}
+      var best=(typeof state==='undefined'||state.best===undefined||state.best===null)?0:Math.floor(state.best);
+      if(best<=0){resolve(false);return}
+      var sc=(typeof state.score==='undefined'||state.score===null)?0:Math.floor(state.score);
+      var lv=(typeof state.level==='undefined'||state.level===null)?0:state.level+1;
+      var payload={player_id:lbGetPlayerId(),nickname:nick,best:best,score:sc,level:lv,board:lbBoard()};
+      var done=false;
+      var timer=setTimeout(function(){if(!done){done=true;resolve(false)}},10000);
+      fetch(LB_API+'/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(function(){if(!done){done=true;clearTimeout(timer);resolve(true)}})
+        .catch(function(){if(!done){done=true;clearTimeout(timer);resolve(false)}});
+    }catch(_){resolve(false)}
+  });
+}
 function lbLoadAndRender(){
   var selfEl=document.getElementById('leaderboardSelfRank'),
       listEl=document.getElementById('leaderboardList'),
       errEl=document.getElementById('leaderboardError');
   if(!selfEl||!listEl||!errEl)return;
   selfEl.textContent='\u8f09\u5165\u4e2d\u2026';listEl.innerHTML='';errEl.hidden=true;
-  var board=lbBoard(),pid=encodeURIComponent(lbGetPlayerId());
-  var pTop=lbFetchJson(LB_API+'/top?board='+board+'&limit=10',10000);
-  var pRank=lbFetchJson(LB_API+'/rank?board='+board+'&player_id='+pid,10000).catch(function(){return null});
-  Promise.all([pTop,pRank]).then(function(res){
-    lbRender(res[0]&&res[0].top?res[0].top:[],res[1],lbGetNickname());
-  }).catch(function(){lbShowError()});
+  // 先上傳最新分數（失敗／超時不阻塞），再並行取排名
+  lbSubmitNow().then(function(){
+    var board=lbBoard(),pid=encodeURIComponent(lbGetPlayerId());
+    var pTop=lbFetchJson(LB_API+'/top?board='+board+'&limit=10',10000);
+    var pRank=lbFetchJson(LB_API+'/rank?board='+board+'&player_id='+pid,10000).catch(function(){return null});
+    Promise.all([pTop,pRank]).then(function(res){
+      lbRender(res[0]&&res[0].top?res[0].top:[],res[1],lbGetNickname());
+    }).catch(function(){lbShowError()});
+  });
 }
 function lbRender(top,self,myNickname){
   var listEl=document.getElementById('leaderboardList'),
