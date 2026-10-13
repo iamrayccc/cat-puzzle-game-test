@@ -282,7 +282,7 @@ pointer-events:auto;
 }
 #nicknameDialog .sheet { width:min(92vw,400px); text-align:center; }
 #nicknameDialog .sheet label { display:block; font-size:1.1rem; font-weight:800; margin:0 0 8px; color:var(--ink); }
-.nickname-hint { margin:0 0 14px; color:var(--muted); font-size:.85rem; }
+.nickname-hint { margin:0 0 24px; color:var(--muted); font-size:.85rem; }
 .nickname-hint b { color:var(--ink); }
 #nicknameInput { width:100%; min-height:52px; margin-bottom:10px; border:2px solid var(--soft-line); border-radius:14px; background:var(--panel); color:var(--ink); padding:8px 12px; font:inherit; font-size:1.05rem; text-align:center; letter-spacing:.06em; }
 #nicknameInput:focus { outline:2px solid var(--line); outline-offset:2px; }
@@ -428,7 +428,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.65.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.67.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -555,10 +555,12 @@ body.theme-dark {
 </dialog>
 <dialog id="nicknameDialog" aria-labelledby="nicknameLabel">
 <form class="sheet" id="nicknameForm" method="dialog">
+<div class="sheet-head">
 <label for="nicknameInput" id="nicknameLabel">取個排名榜暱稱</label>
+</div>
 <p class="nickname-hint">4–8 個英文字母＋4 個數字，例如 <b>Ember0427</b></p>
 <input id="nicknameInput" type="text" maxlength="12" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="例如 Ember0427" required />
-<p class="jump-error" id="nicknameError" role="alert" hidden>格式唔啱：4–8 個英文字母＋4 個數字</p>
+<p class="jump-error" id="nicknameError" role="alert" hidden>格式不正確：4–8 個英文字母＋4 個數字</p>
 <div class="jump-actions">
 <button class="primary" id="nicknameSubmit" type="submit">確定</button>
 </div>
@@ -610,7 +612,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.65.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.67.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1630,6 +1632,7 @@ document.getElementById('lbCloseBtn').onclick=function(){lbCloseDialog()};
 document.getElementById('leaderboardClose').onclick=lbCloseDialog;
 (function(){var d=document.getElementById('leaderboardDialog');if(!d)return;d.addEventListener('click',function(e){if(e.target===d)lbCloseDialog()});d.addEventListener('close',function(){if(d._lbOwnsLock){d._lbOwnsLock=false;unlockPageScroll()}var f=lbAfterClose;lbAfterClose=null;if(f)f()})})();
 document.getElementById('nicknameInput').addEventListener('input',lbPaintNicknameValidity);
+
 document.getElementById('nicknameForm').addEventListener('submit',function(e){
   var v=document.getElementById('nicknameInput').value.trim();
   if(!LB_NICK_RE.test(v)){e.preventDefault();lbPaintNicknameValidity();return}
