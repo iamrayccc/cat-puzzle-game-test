@@ -251,6 +251,7 @@ pointer-events:auto;
 /* ===== 排名榜（v37.64） ===== */
 #lbOpenBtn{margin-top:10px;width:100%;font-size:1rem;}
 #lbOpenBtn .lb-trophy{font-size:1.5em;line-height:1;}
+#leaderboardTitle .lb-top10{font-size:0.68em;font-weight:900;color:var(--accent);}
 #leaderboardDialog[open]{
 position:fixed; inset:0; width:auto; height:100dvh; margin:0;
 padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));
@@ -261,7 +262,7 @@ overflow-y:auto; overscroll-behavior:contain; pointer-events:auto; -webkit-overf
 .lb-self { margin:6px 0 0; padding:12px; border-radius:12px; background:var(--panel-2); text-align:center; font-weight:800; font-size:.95rem; color:var(--muted); }
 .lb-self b { color:var(--accent); font-variant-numeric:tabular-nums; }
 /* 第二框：排名列表（v37.80：有底色，10 行貼近） */
-.lb-list { list-style:none; margin:32px 0 6px; padding:3px; background:var(--panel-2); border-radius:14px; }
+.lb-list { list-style:none; margin:16px 0 6px; padding:3px; background:var(--panel-2); border-radius:14px; }
 .lb-row { display:grid; grid-template-columns:34px 1fr 6ch 9ch; gap:6px; align-items:center; padding:2px 8px; border-radius:10px; }
 @media (max-width:430px){
   .lb-row { grid-template-columns:33px 1fr 6ch 9ch; gap:4px; padding:2px 6px; }
@@ -439,7 +440,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.84.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.85.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -562,7 +563,7 @@ body.theme-dark {
 <dialog id="leaderboardDialog" aria-labelledby="leaderboardTitle">
 <div class="sheet">
 <div class="sheet-head">
-<h2 id="leaderboardTitle">🏆 排名榜 TOP10</h2>
+<h2 id="leaderboardTitle">🏆 排名榜 <span class="lb-top10">TOP10</span></h2>
 <button class="close-btn" id="leaderboardClose" type="button" aria-label="關閉">×</button>
 </div>
 <p class="lb-self" id="leaderboardSelfRank">載入中…</p>
@@ -634,7 +635,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.84.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.85.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
