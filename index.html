@@ -429,7 +429,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.76.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.77.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -613,7 +613,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.76.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.77.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1742,6 +1742,42 @@ try{localStorage.removeItem('meowdoku-nickname-v1')}catch(_){}
 if(typeof showToast==='function')showToast('\u5df2\u79fb\u9664\u66b1\u7a31');
 };
 footer.parentNode.insertBefore(nickBtn,footer);
+})();
+/* ===== 測試版專屬：診斷上傳（CC 要求：排查分數未上傳至排名榜問題） ===== */
+(function(){
+var diagBtn=document.createElement('button');
+diagBtn.className='jump-bottom-btn';diagBtn.type='button';diagBtn.id='lbDiagBtn';
+diagBtn.setAttribute('aria-label','診斷上傳（測試專用）');
+diagBtn.textContent='診斷上傳（測試）';
+diagBtn.onclick=function(){
+  var nick='';try{nick=lbGetNickname()||''}catch(_){}
+  var pid='';try{pid=lbGetPlayerId()||''}catch(_){}
+  var board='?';try{board=lbBoard()}catch(_){}
+  var best='?';try{best=(typeof state!=='undefined'&&state.best!=null)?Math.floor(state.best):'（無）'}catch(_){}
+  var sc='?';try{sc=(typeof state!=='undefined'&&state.score!=null)?Math.floor(state.score):'（無）'}catch(_){}
+  var info='【上傳診斷】\n暱稱：'+(nick||'無暱稱')+'\nPlayer ID：'+(pid?pid.slice(0,8):'無')+'\nBoard：'+board+'\nstate.best：'+best+'\nstate.score：'+sc;
+  if(!confirm(info+'\n\n按確定開始測試上傳'))return;
+  lbDiagnosticSubmit();
+};
+function lbDiagnosticSubmit(){
+  var nick='';try{nick=lbGetNickname()||''}catch(_){}
+  if(!nick){alert('診斷結果：無暱稱，無法上傳。請先輸入暱稱。');return;}
+  var best=0;try{best=(typeof state!=='undefined'&&state.best!=null)?Math.floor(state.best):0}catch(_){}
+  var sc=0;try{sc=(typeof state!=='undefined'&&state.score!=null)?Math.floor(state.score):0}catch(_){}
+  var lv=1;try{lv=state.level+1}catch(_){}
+  var pid='';try{pid=lbGetPlayerId()}catch(_){}
+  var board='test';try{board=lbBoard()}catch(_){}
+  var payload={player_id:pid,nickname:nick,best:best,score:sc,level:lv,board:board};
+  var done=false;
+  var timer=setTimeout(function(){if(!done){done=true;alert('診斷結果：上傳超時（10 秒）。請檢查網路連線。');}},10000);
+  try{
+    fetch(LB_API+'/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(r){
+      if(done)return;
+      r.text().then(function(t){done=true;clearTimeout(timer);alert('診斷結果：上傳完成\nHTTP 狀態：'+r.status+'\n回應：'+String(t).slice(0,200));});
+    }).catch(function(e){if(done)return;done=true;clearTimeout(timer);alert('診斷結果：上傳失敗\n錯誤：'+(e&&e.message?e.message:String(e)));});
+  }catch(e){done=true;clearTimeout(timer);alert('診斷結果：發起失敗\n錯誤：'+(e&&e.message?e.message:String(e)));}
+}
+footer.parentNode.insertBefore(diagBtn,footer);
 })();
 /* 測試版專屬：清除存檔工具。IS_TEST=false（玩家版）時此整塊不執行，
 頁面上無按鈕、無入口，功能完全不可觸達。 */
