@@ -259,16 +259,18 @@ overflow-y:auto; overscroll-behavior:contain; pointer-events:auto; -webkit-overf
 #leaderboardDialog .sheet { width:min(92vw,440px); }
 .lb-self { margin:24px 0 12px; padding:10px 12px; border-radius:12px; background:var(--panel-2); text-align:center; font-weight:900; font-size:.92rem; }
 .lb-self b { color:var(--accent); font-variant-numeric:tabular-nums; }
-.lb-list { list-style:none; margin:0 0 6px; padding:0; display:grid; gap:8px; }
-.lb-row { display:grid; grid-template-columns:34px 1fr auto; gap:10px; align-items:center; padding:9px 12px; border-radius:12px; background:var(--panel-2); }
-.lb-rank { width:30px; height:30px; display:grid; place-items:center; border-radius:50%; font-weight:900; font-size:.85rem; color:var(--muted); font-variant-numeric:tabular-nums; }
-.lb-rank.r1 { background:#f2b84b; color:#3a2408; }
-.lb-rank.r2 { background:#c3ccd4; color:#2c3540; }
-.lb-rank.r3 { background:#d29a6b; color:#3a2312; }
+.lb-list { list-style:none; margin:0 0 6px; padding:0; }
+.lb-row { display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center; padding:8px 2px; }
+.lb-level { color:var(--muted); font-weight:700; font-size:.85rem; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.lb-score { font-weight:900; font-size:.92rem; white-space:nowrap; font-variant-numeric:tabular-nums; }
+
+
+
+
 .lb-nick { font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.lb-meta { text-align:right; font-size:.78rem; color:var(--muted); font-weight:700; line-height:1.4; }
-.lb-meta b { display:block; font-size:.95rem; color:var(--ink); font-variant-numeric:tabular-nums; }
-.lb-row.me { background:var(--panel); border:2px solid var(--accent); padding:8px 11px; }
+
+
+.lb-row.me { border:2px solid var(--accent); border-radius:10px; padding:7px 9px; }
 .lb-me-tag { display:inline-block; margin-left:6px; padding:1px 8px; border-radius:20px; background:var(--accent); color:#fff; font-size:.7rem; font-weight:900; vertical-align:2px; }
 .lb-empty { text-align:center; color:var(--muted); padding:18px 0; font-weight:800; }
 .lb-error { text-align:center; color:var(--muted); padding:18px 0; font-weight:800; }
@@ -429,7 +431,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.78.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.79.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -624,7 +626,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.78.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.79.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1594,20 +1596,11 @@ function lbRender(top,self,myNickname){
       errEl=document.getElementById('leaderboardError');
   if(!listEl||!selfEl||!errEl)return;
   errEl.hidden=true;listEl.innerHTML='';
-  var localBest=(typeof state!=='undefined'&&state.best!==undefined&&state.best!==null)?Math.floor(state.best):null;
+  var localBest=(typeof state!=='undefined'&&state.best!==undefined&&state.best!==null)?Math.floor(state.best):0;
   var inTop=!!(self&&self.rank&&self.rank>=1&&self.rank<=10);
   selfEl.textContent='';
-  if(inTop){
-    selfEl.appendChild(document.createTextNode('\u4f60\u6392\u540d\u7b2c '));
-    var b=document.createElement('b');b.textContent=String(self.rank);selfEl.appendChild(b);
-    selfEl.appendChild(document.createTextNode('\uff08\u5171 '+self.total+' \u4f4d\u73a9\u5bb6\uff09'));
-  }else if(localBest!==null){
-    selfEl.appendChild(document.createTextNode('\u60a8\u7684\u6700\u4f73\u5206\u6578\uff1a'));
-    var b2=document.createElement('b');b2.textContent=localBest.toLocaleString('zh-Hant');selfEl.appendChild(b2);
-    selfEl.appendChild(document.createTextNode(' \u5206'));
-  }else{
-    selfEl.textContent='\u4f60\u66ab\u6642\u672a\u6709\u4e0a\u699c\u7d00\u9304';
-  }
+  selfEl.appendChild(document.createTextNode('\u60a8\u7684\u6700\u4f73\u5206\u6578\uff1a'));
+  var bSelf=document.createElement('b');bSelf.textContent=localBest.toLocaleString('zh-Hant');selfEl.appendChild(bSelf);
   if(!top.length){
     var empty=document.createElement('li');empty.className='lb-empty';
     empty.textContent='\u4ef2\u672a\u6709\u73a9\u5bb6\u4e0a\u699c';listEl.appendChild(empty);return;
@@ -1621,24 +1614,24 @@ function lbRender(top,self,myNickname){
   }
   top.forEach(function(row,idx){
     var li=document.createElement('li');li.className='lb-row'+(idx===meIdx?' me':'');
-    var badge=document.createElement('span');
-    badge.className='lb-rank'+(row.rank<=3?' r'+row.rank:'');
-    badge.textContent=String(row.rank);
     var nick=document.createElement('span');nick.className='lb-nick';
     nick.textContent=row.nickname;
     if(idx===meIdx){var tag=document.createElement('span');tag.className='lb-me-tag';tag.textContent='\u4f60';nick.appendChild(tag)}
-    var meta=document.createElement('span');meta.className='lb-meta';
-    var sb=document.createElement('b');sb.textContent=Number(row.best).toLocaleString('zh-Hant');
-    meta.appendChild(sb);
-    meta.appendChild(document.createTextNode(' \u5206 \u00b7 \u7b2c '+row.level+' \u95dc'));
-    li.appendChild(badge);li.appendChild(nick);li.appendChild(meta);
+    var lv=document.createElement('span');lv.className='lb-level';
+    lv.textContent='\u7b2c'+row.level+'\u95dc';
+    var sc=document.createElement('span');sc.className='lb-score';
+    sc.textContent=Number(row.best).toLocaleString('zh-Hant')+'\u5206';
+    li.appendChild(nick);li.appendChild(lv);li.appendChild(sc);
     listEl.appendChild(li);
   });
 }
 function lbShowError(){
   var errEl=document.getElementById('leaderboardError'),selfEl=document.getElementById('leaderboardSelfRank');
   if(errEl)errEl.hidden=false;
-  if(selfEl)selfEl.textContent='\u66ab\u6642\u672a\u80fd\u8f09\u5165\u6392\u540d';
+  if(selfEl){
+    var lb0=(typeof state!=='undefined'&&state.best!==undefined&&state.best!==null)?Math.floor(state.best):0;
+    selfEl.textContent='\u60a8\u7684\u6700\u4f73\u5206\u6578\uff1a'+lb0.toLocaleString('zh-Hant');
+  }
 }
 function lbPaintNicknameValidity(){
   var input=document.getElementById('nicknameInput'),err=document.getElementById('nicknameError');
