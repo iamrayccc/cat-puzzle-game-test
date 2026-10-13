@@ -256,7 +256,7 @@ display:flex; flex-direction:column; align-items:center; justify-content:safe ce
 overflow-y:auto; overscroll-behavior:contain; pointer-events:auto; -webkit-overflow-scrolling:touch;
 }
 #leaderboardDialog .sheet { width:min(92vw,440px); }
-.lb-self { margin:0 0 12px; padding:10px 12px; border-radius:12px; background:var(--panel-2); text-align:center; font-weight:900; font-size:.92rem; }
+.lb-self { margin:12px 0 12px; padding:10px 12px; border-radius:12px; background:var(--panel-2); text-align:center; font-weight:900; font-size:.92rem; }
 .lb-self b { color:var(--accent); font-variant-numeric:tabular-nums; }
 .lb-list { list-style:none; margin:0 0 6px; padding:0; display:grid; gap:8px; }
 .lb-row { display:grid; grid-template-columns:34px 1fr auto; gap:10px; align-items:center; padding:9px 12px; border-radius:12px; background:var(--panel-2); }
@@ -295,7 +295,7 @@ pointer-events:auto;
 #jumpDialog .sheet label { display:block; }
 #jumpInput { width:100%; min-height:52px; margin-bottom:10px; border:2px solid var(--soft-line); border-radius:14px; background:var(--panel); color:var(--ink); padding:8px 12px; font:inherit; font-size:1.05rem; text-align:center; }
 #jumpInput:focus { outline:2px solid var(--line); outline-offset:2px; }
-.jump-error { min-height:1.3em; margin:0 0 10px; color:var(--bad); font-size:.82rem; font-weight:800; }
+.jump-error { min-height:1.3em; margin:0 0 10px; padding:8px 12px; border-radius:10px; background:#fde8e8; color:#c0392b; font-size:1rem; font-weight:800; text-align:center; }
 .jump-error[hidden] { visibility:hidden; display:block; }
 .jump-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .jump-actions .secondary { margin-top:0; }
@@ -428,7 +428,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.37.68.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.37.69.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -612,7 +612,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.37.68.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.37.69.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1631,7 +1631,7 @@ document.getElementById('lbNextBtn').onclick=function(){lbCloseDialog()};
 document.getElementById('lbCloseBtn').onclick=function(){lbCloseDialog()};
 document.getElementById('leaderboardClose').onclick=lbCloseDialog;
 (function(){var d=document.getElementById('leaderboardDialog');if(!d)return;d.addEventListener('click',function(e){if(e.target===d)lbCloseDialog()});d.addEventListener('close',function(){if(d._lbOwnsLock){d._lbOwnsLock=false;unlockPageScroll()}var f=lbAfterClose;lbAfterClose=null;if(f)f()})})();
-document.getElementById('nicknameInput').addEventListener('input',lbPaintNicknameValidity);
+
 
 document.getElementById('nicknameForm').addEventListener('submit',function(e){
   var v=document.getElementById('nicknameInput').value.trim();
