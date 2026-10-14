@@ -224,8 +224,12 @@ pointer-events:auto; -webkit-overflow-scrolling:touch;
 .sheet #nextBtn { margin-top:10px; }
 .result-heading { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:8px; }
 .result-heading h2 { margin:0; }
-.level-up-name { font-weight:900; font-size:1.25em; color:var(--accent); }
+.level-up-name { font-weight:900; font-size:1.25em; color:var(--accent); white-space:nowrap; }
 .level-next { font-size:.72em; color:var(--muted); font-weight:700; white-space:nowrap; }
+/* v38.10 CC 明令：升級彈窗等級名不斷行——貓圖左移騰空間＋標題微縮 */
+#levelUpDialog .result-heading { gap:8px; }
+#levelUpDialog .result-cat { width:36px; height:36px; }
+#levelUpDialog .result-heading h2 { font-size:1.35rem; }
 .result-cat { flex:0 0 auto; width:48px; height:48px; margin:0; color:var(--accent); animation:celebrate .7s ease; }
 @keyframes celebrate { 0%{transform:translateY(20px) scale(.6);opacity:0} 70%{transform:translateY(-8px) scale(1.05)} 100%{transform:none;opacity:1} }
 #resultDialog .sheet { position:relative; }
@@ -440,7 +444,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.38.8.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.38.10.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -655,7 +659,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.38.8.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.38.10.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1259,7 +1263,7 @@ function chooseMode(mode){state.mode=mode;paintMode();setLogic(mode==='cat'?'已
 function paintHintButton(){var btn=document.getElementById('hintBtn'),label=document.getElementById('hintLabel'),used=state.hintsRemaining<=0;label.textContent=used?'找貓提示 · 已用完':'找貓提示 · 剩餘 '+state.hintsRemaining+' 次';btn.setAttribute('aria-label',used?'找貓提示，本關已用完':'找貓提示，本關剩餘'+state.hintsRemaining+'次');btn.classList.toggle('hint-used',used)}
 function paintCatsRemaining(){var el=document.getElementById('catsRemaining'),num=document.getElementById('catsRemainingNum'),n=state.catsRemaining;if(!el||!num)return;num.textContent=n;el.setAttribute('aria-label','剩餘 '+n+' 隻貓')}
 function paintOpeningButton(){var btn=document.getElementById('openingBtn'),label=document.getElementById('openingLabel');var noGuide=state.level>=30;btn.hidden=state.restoredEntry||noGuide;if(state.restoredEntry||noGuide){btn.disabled=true;return}label.textContent=state.openingAvailable?'開局指引 · 免費':'開局指引 · 已看';btn.disabled=!state.openingAvailable;btn.classList.toggle('guide-used',!state.openingAvailable);btn.setAttribute('aria-label',state.openingAvailable?'查看本關免費開局指引':'本關開局指引已看')}
-function render(){var p=currentPuzzle();board.querySelectorAll('.cell').forEach(function(b){if(b._catTimer){clearTimeout(b._catTimer);b._catTimer=null}});board.innerHTML='';board.style.gridTemplateColumns='repeat('+p.size+',1fr)';board.style.gridTemplateRows='repeat('+p.size+',1fr)';document.getElementById('levelCount').textContent='第 '+(state.level+1)+'／'+TOTAL+' 關 · '+p.label;document.getElementById('levelName').textContent=p.name;for(var r=0;r<p.size;r++)for(var c=0;c<p.size;c++){var i=r*p.size+c,b=document.createElement('button');b.type='button';b.className='cell';b.dataset.i=i;b.setAttribute('role','gridcell');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，空白');b.tabIndex=i===state.focus?0:-1;b.style.background=(currentTheme==='dark'?paletteDark:paletteLight)[p.regionHues[p.regions[r][c]]];b.addEventListener('keydown',onKey);board.appendChild(b)}paintHearts();paintScore();paintLevelChip();paintMode();paintHintButton();paintOpeningButton();paintCatsRemaining();updateAll(false)}
+function render(){var p=currentPuzzle();board.querySelectorAll('.cell').forEach(function(b){if(b._catTimer){clearTimeout(b._catTimer);b._catTimer=null}});board.innerHTML='';board.style.gridTemplateColumns='repeat('+p.size+',1fr)';board.style.gridTemplateRows='repeat('+p.size+',1fr)';document.getElementById('levelCount').textContent='第 '+(state.level+1)+'／'+TOTAL+' 關';document.getElementById('levelName').textContent=p.name;for(var r=0;r<p.size;r++)for(var c=0;c<p.size;c++){var i=r*p.size+c,b=document.createElement('button');b.type='button';b.className='cell';b.dataset.i=i;b.setAttribute('role','gridcell');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，空白');b.tabIndex=i===state.focus?0:-1;b.style.background=(currentTheme==='dark'?paletteDark:paletteLight)[p.regionHues[p.regions[r][c]]];b.addEventListener('keydown',onKey);board.appendChild(b)}paintHearts();paintScore();paintLevelChip();paintMode();paintHintButton();paintOpeningButton();paintCatsRemaining();updateAll(false)}
 function updateCell(i,animate){var b=board.children[i],p=currentPuzzle(),r=Math.floor(i/p.size),c=i%p.size,v=state.cells[i],lockedX=!!state.lockedXs[i];if(b._catTimer){clearTimeout(b._catTimer);b._catTimer=null}if(v==='cat'){b.innerHTML=catSVG.replace('class="cat"','class="cat cat-svg'+(animate?' animate-once pop':'')+'"');if(animate){b._catTimer=setTimeout(function(){b._catTimer=null;var svg=b.querySelector('.cat-svg');if(svg&&state.cells[i]==='cat'){svg.classList.remove('animate-once');svg.classList.remove('pop')}},4300)}}else{b.innerHTML=v==='x'?'<span class="cross" aria-hidden="true"></span>':''}b.setAttribute('aria-disabled',lockedX?'true':'false');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，'+(v==='cat'?'貓咪':v==='x'?(lockedX?'已排除，鎖定':'已排除'):'空白'))}
 var swayTimer=null;
 function scheduleSway(){if(swayTimer){clearTimeout(swayTimer);swayTimer=null}swayTimer=setTimeout(function(){swayTimer=null;if(!state.locked&&!document.querySelector('dialog[open]')){board.querySelectorAll('.cat-svg').forEach(function(svg){svg.classList.remove('sway-once');void svg.offsetWidth;svg.classList.add('sway-once');setTimeout(function(){svg.classList.remove('sway-once')},1100)})}scheduleSway()},30000)}
