@@ -440,7 +440,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.38.4.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.38.6.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -635,7 +635,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.38.4.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.38.6.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1865,6 +1865,58 @@ clearDialog.querySelector('#clearAllSave').onclick=function(){doClearSave(TEST_K
 clearDialog.addEventListener('click',function(e){if(e.target===clearDialog)clearDialog.close();});
 footer2.parentNode.insertBefore(clearBtn,footer2);
 })();
+})();
+/* 測試版專屬：顯示答案。IS_TEST=false（玩家版）時此整塊不執行，
+頁面上無按鈕、無入口，功能完全不可觸達。純視覺覆蓋，不修改 state.cells，
+不觸發 checkWin/finish，不影響分數心數。 */
+(function(){
+var footer=document.querySelector('.footer-note');
+if(!footer||!footer.parentNode)return;
+/* 動態注入覆蓋層樣式（玩家版零殘留，不寫入主 <style>） */
+var st=document.createElement('style');
+st.textContent='.answer-cat{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:2}'
++'.answer-cat .answer-cat-svg{width:82%;height:82%;opacity:.35}';
+document.head.appendChild(st);
+var answerShown=false;
+var answerBtn=document.createElement('button');
+answerBtn.className='jump-bottom-btn';
+answerBtn.type='button';
+answerBtn.id='answerBtn';
+answerBtn.setAttribute('aria-label','顯示所有貓的正確位置（測試專用）');
+answerBtn.textContent='顯示答案（測試）';
+function isSolutionCell(i,p){var r=Math.floor(i/p.size);return r*p.size+p.solution[r]===i}
+function paintAnswerCell(i){
+var b=board.children[i];
+if(!b||b.querySelector('.answer-cat'))return;
+if(state.cells[i]==='cat')return; /* 已放對的格子維持原樣 */
+var p=currentPuzzle();
+if(!isSolutionCell(i,p))return;
+var s=document.createElement('span');
+s.className='answer-cat';
+s.setAttribute('aria-hidden','true');
+s.innerHTML=catSVG.replace('class="cat"','class="cat answer-cat-svg"');
+b.appendChild(s);
+}
+function showAnswer(){
+answerShown=true;
+var p=currentPuzzle();
+for(var r=0;r<p.size;r++)paintAnswerCell(r*p.size+p.solution[r]);
+answerBtn.textContent='隱藏答案（測試）';
+}
+function hideAnswer(){
+answerShown=false;
+updateAll(false); /* 經下方包裝的 updateCell 重繪，不會補回覆蓋層，棋盤恢復原狀 */
+answerBtn.textContent='顯示答案（測試）';
+}
+answerBtn.onclick=function(){if(answerShown)hideAnswer();else showAnswer()};
+footer.parentNode.insertBefore(answerBtn,footer);
+/* 包裝 updateCell：答案顯示期間，任何格子重繪後自動補回覆蓋層。
+   包裝程式碼本身亦在 if(IS_TEST) 內，玩家版不受影響。 */
+var _updateCell=updateCell;
+updateCell=function(i,animate){
+_updateCell(i,animate);
+if(answerShown)paintAnswerCell(i);
+};
 })();
 }
 /* 移出 if(IS_TEST)：玩家版亦需更新對話框正常運作 */
