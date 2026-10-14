@@ -205,10 +205,10 @@ pointer-events:auto; -webkit-overflow-scrolling:touch;
 .close-btn { width:36px; height:36px; border:0; background:var(--panel-2); border-radius:50%; cursor:pointer; font-size:1.25rem; line-height:1; }
 #leaderboardDialog .close-btn { transform:translateY(-8px); }
 .rules-list { list-style:none; padding:0; margin:22px 0; display:grid; gap:15px; }
-.rules-list li { display:grid; grid-template-columns:38px 1fr; gap:12px; align-items:center; }
+.rules-list li { display:grid; grid-template-columns:38px 1fr; gap:12px; align-items:center; padding-left:12px; }
 .rule-number { width:38px; height:38px; display:grid; place-items:center; border-radius:12px; background:var(--panel-2); font-weight:900; }
 .rule-number.warn { background:#e8913a; color:#fff; font-size:1.3rem; }
-.rules-list li.warn-item { background:#fdf6ec; border:1.5px solid #e8913a; border-radius:14px; padding:10px 12px 10px 0; }
+.rules-list li.warn-item { background:#fdf6ec; border:1.5px solid #e8913a; border-radius:14px; padding:10px 12px; }
 .rules-list li.warn-item strong { color:#a8620f; font-size:1.02rem; }
 .rules-list strong { display:block; margin-bottom:2px; }
 .rules-list span { display:block; color:var(--muted); font-size:.88rem; line-height:1.35; }
@@ -447,19 +447,19 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.38.13.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.38.14.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
 <div class="sheet-head"><div><h2>找出所有躲起來的貓咪</h2></div><button class="close-btn" type="button" aria-label="關閉">×</button></div>
 <ol class="rules-list">
 <li class="warn-item"><span class="rule-number warn">💾</span><div><strong>🐱 開始遊戲前請注意</strong><span>請注意：如你正在使用瀏覽器的無痕／私密模式，遊戲進度將無法保留。請用一般模式開啟，以免進度遺失。</span></div></li>
-<li><span class="rule-number">2</span><div><strong>基本規則</strong><span>每一行、每一列各一隻；每個區域各一隻；貓咪不能彼此相鄰（連斜角也不行），放好後周圍八格都可排除。</span></div></li>
-<li><span class="rule-number">3</span><div><strong>自動模式（放貓自動標 X）</strong><span>關卡名稱旁有 AUTO／OFF 開關，預設為 OFF。開啟後，每次正確放貓，系統會自動在該貓的橫行、直行及周圍八格標 X；誤放不會觸發。開關設定會隨進度保存。</span></div></li>
-<li><span class="rule-number">4</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
-<li><span class="rule-number">5</span><div><strong>開局指引</strong><span>只在第 1–30 關提供，第 31 關起不再提供；非進度恢復進入關卡時，可查看一次不直接落子的起手推理；高亮只教一步，由你親自標記，也不會消耗找貓提示。</span></div></li>
-<li><span class="rule-number">6</span><div><strong>找貓提示</strong><span>每關可使用 2 次「找貓提示」；提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
-<li><span class="rule-number">7</span><div><strong>積分與補心</strong><span>積分與心數規則如下表。</span>
+<li><span class="rule-number">1</span><div><strong>基本規則</strong><span>每一行、每一列各一隻；每個區域各一隻；貓咪不能彼此相鄰（連斜角也不行），放好後周圍八格都可排除。</span></div></li>
+<li><span class="rule-number">2</span><div><strong>自動模式（放貓自動標 X）</strong><span>關卡名稱旁有 AUTO／OFF 開關，預設為 OFF。開啟後，每次正確放貓，系統會自動在該貓的橫行、直行及周圍八格標 X；誤放不會觸發。開關設定會隨進度保存。</span></div></li>
+<li><span class="rule-number">3</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
+<li><span class="rule-number">4</span><div><strong>開局指引</strong><span>只在第 1–30 關提供，第 31 關起不再提供；非進度恢復進入關卡時，可查看一次不直接落子的起手推理；高亮只教一步，由你親自標記，也不會消耗找貓提示。</span></div></li>
+<li><span class="rule-number">5</span><div><strong>找貓提示</strong><span>每關可使用 2 次「找貓提示」；提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
+<li><span class="rule-number">6</span><div><strong>積分與補心</strong><span>積分與心數規則如下表。</span>
 <table class="level-table">
 <tr><th>項目</th><th>規則</th></tr>
 <tr><td>過關</td><td>＋1000 分</td></tr>
@@ -473,8 +473,8 @@ body.theme-dark {
 <tr><td>補心</td><td>每通過十關補回 1 顆心</td></tr>
 <tr><td>心數上限</td><td>5 顆</td></tr>
 </table></div></li>
-<li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
-<li><span class="rule-number">9</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級晉升順序如下）；等級提升時會有恭喜提示。</span>
+<li><span class="rule-number">7</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
+<li><span class="rule-number">8</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級晉升順序如下）；等級提升時會有恭喜提示。</span>
 <div class="lvl-flow" aria-label="玩家等級由低至高晉升順序">
 <span class="lvl-node"><b>新手</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
 <span class="lvl-node"><b>初階</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
@@ -673,7 +673,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.38.13.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.38.14.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
