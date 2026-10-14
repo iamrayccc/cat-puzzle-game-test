@@ -447,7 +447,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.38.15.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.38.16.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -522,16 +522,6 @@ body.theme-dark {
 <h2 id="levelUpTitle">恭喜您！等級提升</h2>
 </div>
 <button class="primary" id="levelUpBtn" type="button">繼續</button>
-</div>
-</dialog>
-<dialog id="incognitoDialog">
-<div class="sheet result">
-<div class="result-heading">
-<div class="result-cat" id="incognitoCat"></div>
-<h2>🐱 開始遊戲前請注意</h2>
-</div>
-<p style="color:var(--muted);font-size:.92rem;line-height:1.6;margin:6px 2px 0;">請注意：如你正在使用瀏覽器的無痕／私密模式，遊戲進度將無法保留。請用一般模式開啟，以免進度遺失。</p>
-<button class="primary" id="incognitoBtn" type="button">我知道了</button>
 </div>
 </dialog>
 <dialog id="jumpDialog">
@@ -673,7 +663,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.38.15.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.38.16.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1416,9 +1406,6 @@ if(t&&t!==CURRENT_VERSION){showUpdateDialog(proceed)}else{proceed()}
 var LEVEL_ORDER=['新手','初階','中階','高階','好手','高手','精英','專家','大師','宗師','傳奇','殿堂','皇者1段','皇者2段','皇者3段','至尊1段','至尊2段','至尊3段','神話1段','神話2段','神話3段'];
 function nextLevelName(name){var i=LEVEL_ORDER.indexOf(name);return(i>=0&&i<LEVEL_ORDER.length-1)?LEVEL_ORDER[i+1]:null}
 function showLevelUpVeil(levelName){var next=nextLevelName(levelName),html='恭喜您！升級至 <span class="level-up-name">'+levelName+'</span>';if(next)html+='<br><span class="level-next">（等待挑戰：'+next+'等級）</span>';document.getElementById('levelUpTitle').innerHTML=html;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
-function incognitoWarned(){try{return localStorage.getItem('meowdoku-incognito-warned-v1')==='1'}catch(e){return false}}
-function markIncognitoWarned(){try{localStorage.setItem('meowdoku-incognito-warned-v1','1')}catch(e){}}
-function showIncognitoWarning(){if(incognitoWarned())return;var d=document.getElementById('incognitoDialog');if(!d)return;var pc=document.getElementById('incognitoCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;lockPageScroll();if(!d.open){d.showModal();d.scrollTop=0}}
 function finish(win){
 if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
 var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
@@ -1742,7 +1729,7 @@ document.getElementById('nicknameInput').addEventListener('input',function(){
 });
 (function(){var d=document.getElementById('nicknameDialog');if(!d)return;d.addEventListener('cancel',function(e){e.preventDefault()});d.addEventListener('close',function(){unlockPageScroll();var cb=lbNickCallback;lbNickCallback=null;if(cb)cb()})})();
 document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();function lbProceedNext(){if(state.pendingLevelUp){state.pendingLevelUp=false;showLevelUpVeil(state.pendingLevelUpName);return}checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})}if(lbAutoPending){lbAutoPending=false;lbOpenAuto(lbProceedNext);return}lbProceedNext()};
-document.getElementById('levelUpBtn').onclick=function(){var d=document.getElementById('levelUpDialog');if(d.open)d.close();unlockPageScroll();checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})};document.getElementById('incognitoBtn').onclick=function(){var d=document.getElementById('incognitoDialog');if(d.open)d.close();unlockPageScroll();markIncognitoWarned()};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
+document.getElementById('levelUpBtn').onclick=function(){var d=document.getElementById('levelUpDialog');if(d.open)d.close();unlockPageScroll();checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
 if(IS_TEST){
 /* 測試版專屬：跳關功能。IS_TEST=false（玩家版）時此整塊不執行，
 頁面上無按鈕、無入口，功能完全不可觸達。 */
@@ -1764,7 +1751,7 @@ jumpForm.onsubmit=function(e){
 e.preventDefault();
 var n=Number(jumpInput.value);
 if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.hidden=false;showToast('請輸入 1–500 的關號');jumpInput.focus();return}
-jumpDialog.close();closeResultDialog();clearToast();newLevel(n-1);if(n===1)setTimeout(showIncognitoWarning,400);
+jumpDialog.close();closeResultDialog();clearToast();newLevel(n-1);
 };
 jumpBtn.className='jump-bottom-btn';
 footer.parentNode.insertBefore(jumpBtn,footer);
@@ -2037,7 +2024,7 @@ state.locked=true;setLogic('已恢復上次進度','錯放懲罰已保存；5 �
 }else{
 setLogic('已恢復上次進度','第 '+(state.level+1)+' 關的棋盤、積分、心數及找貓提示次數已恢復。'+(healedOnLoad?'舊版本誤判留下的無解鎖定已自動清除。':''),'↻');setTimeout(function(){showToast(healedOnLoad?'已恢復進度並自動修復無解鎖定':'已恢復上次進度：第 '+(state.level+1)+' 關')},120)
 }
-}else{clearProgress();newLevel(0,true);setTimeout(showIncognitoWarning,400)}
+}else{clearProgress();newLevel(0,true)}
 lbCheckNicknameOnBoot();
 })();
 })();
