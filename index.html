@@ -207,6 +207,9 @@ pointer-events:auto; -webkit-overflow-scrolling:touch;
 .rules-list { list-style:none; padding:0; margin:22px 0; display:grid; gap:15px; }
 .rules-list li { display:grid; grid-template-columns:38px 1fr; gap:12px; align-items:center; }
 .rule-number { width:38px; height:38px; display:grid; place-items:center; border-radius:12px; background:var(--panel-2); font-weight:900; }
+.rule-number.warn { background:#e2574c; color:#fff; font-size:1.3rem; }
+.rules-list li.warn-item { background:#fdf0ee; border:1.5px solid #e2574c; border-radius:14px; padding:10px 12px 10px 0; }
+.rules-list li.warn-item strong { color:#c0392b; font-size:1.02rem; }
 .rules-list strong { display:block; margin-bottom:2px; }
 .rules-list span { display:block; color:var(--muted); font-size:.88rem; line-height:1.35; }
 .primary { width:100%; min-height:52px; border:0; border-radius:14px; background:var(--accent); color:#fff; font-weight:900; font-size:1rem; cursor:pointer; box-shadow:0 5px 0 var(--accent-dark); }
@@ -444,18 +447,19 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.38.10.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.38.11.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
 <div class="sheet-head"><div><h2>找出所有躲起來的貓咪</h2></div><button class="close-btn" type="button" aria-label="關閉">×</button></div>
 <ol class="rules-list">
-<li><span class="rule-number">1</span><div><strong>基本規則</strong><span>每一行、每一列各一隻；每個區域各一隻；貓咪不能彼此相鄰（連斜角也不行），放好後周圍八格都可排除。</span></div></li>
-<li><span class="rule-number">2</span><div><strong>自動模式（放貓自動標 X）</strong><span>關卡名稱旁有 AUTO／OFF 開關，預設為 OFF。開啟後，每次正確放貓，系統會自動在該貓的橫行、直行及周圍八格標 X；誤放不會觸發。開關設定會隨進度保存。</span></div></li>
-<li><span class="rule-number">3</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
-<li><span class="rule-number">4</span><div><strong>開局指引</strong><span>只在第 1–30 關提供，第 31 關起不再提供；非進度恢復進入關卡時，可查看一次不直接落子的起手推理；高亮只教一步，由你親自標記，也不會消耗找貓提示。</span></div></li>
-<li><span class="rule-number">5</span><div><strong>找貓提示</strong><span>每關可使用 2 次「找貓提示」；提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
-<li><span class="rule-number">6</span><div><strong>積分與補心</strong><span>積分與心數規則如下表。</span>
+<li class="warn-item"><span class="rule-number warn">⚠️</span><div><strong>請勿使用無痕模式</strong><span>請勿使用瀏覽器的無痕／私密模式遊玩，否則遊戲進度無法儲存、會發生儲存錯誤。請用一般模式開啟遊戲。</span></div></li>
+<li><span class="rule-number">2</span><div><strong>基本規則</strong><span>每一行、每一列各一隻；每個區域各一隻；貓咪不能彼此相鄰（連斜角也不行），放好後周圍八格都可排除。</span></div></li>
+<li><span class="rule-number">3</span><div><strong>自動模式（放貓自動標 X）</strong><span>關卡名稱旁有 AUTO／OFF 開關，預設為 OFF。開啟後，每次正確放貓，系統會自動在該貓的橫行、直行及周圍八格標 X；誤放不會觸發。開關設定會隨進度保存。</span></div></li>
+<li><span class="rule-number">4</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
+<li><span class="rule-number">5</span><div><strong>開局指引</strong><span>只在第 1–30 關提供，第 31 關起不再提供；非進度恢復進入關卡時，可查看一次不直接落子的起手推理；高亮只教一步，由你親自標記，也不會消耗找貓提示。</span></div></li>
+<li><span class="rule-number">6</span><div><strong>找貓提示</strong><span>每關可使用 2 次「找貓提示」；提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
+<li><span class="rule-number">7</span><div><strong>積分與補心</strong><span>積分與心數規則如下表。</span>
 <table class="level-table">
 <tr><th>項目</th><th>規則</th></tr>
 <tr><td>過關</td><td>＋1000 分</td></tr>
@@ -469,8 +473,8 @@ body.theme-dark {
 <tr><td>補心</td><td>每通過十關補回 1 顆心</td></tr>
 <tr><td>心數上限</td><td>5 顆</td></tr>
 </table></div></li>
-<li><span class="rule-number">7</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
-<li><span class="rule-number">8</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級晉升順序如下）；等級提升時會有恭喜提示。</span>
+<li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
+<li><span class="rule-number">9</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級晉升順序如下）；等級提升時會有恭喜提示。</span>
 <div class="lvl-flow" aria-label="玩家等級由低至高晉升順序">
 <span class="lvl-node"><b>新手</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
 <span class="lvl-node"><b>初階</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
@@ -518,6 +522,16 @@ body.theme-dark {
 <h2 id="levelUpTitle">恭喜您！等級提升</h2>
 </div>
 <button class="primary" id="levelUpBtn" type="button">繼續</button>
+</div>
+</dialog>
+<dialog id="incognitoDialog">
+<div class="sheet result">
+<div class="result-heading">
+<div class="result-cat" id="incognitoCat"></div>
+<h2>⚠️ 請勿使用無痕模式</h2>
+</div>
+<p style="color:var(--muted);font-size:.92rem;line-height:1.6;margin:6px 2px 0;">請勿使用瀏覽器的無痕／私密模式遊玩，否則遊戲進度無法儲存、會發生儲存錯誤。請用一般模式開啟遊戲。</p>
+<button class="primary" id="incognitoBtn" type="button">我知道了</button>
 </div>
 </dialog>
 <dialog id="jumpDialog">
@@ -659,7 +673,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.38.10.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.38.11.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1402,6 +1416,9 @@ if(t&&t!==CURRENT_VERSION){showUpdateDialog(proceed)}else{proceed()}
 var LEVEL_ORDER=['新手','初階','中階','高階','好手','高手','精英','專家','大師','宗師','傳奇','殿堂','皇者1段','皇者2段','皇者3段','至尊1段','至尊2段','至尊3段','神話1段','神話2段','神話3段'];
 function nextLevelName(name){var i=LEVEL_ORDER.indexOf(name);return(i>=0&&i<LEVEL_ORDER.length-1)?LEVEL_ORDER[i+1]:null}
 function showLevelUpVeil(levelName){var next=nextLevelName(levelName),html='恭喜您！升級至 <span class="level-up-name">'+levelName+'</span>';if(next)html+='<br><span class="level-next">（等待挑戰：'+next+'等級）</span>';document.getElementById('levelUpTitle').innerHTML=html;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
+function incognitoWarned(){try{return localStorage.getItem('meowdoku-incognito-warned-v1')==='1'}catch(e){return false}}
+function markIncognitoWarned(){try{localStorage.setItem('meowdoku-incognito-warned-v1','1')}catch(e){}}
+function showIncognitoWarning(){if(incognitoWarned())return;var d=document.getElementById('incognitoDialog');if(!d)return;var pc=document.getElementById('incognitoCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;lockPageScroll();if(!d.open){d.showModal();d.scrollTop=0}}
 function finish(win){
 if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
 var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
@@ -1725,7 +1742,7 @@ document.getElementById('nicknameInput').addEventListener('input',function(){
 });
 (function(){var d=document.getElementById('nicknameDialog');if(!d)return;d.addEventListener('cancel',function(e){e.preventDefault()});d.addEventListener('close',function(){unlockPageScroll();var cb=lbNickCallback;lbNickCallback=null;if(cb)cb()})})();
 document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();function lbProceedNext(){if(state.pendingLevelUp){state.pendingLevelUp=false;showLevelUpVeil(state.pendingLevelUpName);return}checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})}if(lbAutoPending){lbAutoPending=false;lbOpenAuto(lbProceedNext);return}lbProceedNext()};
-document.getElementById('levelUpBtn').onclick=function(){var d=document.getElementById('levelUpDialog');if(d.open)d.close();unlockPageScroll();checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
+document.getElementById('levelUpBtn').onclick=function(){var d=document.getElementById('levelUpDialog');if(d.open)d.close();unlockPageScroll();checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})};document.getElementById('incognitoBtn').onclick=function(){var d=document.getElementById('incognitoDialog');if(d.open)d.close();unlockPageScroll();markIncognitoWarned()};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
 if(IS_TEST){
 /* 測試版專屬：跳關功能。IS_TEST=false（玩家版）時此整塊不執行，
 頁面上無按鈕、無入口，功能完全不可觸達。 */
@@ -2020,7 +2037,7 @@ state.locked=true;setLogic('已恢復上次進度','錯放懲罰已保存；5 �
 }else{
 setLogic('已恢復上次進度','第 '+(state.level+1)+' 關的棋盤、積分、心數及找貓提示次數已恢復。'+(healedOnLoad?'舊版本誤判留下的無解鎖定已自動清除。':''),'↻');setTimeout(function(){showToast(healedOnLoad?'已恢復進度並自動修復無解鎖定':'已恢復上次進度：第 '+(state.level+1)+' 關')},120)
 }
-}else{clearProgress();newLevel(0,true)}
+}else{clearProgress();newLevel(0,true);setTimeout(showIncognitoWarning,400)}
 lbCheckNicknameOnBoot();
 })();
 })();
