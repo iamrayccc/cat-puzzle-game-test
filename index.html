@@ -447,7 +447,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.8.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.9.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -663,7 +663,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.8.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.9.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1626,10 +1626,78 @@ function lbFireSubmit(){
     fetch(LB_API+'/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(){}).catch(function(){});
   }catch(_){}
 }
+/* D1 玩家資料備份（2026-10-15 CC 批准，v39.9.beta）：fire-and-forget，絕不阻塞玩家；與排行榜完全獨立 */
+var BACKUP_API='https://meowdoku-leaderboard.iamraymondchiu.workers.dev';
+function backupGetPlayerId(){
+  try{
+    var k='meowdoku-player-id-v1'+_storeSfx;
+    var v=localStorage.getItem(k);
+    if(v)return v;
+    v=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'pid-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
+    try{localStorage.setItem(k,v)}catch(_){}
+    return v;
+  }catch(_){return 'pid-tmp-'+Math.random().toString(36).slice(2,10)}
+}
+function backupGetRecoveryCode(){
+  try{
+    var k='meowdoku-recovery-code-v1'+_storeSfx;
+    var v=localStorage.getItem(k);
+    if(v)return v;
+    var chars='ABCDEFGHJKMNPQRSTUVWXYZ23456789',code='';
+    for(var i=0;i<8;i++)code+=chars.charAt(Math.floor(Math.random()*chars.length));
+    v=code.slice(0,4)+'-'+code.slice(4);
+    try{localStorage.setItem(k,v)}catch(_){}
+    return v;
+  }catch(_){return 'XXXX-XXXX'}
+}
+function backupFireUpload(){
+  try{
+    var v3raw=null,hintsraw=null;
+    try{v3raw=localStorage.getItem(LS_KEY)}catch(_){}
+    try{hintsraw=localStorage.getItem(HINTS_KEY)}catch(_){}
+    if(!v3raw)return;
+    var payload={player_id:backupGetPlayerId(),recovery_code:backupGetRecoveryCode(),nickname:lbGetNickname(),save_json:JSON.stringify({v3:v3raw,hints:hintsraw})};
+    fetch(BACKUP_API+'/backup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(){}).catch(function(){});
+  }catch(_){}
+}
+function backupDownload(code){
+  var q=String(code||'').toUpperCase();
+  var url=BACKUP_API+'/backup?'+(/^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(q)?'recovery_code=':'player_id=')+encodeURIComponent(q);
+  return fetch(url).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json()}).then(function(j){
+    if(!j||!j.ok||!j.save_json)throw new Error('bad_backup');
+    var outer;try{outer=JSON.parse(j.save_json)}catch(e){throw new Error('bad_backup')}
+    if(!outer||typeof outer.v3!=='string')throw new Error('bad_backup');
+    return backupVerifyV3(outer.v3).then(function(v3ok){
+      if(!v3ok)throw new Error('bad_v3_hash');
+      if(outer.hints&&typeof outer.hints==='string'){
+        if(!backupVerifyHints(outer.hints))throw new Error('bad_hints_hash');
+      }
+      try{localStorage.setItem(LS_KEY,outer.v3)}catch(e){throw new Error('write_fail')}
+      try{if(outer.hints)localStorage.setItem(HINTS_KEY,outer.hints)}catch(e){}
+      return {nickname:j.nickname||'',updated_at:j.updated_at||''};
+    });
+  });
+}
+function backupVerifyV3(raw){
+  var d;try{d=JSON.parse(raw)}catch(e){return Promise.resolve(false)}
+  if(!d||d.v!==3||typeof d.level!=='number'||typeof d.hearts!=='number'||typeof d.score!=='number')return Promise.resolve(false);
+  if(d.level<0||d.level>=TOTAL||d.hearts<1||d.hearts>MAX_HEARTS||d.score<0||!isFinite(d.score))return Promise.resolve(false);
+  if(d.best!==undefined&&(typeof d.best!=='number'||d.best<0||!isFinite(d.best)))return Promise.resolve(false);
+  var theme2=d.theme==='dark'?'dark':'light';
+  var bestStr=(d.best===undefined||d.best===null)?'':Math.floor(d.best);
+  return sha256hex(d.level+'|'+d.hearts+'|'+d.score+'|'+bestStr+'|'+theme2+'|'+LS_SECRET).then(function(sum){return !!sum&&sum===d.sum});
+}
+function backupVerifyHints(raw){
+  var d;try{d=JSON.parse(raw)}catch(e){return false}
+  if(!d||d.v!==1||typeof d.level!=='number'||typeof d.hints!=='number'||d.hints<0||d.hints>2||Math.floor(d.hints)!==d.hints||!isFinite(d.level))return false;
+  var sum=sha256hexSync(d.level+'|'+d.hints+'|'+LS_SECRET);
+  return !!sum&&sum===d.sum;
+}
 function lbOnLevelComplete(completed,firstCompletion){
   lbFirstComp=!!firstCompletion;
   lbAutoPending=!!firstCompletion&&(completed%10===0);
   if(lbGetNickname()){lbFireSubmit()}
+  backupFireUpload();
 }
 function lbFetchJson(url,ms){
   return new Promise(function(resolve,reject){
@@ -1957,6 +2025,177 @@ clearDialog.querySelector('#clearAllSave').onclick=function(){doClearSave(TEST_K
 clearDialog.addEventListener('click',function(e){if(e.target===clearDialog)clearDialog.close();});
 footer2.parentNode.insertBefore(clearBtn,footer2);
 })();
+})();
+
+/* 測試版專屬：雲端備份 UI（設計貓，v39.9.beta） */
+var bkStyle=document.createElement('style');
+bkStyle.textContent=
+'#backupDialog[open],#backupInputDialog[open],#backupConfirmDialog[open]{position:fixed;inset:0;width:auto;height:100dvh;margin:0;padding:16px;display:flex;align-items:center;justify-content:center;}'+
+'#backupDialog .sheet,#backupInputDialog .sheet,#backupConfirmDialog .sheet{width:min(92vw,400px);text-align:center;}'+
+'#backupDialog .sheet h2,#backupInputDialog .sheet h2,#backupConfirmDialog .sheet h2{margin-bottom:12px;}'+
+'#backupDialog .sheet p,#backupConfirmDialog .sheet p{margin-bottom:14px;}'+
+'.recovery-code-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 12px;}'+
+'#recoveryCodeText{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.6rem;font-weight:900;letter-spacing:.12em;color:var(--ink);background:var(--panel-2);border:1px dashed var(--soft-line);border-radius:10px;padding:8px 14px;}'+
+'#copyCodeBtn{padding:8px 14px;}'+
+'.backup-hint{font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:16px;}'+
+'#backupInputDialog label{display:block;margin-bottom:8px;font-weight:700;}'+
+'#recoveryCodeInput{width:100%;box-sizing:border-box;text-align:center;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.3rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2);color:var(--ink);margin-bottom:10px;}'+
+'#backupInputDialog .jump-actions{grid-template-columns:1fr 1fr;}'+
+'#backupConfirmDialog .jump-actions{grid-template-columns:1fr 1fr;}'+
+'.backup-status{margin-top:12px;font-weight:700;}'+
+'.backup-status.ok{color:#2e7d32;}'+
+'.backup-status.err{color:#c62828;}';
+document.head.appendChild(bkStyle);
+
+/* 測試版專屬：雲端備份 UI。IS_TEST=false（玩家版）時此整塊不執行，
+   頁面上無按鈕、無入口，功能完全不可觸達。 */
+(function(){
+var footerBk=document.querySelector('.footer-note');
+if(!footerBk||!footerBk.parentNode)return;
+
+/* --- 入口按鈕 --- */
+var bkBtn=document.createElement('button');
+bkBtn.className='jump-bottom-btn';
+bkBtn.type='button';
+bkBtn.id='cloudBackupBtn';
+bkBtn.setAttribute('aria-label','雲端備份（測試專用）');
+bkBtn.textContent='雲端備份（測試）';
+
+/* --- 主對話框：顯示恢復碼 --- */
+var bkDialog=document.createElement('dialog');
+bkDialog.id='backupDialog';
+bkDialog.innerHTML='<div class="sheet">'+
+'<h2>雲端備份（測試專用）</h2>'+
+'<p>您的恢復碼：</p>'+
+'<div class="recovery-code-row">'+
+'<span id="recoveryCodeText">----</span>'+
+'<button class="secondary" id="copyCodeBtn" type="button">複製</button>'+
+'</div>'+
+'<p class="backup-hint">請截圖保存此碼，換設備或資料遺失時用此碼恢復進度</p>'+
+'<div class="jump-actions" style="grid-template-columns:1fr;">'+
+'<button class="primary" id="restoreFromCloudBtn" type="button">從雲端恢復</button>'+
+'<button class="secondary" id="backupCloseBtn" type="button">關閉</button>'+
+'</div>'+
+'<p class="backup-status" id="backupStatus" role="status" hidden></p>'+
+'</div>';
+document.body.appendChild(bkDialog);
+
+/* --- 輸入對話框：輸入恢復碼 --- */
+var bkInputDialog=document.createElement('dialog');
+bkInputDialog.id='backupInputDialog';
+bkInputDialog.innerHTML='<div class="sheet">'+
+'<h2>從雲端恢復</h2>'+
+'<label for="recoveryCodeInput">請輸入 8 位恢復碼</label>'+
+'<input id="recoveryCodeInput" type="text" maxlength="9" placeholder="XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" />'+
+'<p class="jump-error" id="recoveryCodeError" role="alert" hidden>格式不正確，請輸入 8 位恢復碼（如 K7M2-P9Q4）</p>'+
+'<div class="jump-actions">'+
+'<button class="secondary" id="recoveryInputCancel" type="button">取消</button>'+
+'<button class="primary" id="recoveryGoBtn" type="button">確認恢復</button>'+
+'</div></div>';
+document.body.appendChild(bkInputDialog);
+
+/* --- 確認對話框：覆蓋警告 --- */
+var bkConfirmDialog=document.createElement('dialog');
+bkConfirmDialog.id='backupConfirmDialog';
+bkConfirmDialog.innerHTML='<div class="sheet">'+
+'<h2>確認恢復</h2>'+
+'<p>恢復將用雲端備份覆蓋本機進度，是否繼續？</p>'+
+'<div class="jump-actions">'+
+'<button class="secondary" id="backupConfirmCancel" type="button">取消</button>'+
+'<button class="primary" id="backupConfirmYes" type="button">確認</button>'+
+'</div></div>';
+document.body.appendChild(bkConfirmDialog);
+
+/* --- 事件邏輯 --- */
+var pendingCode=''; // 待恢復的碼（輸入框→確認框傳遞）
+
+function showStatus(msg,ok){
+  var st=bkDialog.querySelector('#backupStatus');
+  st.textContent=msg;
+  st.className='backup-status '+(ok?'ok':'err');
+  st.hidden=false;
+}
+function hideStatus(){bkDialog.querySelector('#backupStatus').hidden=true;}
+
+bkBtn.onclick=function(){
+  hideStatus();
+  try{
+    var code=(typeof backupGetRecoveryCode==='function')?backupGetRecoveryCode():'----';
+    bkDialog.querySelector('#recoveryCodeText').textContent=code;
+  }catch(e){
+    bkDialog.querySelector('#recoveryCodeText').textContent='----';
+  }
+  bkDialog.showModal();
+};
+bkDialog.querySelector('#backupCloseBtn').onclick=function(){bkDialog.close();};
+bkDialog.addEventListener('click',function(e){if(e.target===bkDialog)bkDialog.close();});
+
+/* 複製按鈕 */
+bkDialog.querySelector('#copyCodeBtn').onclick=function(){
+  var code=bkDialog.querySelector('#recoveryCodeText').textContent;
+  var done=function(){showStatus('已複製',true);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(done,function(){showStatus('複製失敗，請手動截圖',false);});
+  }else{
+    /* 後備：選取文字 */
+    var ta=document.createElement('textarea');
+    ta.value=code;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}
+    catch(e){showStatus('複製失敗，請手動截圖',false);}
+    document.body.removeChild(ta);
+  }
+};
+
+/* 從雲端恢復 → 輸入框 */
+bkDialog.querySelector('#restoreFromCloudBtn').onclick=function(){
+  bkDialog.close();
+  bkInputDialog.querySelector('#recoveryCodeInput').value='';
+  bkInputDialog.querySelector('#recoveryCodeError').hidden=true;
+  bkInputDialog.showModal();
+};
+bkInputDialog.querySelector('#recoveryInputCancel').onclick=function(){bkInputDialog.close();};
+bkInputDialog.addEventListener('click',function(e){if(e.target===bkInputDialog)bkInputDialog.close();});
+/* 輸入時自動轉大寫 */
+bkInputDialog.querySelector('#recoveryCodeInput').addEventListener('input',function(e){
+  var v=e.target.value.toUpperCase().replace(/[^A-Z2-9-]/g,'');
+  if(e.target.value!==v)e.target.value=v;
+});
+
+/* 確認恢復 → 格式驗證 → 確認框 */
+bkInputDialog.querySelector('#recoveryGoBtn').onclick=function(){
+  var v=bkInputDialog.querySelector('#recoveryCodeInput').value.trim().toUpperCase();
+  if(!/^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(v)){
+    bkInputDialog.querySelector('#recoveryCodeError').hidden=false;
+    return;
+  }
+  pendingCode=v;
+  bkInputDialog.close();
+  bkConfirmDialog.showModal();
+};
+bkConfirmDialog.querySelector('#backupConfirmCancel').onclick=function(){bkConfirmDialog.close();};
+bkConfirmDialog.addEventListener('click',function(e){if(e.target===bkConfirmDialog)bkConfirmDialog.close();});
+
+/* 確認 → 調用 backupDownload */
+bkConfirmDialog.querySelector('#backupConfirmYes').onclick=function(){
+  bkConfirmDialog.close();
+  bkDialog.showModal();
+  showStatus('正在從雲端恢復…',true);
+  if(typeof backupDownload!=='function'){
+    showStatus('恢復功能尚未就緒',false);
+    return;
+  }
+  backupDownload(pendingCode).then(function(){
+    showStatus('恢復成功，正在重新載入',true);
+    setTimeout(function(){location.reload();},900);
+  }).catch(function(err){
+    var msg=(err&&err.message)?err.message:'恢復失敗';
+    if(/not_found/i.test(msg))msg='找不到備份，請檢查恢復碼';
+    else if(/bad/i.test(msg))msg='備份資料已損壞，無法恢復';
+    showStatus(msg,false);
+  });
+};
+
+footerBk.parentNode.insertBefore(bkBtn,footerBk);
 })();
 /* 測試版專屬：顯示答案。IS_TEST=false（玩家版）時此整塊不執行，
 頁面上無按鈕、無入口，功能完全不可觸達。純視覺覆蓋，不修改 state.cells，
