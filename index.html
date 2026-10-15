@@ -1941,10 +1941,9 @@ clearDialog.innerHTML='<div class="sheet">'+
 '<button class="secondary" id="clearSaveCancel" type="button">取消</button>'+
 '</div></div>';
 document.body.appendChild(clearDialog);
-var TEST_KEYS=['meowdoku-progress-v1-test','meowdoku-theme-v1-test','meowdoku-automode-v1-test'];
+var TEST_KEYS=['meowdoku-progress-v1-test','meowdoku-theme-v1-test','meowdoku-automode-v1-test','meowdoku-hints-v1-test'];
 var PLAYER_KEYS=['meowdoku-progress-v1','meowdoku-theme-v1','meowdoku-automode-v1'];
 function doClearSave(keys,label){
-if(!confirm('確定要清除'+label+'嗎？此操作無法復原'))return;
 try{for(var i=0;i<keys.length;i++){localStorage.removeItem(keys[i]);}}catch(e){}
 clearProgress();
 clearDialog.close();
