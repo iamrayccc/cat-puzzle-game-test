@@ -447,7 +447,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.17.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.18.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -663,7 +663,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.17.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.18.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1770,9 +1770,9 @@ function lbLoadAndRender(){
   selfEl.textContent='\u8f09\u5165\u4e2d\u2026';listEl.innerHTML='';errEl.hidden=true;
   // 先上傳最新分數（失敗／超時不阻塞），再並行取排名
   lbSubmitNow().then(function(){
-    var board=lbBoard(),pid=encodeURIComponent(lbGetPlayerId());
+    var board=lbBoard();
     var pTop=lbFetchJson(LB_API+'/top?board='+board+'&limit=10',10000);
-    var pRank=lbFetchJson(LB_API+'/rank?board='+board+'&player_id='+pid,10000).catch(function(){return null});
+    var pRank=lbFetchJson(LB_API+'/rank?board='+board+'&nickname='+encodeURIComponent(lbGetNickname()),10000).catch(function(){return null});
     Promise.all([pTop,pRank]).then(function(res){
       lbRender(res[0]&&res[0].top?res[0].top:[],res[1],lbGetNickname());
     }).catch(function(){lbShowError()});
