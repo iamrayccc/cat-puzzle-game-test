@@ -447,7 +447,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.2.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.3.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -663,7 +663,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.2.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.3.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1116,6 +1116,8 @@ return btoa(raw).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 function persistProgress(){
 var hash='#p='+encodeProgress();
 if(location.hash!==hash)history.replaceState(null,'',hash);
+saveLocalProgress();
+saveHintsProgress();
 }
 function clearProgress(){if(location.hash)history.replaceState(null,'',location.pathname+location.search)}
 function restoreProgress(){
@@ -1142,7 +1144,7 @@ return true;
 /* ===== 本機進度存檔：localStorage＋SHA-256 校驗碼防篡改 =====
 只在轉關卡時寫入（nextBtn → newLevel 後呼叫 saveLocalProgress）。
 啟動時優先讀取：校驗通過則恢復，否則回退 URL hash 或從第 1 關開始。 */
-var _storeSfx=IS_TEST?'-test':'',LS_KEY='meowdoku-progress-v1'+_storeSfx,LS_SECRET='meowdoku-cat-2026',THEME_KEY='meowdoku-theme-v1'+_storeSfx,AUTO_MODE_KEY='meowdoku-automode-v1'+_storeSfx;
+var _storeSfx=IS_TEST?'-test':'',LS_KEY='meowdoku-progress-v1'+_storeSfx,LS_SECRET='meowdoku-cat-2026',THEME_KEY='meowdoku-theme-v1'+_storeSfx,AUTO_MODE_KEY='meowdoku-automode-v1'+_storeSfx,HINTS_KEY='meowdoku-hints-v1'+_storeSfx;
 var currentTheme='light'; /* 主題記憶體變數：切換即時生效，升關存檔時才寫入 localStorage */
 var autoMode=false; /* 自動標 X 模式：預設 OFF；正確放貓後自動標記橫行／直行／周圍 8 格 */
 function sha256hex(str){
@@ -1189,6 +1191,31 @@ var out={level:d.level,hearts:d.hearts,score:Math.floor(d.score)};
 if(d.v===2||d.v===3)out.theme=theme2;
 if(d.v===3)out.best=best;
 return out;
+}).catch(function(){return null});
+}catch(e){return Promise.resolve(null)}
+}
+function saveHintsProgress(){
+try{
+if(!(window.localStorage&&window.crypto&&crypto.subtle&&crypto.subtle.digest))return Promise.resolve();
+var level=state.level,hints=state.hintsRemaining;
+return sha256hex(level+'|'+hints+'|'+LS_SECRET).then(function(sum){
+if(!sum)return;
+try{localStorage.setItem(HINTS_KEY,JSON.stringify({v:1,level:level,hints:hints,sum:sum}))}catch(e){}
+}).catch(function(){});
+}catch(e){return Promise.resolve()}
+}
+function loadHintsProgress(){
+try{
+if(!(window.localStorage&&window.crypto&&crypto.subtle&&crypto.subtle.digest))return Promise.resolve(null);
+var raw=null;
+try{raw=localStorage.getItem(HINTS_KEY)}catch(e){return Promise.resolve(null)}
+if(!raw)return Promise.resolve(null);
+var d;
+try{d=JSON.parse(raw)}catch(e){return Promise.resolve(null)}
+if(!d||d.v!==1||typeof d.level!=='number'||typeof d.hints!=='number'||d.hints<0||d.hints>2||Math.floor(d.hints)!==d.hints||!isFinite(d.level)||typeof d.sum!=='string')return Promise.resolve(null);
+return sha256hex(d.level+'|'+d.hints+'|'+LS_SECRET).then(function(sum){
+if(!sum||sum!==d.sum)return null;
+return {level:d.level,hints:d.hints};
 }).catch(function(){return null});
 }catch(e){return Promise.resolve(null)}
 }
@@ -2010,6 +2037,7 @@ if(saved.best!==undefined&&saved.best!==null)state.best=Math.floor(saved.best);
 state.maxCompleted=saved.level;
 if(saved.theme)setTheme(saved.theme);
 newLevel(saved.level);
+try{var hs=await loadHintsProgress();if(hs&&hs.level===saved.level&&hs.hints>=0&&hs.hints<=2)state.hintsRemaining=hs.hints;}catch(e){}
 setLogic('已恢復上次進度','已從本機存檔恢復：第 '+(saved.level+1)+' 關，積分 '+saved.score.toLocaleString('zh-Hant')+'。','↻');
 setTimeout(function(){showToast('已恢復上次進度：第 '+(saved.level+1)+' 關')},120);
 lsDone=true;
