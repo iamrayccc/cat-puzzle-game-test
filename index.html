@@ -2076,8 +2076,9 @@ state.hearts=saved.hearts;state.score=saved.score;
 if(saved.best!==undefined&&saved.best!==null)state.best=Math.floor(saved.best);
 state.maxCompleted=saved.level;
 if(saved.theme)setTheme(saved.theme);
-newLevel(saved.level);
+newLevel(saved.level,true);  // skipSave：恢復期間先不寫入，避免 newLevel 污染 hints key
 if(hs&&hs.level===saved.level&&hs.hints>=0&&hs.hints<=2){state.hintsRemaining=hs.hints;paintHintButton();}
+persistProgress();  // state 已完全恢復，一次寫入正確值（含 hash、v3、hints）
 setLogic('已恢復上次進度','已從本機存檔恢復：第 '+(saved.level+1)+' 關，積分 '+saved.score.toLocaleString('zh-Hant')+'。','↻');
 setTimeout(function(){showToast('已恢復上次進度：第 '+(saved.level+1)+' 關')},120);
 lsDone=true;
