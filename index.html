@@ -101,6 +101,8 @@ display:flex; flex-direction:column;
 .quiet-btn:hover, .quiet-btn:focus-visible { background:var(--panel-2); color:var(--ink); outline:none; }
 .quiet-btn.hint-used { opacity:.7; }
 .quiet-btn svg { width:18px; height:18px; }
+/* 遊戲計時器永久顯示（2026-10-17 CC 指示，v39.26.beta）：置於原開局指引位置，靠右對齊 */
+.timer-display { display:flex; align-items:center; justify-content:flex-end; gap:6px; padding:8px 10px; font-weight:800; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
 .cats-remaining { display:flex; align-items:center; justify-content:flex-end; gap:6px; padding:8px 10px; border-radius:10px; color:var(--ink); font-weight:800; }
 .cats-remaining .cats-icon { width:22px; height:22px; display:inline-flex; }
 .cats-remaining .cats-icon svg { width:100%; height:100%; }
@@ -425,9 +427,12 @@ body.theme-dark {
 <button class="quiet-btn" id="undoBtn" type="button">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 8-4 4 4 4"/><path d="M5 12h8a6 6 0 0 1 6 6"/></svg>復原
 </button>
+<!-- 開局指引暫時停用（2026-10-17 CC 指示），代碼保留，日後可重啟。
 <button class="quiet-btn" id="openingBtn" type="button" aria-label="查看本關免費開局指引">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 19c3-7 7-11 14-14"/><path d="M9 5h10v10"/><circle cx="6" cy="18" r="2"/></svg><span id="openingLabel">開局指引 · 免費</span>
 </button>
+-->
+<div class="timer-display" id="gameTimer" role="timer" aria-label="本關遊戲時間"><span aria-hidden="true">⏱</span><span id="gameTimerText">00分00秒</span></div>
 </nav>
 <section class="controls" aria-label="選擇放置標記">
 <button class="mode-btn" id="xModeBtn" type="button" aria-pressed="true"><span class="mode-icon"><span class="mini-x"></span></span>標 X</button>
@@ -448,7 +453,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.25.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.26.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -664,7 +669,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.25.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.26.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1005,7 +1010,10 @@ return out;
 }
 var puzzles=buildVariantPuzzles();validateFirstFive(puzzles);
 var state={level:0,variant:0,cells:[],lockedXs:{},history:[],hearts:MAX_HEARTS,hintsRemaining:2,mistakes:0,hintsUsed:0,moves:0,catsRemaining:0,score:0,best:undefined,maxCompleted:0,pendingLevelUp:false,pendingLevelUpName:'',hadBest:false,mode:'x',start:Date.now(),activeMs:0,lastResume:Date.now(),locked:false,pendingCells:{},resultShown:false,levelAwarded:false,focus:0,milestoneRewards:{},openingAvailable:true,openingGuide:null,restoredEntry:false};
-/* ===== 計時器後台暫停（2026-10-17 CC 批准，v39.23.beta）：Page Visibility API，頁面隱藏時凍結累計 */ function getActiveMs(){try{if(typeof state==='undefined'||!state)return 0;var b=state.activeMs||0;if(document.hidden)return b;return b+(Date.now()-(state.lastResume||state.start||Date.now()));}catch(_){return 0;}} document.addEventListener('visibilitychange',function(){try{if(typeof state==='undefined'||!state)return;if(document.hidden){state.activeMs=(state.activeMs||0)+(Date.now()-(state.lastResume||state.start||Date.now()));}else{state.lastResume=Date.now();}if(typeof updateTestTimer==='function'){try{updateTestTimer();}catch(_){}}}catch(_){}}); function currentPuzzle(){return puzzles[state.level][state.variant]}
+/* ===== 計時器後台暫停（2026-10-17 CC 批准，v39.23.beta）：Page Visibility API，頁面隱藏時凍結累計 */ function getActiveMs(){try{if(typeof state==='undefined'||!state)return 0;var b=state.activeMs||0;if(document.hidden)return b;return b+(Date.now()-(state.lastResume||state.start||Date.now()));}catch(_){return 0;}} document.addEventListener('visibilitychange',function(){try{if(typeof state==='undefined'||!state)return;if(document.hidden){state.activeMs=(state.activeMs||0)+(Date.now()-(state.lastResume||state.start||Date.now()));}else{state.lastResume=Date.now();}if(typeof updateGameTimer==='function'){try{updateGameTimer();}catch(_){}}}catch(_){}});
+/* 遊戲計時器永久顯示（2026-10-17 CC 指示，v39.26.beta）：置於原開局指引位置，靠右對齊；格式為 xx分xx秒；使用 getActiveMs()，後台暫停。 */
+window.updateGameTimer=function(){try{var tt=document.getElementById('gameTimerText');if(!tt)return;var ms=getActiveMs(),s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;tt.textContent=(m<10?'0':'')+m+'分'+(s<10?'0':'')+s+'秒';}catch(_){}};
+setInterval(function(){try{updateGameTimer();}catch(_){}},1000); function currentPuzzle(){return puzzles[state.level][state.variant]}
 var board=document.getElementById('board'),toast=document.getElementById('toast'),logicNote=document.getElementById('logicNote');
 /* 放大點擊熱區：棋盤層統一處理點擊，判給最近的格子中心（擴展量＝格邊長×0.45） */
 function onBoardClick(e){
@@ -1334,7 +1342,7 @@ function paintMode(){document.getElementById('xModeBtn').setAttribute('aria-pres
 function chooseMode(mode){state.mode=mode;paintMode();setLogic(mode==='cat'?'已選擇放貓':'已選擇標 X',mode==='cat'?'單擊空白格放貓；玩家手動標記可取消，鎖定 X 不可更改。':'單擊空白格標 X；玩家手動標記可取消，鎖定 X 不可更改。',mode==='cat'?'●':'×')}
 function paintHintButton(){var btn=document.getElementById('hintBtn'),label=document.getElementById('hintLabel'),used=state.hintsRemaining<=0;label.textContent=used?'找貓提示 · 已用完':'找貓提示 · 剩餘 '+state.hintsRemaining+' 次';btn.setAttribute('aria-label',used?'找貓提示，本關已用完':'找貓提示，本關剩餘'+state.hintsRemaining+'次');btn.classList.toggle('hint-used',used)}
 function paintCatsRemaining(){var el=document.getElementById('catsRemaining'),num=document.getElementById('catsRemainingNum'),n=state.catsRemaining;if(!el||!num)return;num.textContent=n;el.setAttribute('aria-label','剩餘 '+n+' 隻貓')}
-function paintOpeningButton(){var btn=document.getElementById('openingBtn'),label=document.getElementById('openingLabel');var noGuide=state.level>=30;btn.hidden=state.restoredEntry||noGuide;if(state.restoredEntry||noGuide){btn.disabled=true;return}label.textContent=state.openingAvailable?'開局指引 · 免費':'開局指引 · 已看';btn.disabled=!state.openingAvailable;btn.classList.toggle('guide-used',!state.openingAvailable);btn.setAttribute('aria-label',state.openingAvailable?'查看本關免費開局指引':'本關開局指引已看')}
+function paintOpeningButton(){var btn=document.getElementById('openingBtn'),label=document.getElementById('openingLabel');if(!btn)return;var noGuide=state.level>=30;btn.hidden=state.restoredEntry||noGuide;if(state.restoredEntry||noGuide){btn.disabled=true;return}label.textContent=state.openingAvailable?'開局指引 · 免費':'開局指引 · 已看';btn.disabled=!state.openingAvailable;btn.classList.toggle('guide-used',!state.openingAvailable);btn.setAttribute('aria-label',state.openingAvailable?'查看本關免費開局指引':'本關開局指引已看')}
 function render(){var p=currentPuzzle();board.querySelectorAll('.cell').forEach(function(b){if(b._catTimer){clearTimeout(b._catTimer);b._catTimer=null}});board.innerHTML='';board.style.gridTemplateColumns='repeat('+p.size+',1fr)';board.style.gridTemplateRows='repeat('+p.size+',1fr)';document.getElementById('levelCount').textContent='第 '+(state.level+1)+'／'+TOTAL+' 關';document.getElementById('levelName').textContent=p.name;for(var r=0;r<p.size;r++)for(var c=0;c<p.size;c++){var i=r*p.size+c,b=document.createElement('button');b.type='button';b.className='cell';b.dataset.i=i;b.setAttribute('role','gridcell');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，空白');b.tabIndex=i===state.focus?0:-1;b.style.background=(currentTheme==='dark'?paletteDark:paletteLight)[p.regionHues[p.regions[r][c]]];b.addEventListener('keydown',onKey);board.appendChild(b)}paintHearts();paintScore();paintLevelChip();paintMode();paintHintButton();paintOpeningButton();paintCatsRemaining();updateAll(false)}
 function updateCell(i,animate){var b=board.children[i],p=currentPuzzle(),r=Math.floor(i/p.size),c=i%p.size,v=state.cells[i],lockedX=!!state.lockedXs[i];if(b._catTimer){clearTimeout(b._catTimer);b._catTimer=null}if(v==='cat'){b.innerHTML=catSVG.replace('class="cat"','class="cat cat-svg'+(animate?' animate-once pop':'')+'"');if(animate){b._catTimer=setTimeout(function(){b._catTimer=null;var svg=b.querySelector('.cat-svg');if(svg&&state.cells[i]==='cat'){svg.classList.remove('animate-once');svg.classList.remove('pop')}},4300)}}else{b.innerHTML=v==='x'?'<span class="cross'+(lockedX?' locked':'')+'" aria-hidden="true"></span>':''}b.setAttribute('aria-disabled',lockedX?'true':'false');b.setAttribute('aria-label','第'+(r+1)+'行，第'+(c+1)+'列，'+(v==='cat'?'貓咪':v==='x'?(lockedX?'已排除，鎖定':'已排除'):'空白'))}
 var swayTimer=null;
@@ -1885,11 +1893,9 @@ document.getElementById('nicknameInput').addEventListener('input',function(){
   }
 });
 (function(){var d=document.getElementById('nicknameDialog');if(!d)return;d.addEventListener('cancel',function(e){e.preventDefault()});d.addEventListener('close',function(){unlockPageScroll();var cb=lbNickCallback;lbNickCallback=null;if(cb)cb()})})();
-document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;document.getElementById('openingBtn').onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();function lbProceedNext(){if(state.pendingLevelUp){state.pendingLevelUp=false;showLevelUpVeil(state.pendingLevelUpName);return}checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})}if(lbAutoPending){lbAutoPending=false;lbOpenAuto(lbProceedNext);return}lbProceedNext()};
+document.getElementById('soundBtn').onclick=toggleSound;document.getElementById('xModeBtn').onclick=function(){chooseMode('x')};document.getElementById('catModeBtn').onclick=function(){chooseMode('cat')};document.getElementById('rulesBtn').onclick=function(){rules.showModal()};rules.querySelectorAll('.close-btn,.close-rules').forEach(function(b){b.onclick=function(){rules.close()}});document.getElementById('undoBtn').onclick=undo;document.getElementById('restartBtn').onclick=restartLevel;var _ob=document.getElementById('openingBtn');if(_ob)_ob.onclick=showOpeningGuide;logicNote.addEventListener('click',function(e){if(e.target.closest('.guide-close'))closeOpeningGuide()});document.getElementById('hintBtn').onclick=hint;document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();function lbProceedNext(){if(state.pendingLevelUp){state.pendingLevelUp=false;showLevelUpVeil(state.pendingLevelUpName);return}checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})}if(lbAutoPending){lbAutoPending=false;lbOpenAuto(lbProceedNext);return}lbProceedNext()};
 document.getElementById('levelUpBtn').onclick=function(){var d=document.getElementById('levelUpDialog');if(d.open)d.close();unlockPageScroll();checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
 if(IS_TEST){
-/* 測試版專屬：計時器測試顯示（2026-10-17 CC 要求，v39.23.beta；臨時測試用）。IS_TEST=false（玩家版）時此整塊不執行。 */
-(function(){var ftr=document.querySelector('.footer-note');if(!ftr||!ftr.parentNode)return;var td=document.createElement('div');td.id='testTimerDisplay';td.style.cssText='text-align:center;font-size:12px;color:#666;margin:8px 0;font-family:monospace;';ftr.parentNode.insertBefore(td,ftr);window.updateTestTimer=function(){try{var ms=getActiveMs(),s=Math.floor(ms/1000),st=document.hidden?'⏸ 已暫停（頁面隱藏）':'▶ 計時中';td.textContent='⏱ 本關遊戲時間：'+s+'秒 '+st;}catch(_){}};setInterval(function(){try{updateTestTimer();}catch(_){}},500);updateTestTimer();})();
 /* 測試版專屬：跳關功能。IS_TEST=false（玩家版）時此整塊不執行，
 頁面上無按鈕、無入口，功能完全不可觸達。 */
 (function(){
