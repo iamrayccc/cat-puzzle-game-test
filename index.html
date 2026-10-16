@@ -447,7 +447,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.21.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.22.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -663,7 +663,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.21.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.22.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -2139,6 +2139,20 @@ function showStatus(msg,ok){
   st.hidden=false;
 }
 function hideStatus(){bkDialog.querySelector('#backupStatus').hidden=true;}
+function clearStatus(){
+  var st=bkDialog.querySelector('#backupStatus');
+  st.innerHTML='';
+  st.className='backup-status';
+  st.hidden=false;
+}
+function addStatusLine(msg,ok){
+  var st=bkDialog.querySelector('#backupStatus');
+  var line=document.createElement('div');
+  line.textContent=msg;
+  line.style.color=ok?'#2e7d32':'#c62828';
+  st.appendChild(line);
+  st.hidden=false;
+}
 
 bkBtn.onclick=function(){
   hideStatus();
@@ -2207,30 +2221,30 @@ bkConfirmDialog.addEventListener('click',function(e){if(e.target===bkConfirmDial
 bkConfirmDialog.querySelector('#backupConfirmYes').onclick=function(){
   bkConfirmDialog.close();
   bkDialog.showModal();
-  showStatus('正在從雲端恢復…',true);
+  clearStatus();addStatusLine('正在從雲端恢復…',true);
   if(typeof backupDownload!=='function'){
     showStatus('恢復功能尚未就緒',false);
     return;
   }
-  backupDownload(pendingCode,function(m){try{showStatus(m,true);}catch(_){}}).then(function(){
+  backupDownload(pendingCode,function(m){try{addStatusLine(m,true);}catch(_){}}).then(function(){
     try{
       var vv=localStorage.getItem(LS_KEY);
       if(!vv)throw new Error('verify_fail');
       var vp=JSON.parse(vv);
       if(!vp||vp.v!==3||typeof vp.level!=='number')throw new Error('verify_fail');
     }catch(ve){
-      showStatus('恢復寫入驗證失敗，請重試',false);
+      addStatusLine('恢復寫入驗證失敗，請重試',false);
       return;
     }
     try{if(history.replaceState)history.replaceState(null,'',location.pathname+location.search);}catch(_){}
-    showStatus('恢復成功（含暱稱），正在重新載入',true);
+    addStatusLine('恢復成功（含暱稱），正在重新載入',true);
     setTimeout(function(){location.reload();},900);
   }).catch(function(err){
     var msg=(err&&err.message)?err.message:'恢復失敗';
     if(/not_found/i.test(msg)||/http 404/i.test(msg))msg='找不到備份，請檢查恢復碼是否正確';
     else if(/bad/i.test(msg)||/http 400/i.test(msg))msg='備份資料已損壞，無法恢復';
     else if(/http/i.test(msg))msg='未能修復，請檢查網路後再試';
-    showStatus(msg,false);
+    addStatusLine(msg,false);
   });
 };
 
