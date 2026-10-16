@@ -447,7 +447,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.20.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.21.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -663,7 +663,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.20.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.21.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1677,22 +1677,26 @@ function backupFireUpload(){
     fetch(BACKUP_API+'/backup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(){}).catch(function(){});
   }catch(_){}
 }
-function backupDownload(code){
+function backupDownload(code,onProgress){
   var q=String(code||'').toUpperCase();
+  var prog=(typeof onProgress==='function')?onProgress:function(){};
   var url=BACKUP_API+'/backup?'+(/^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(q)?'recovery_code=':'player_id=')+encodeURIComponent(q);
   return fetch(url).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json()}).then(function(j){
     if(!j||!j.ok||!j.save_json)throw new Error('bad_backup');
     var outer;try{outer=JSON.parse(j.save_json)}catch(e){throw new Error('bad_backup')}
     if(!outer||typeof outer.v3!=='string')throw new Error('bad_backup');
+    prog('雲端下載成功');
     return backupVerifyV3(outer.v3).then(function(v3ok){
       if(!v3ok)throw new Error('bad_v3_hash');
       if(outer.hints&&typeof outer.hints==='string'){
         if(!backupVerifyHints(outer.hints))throw new Error('bad_hints_hash');
       }
+      prog('資料驗證成功');
       try{localStorage.setItem(LS_KEY,outer.v3)}catch(e){throw new Error('write_fail')}
       try{if(outer.hints)localStorage.setItem(HINTS_KEY,outer.hints)}catch(e){}
       try{localStorage.setItem('meowdoku-recovery-code-v1'+_storeSfx,q)}catch(e){}
       try{if(j.nickname)localStorage.setItem('meowdoku-nickname-v1',j.nickname)}catch(e){} // v39.19：恢復時一併採用雲端暱稱，避免舊紀錄配新暱稱
+      prog('覆蓋本地資料成功');
       return {nickname:j.nickname||'',updated_at:j.updated_at||''};
     });
   });
@@ -2208,7 +2212,7 @@ bkConfirmDialog.querySelector('#backupConfirmYes').onclick=function(){
     showStatus('恢復功能尚未就緒',false);
     return;
   }
-  backupDownload(pendingCode).then(function(){
+  backupDownload(pendingCode,function(m){try{showStatus(m,true);}catch(_){}}).then(function(){
     try{
       var vv=localStorage.getItem(LS_KEY);
       if(!vv)throw new Error('verify_fail');
