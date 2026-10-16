@@ -103,6 +103,7 @@ display:flex; flex-direction:column;
 .quiet-btn svg { width:18px; height:18px; }
 /* 遊戲計時器永久顯示（2026-10-17 CC 指示，v39.26.beta）：置於原開局指引位置，靠右對齊 */
 .timer-display { display:flex; align-items:center; justify-content:flex-end; gap:6px; padding:8px 10px; font-weight:800; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.timer-display .timer-icon { font-size:1em; line-height:1; display:inline-flex; align-items:center; }
 .cats-remaining { display:flex; align-items:center; justify-content:flex-end; gap:6px; padding:8px 10px; border-radius:10px; color:var(--ink); font-weight:800; }
 .cats-remaining .cats-icon { width:22px; height:22px; display:inline-flex; }
 .cats-remaining .cats-icon svg { width:100%; height:100%; }
@@ -345,6 +346,7 @@ pointer-events:auto;
 .stats { grid-template-columns:repeat(2,1fr); }
 .top-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
 .quiet-btn { justify-content:center; padding:8px 5px; font-size:.78rem; }
+.timer-display { font-size:.78rem; }
 .cats-remaining { justify-content:flex-end; padding:8px 5px; font-size:.78rem; }
 .logic-note.guide-active { grid-template-columns:30px 1fr; }
 .logic-note.guide-active .guide-close { grid-column:2; justify-self:start; }
@@ -432,7 +434,7 @@ body.theme-dark {
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 19c3-7 7-11 14-14"/><path d="M9 5h10v10"/><circle cx="6" cy="18" r="2"/></svg><span id="openingLabel">開局指引 · 免費</span>
 </button>
 -->
-<div class="timer-display" id="gameTimer" role="timer" aria-label="本關遊戲時間"><span aria-hidden="true">⏱</span><span id="gameTimerText">00分00秒</span></div>
+<div class="timer-display" id="gameTimer" role="timer" aria-label="本關遊戲時間"><span class="timer-icon" aria-hidden="true">⏱</span><span id="gameTimerText">0秒</span></div>
 </nav>
 <section class="controls" aria-label="選擇放置標記">
 <button class="mode-btn" id="xModeBtn" type="button" aria-pressed="true"><span class="mode-icon"><span class="mini-x"></span></span>標 X</button>
@@ -453,7 +455,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.26.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.27.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -669,7 +671,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.26.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.27.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=500, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1012,7 +1014,7 @@ var puzzles=buildVariantPuzzles();validateFirstFive(puzzles);
 var state={level:0,variant:0,cells:[],lockedXs:{},history:[],hearts:MAX_HEARTS,hintsRemaining:2,mistakes:0,hintsUsed:0,moves:0,catsRemaining:0,score:0,best:undefined,maxCompleted:0,pendingLevelUp:false,pendingLevelUpName:'',hadBest:false,mode:'x',start:Date.now(),activeMs:0,lastResume:Date.now(),locked:false,pendingCells:{},resultShown:false,levelAwarded:false,focus:0,milestoneRewards:{},openingAvailable:true,openingGuide:null,restoredEntry:false};
 /* ===== 計時器後台暫停（2026-10-17 CC 批准，v39.23.beta）：Page Visibility API，頁面隱藏時凍結累計 */ function getActiveMs(){try{if(typeof state==='undefined'||!state)return 0;var b=state.activeMs||0;if(document.hidden)return b;return b+(Date.now()-(state.lastResume||state.start||Date.now()));}catch(_){return 0;}} document.addEventListener('visibilitychange',function(){try{if(typeof state==='undefined'||!state)return;if(document.hidden){state.activeMs=(state.activeMs||0)+(Date.now()-(state.lastResume||state.start||Date.now()));}else{state.lastResume=Date.now();}if(typeof updateGameTimer==='function'){try{updateGameTimer();}catch(_){}}}catch(_){}});
 /* 遊戲計時器永久顯示（2026-10-17 CC 指示，v39.26.beta）：置於原開局指引位置，靠右對齊；格式為 xx分xx秒；使用 getActiveMs()，後台暫停。 */
-window.updateGameTimer=function(){try{var tt=document.getElementById('gameTimerText');if(!tt)return;var ms=getActiveMs(),s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;tt.textContent=(m<10?'0':'')+m+'分'+(s<10?'0':'')+s+'秒';}catch(_){}};
+window.updateGameTimer=function(){try{var tt=document.getElementById('gameTimerText');if(!tt)return;var ms=getActiveMs(),s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;tt.textContent=(m>0?m+'分':'')+s+'秒';}catch(_){}};
 setInterval(function(){try{updateGameTimer();}catch(_){}},1000); function currentPuzzle(){return puzzles[state.level][state.variant]}
 var board=document.getElementById('board'),toast=document.getElementById('toast'),logicNote=document.getElementById('logicNote');
 /* 放大點擊熱區：棋盤層統一處理點擊，判給最近的格子中心（擴展量＝格邊長×0.45） */
