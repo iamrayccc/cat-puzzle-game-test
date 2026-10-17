@@ -460,13 +460,13 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.40.0.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.40.2.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
 <div class="sheet-head"><div><h2>找出所有躲起來的貓咪</h2></div><button class="close-btn" type="button" aria-label="關閉">×</button></div>
 <ol class="rules-list">
-<li class="warn-item"><span class="rule-number warn">💾</span><div><strong>🐱 開始遊戲前請注意</strong><span>請注意：如你正在使用瀏覽器的無痕／私密模式，遊戲進度將無法保留。請用一般模式開啟，以免進度遺失。</span></div></li>
+<li class="warn-item"><span class="rule-number warn">💾</span><div><strong>🐱 開始遊戲前請注意</strong><span>請注意：如你正在使用瀏覽器的無痕／私密模式，遊戲進度將無法保留。請用一般模式開啟，以免進度遺失。</span><span><span style="display:inline;color:#ff0000;font-weight:bold;">雲端修復</span>：遊戲進度自動備份至雲端。如因資料損壞或更換手機後需取回進度，點擊頁底「恢復我的資料」，輸入您的恢復碼即可。</span></div></li>
 <li><span class="rule-number">1</span><div><strong>基本規則</strong><span>每一行、每一列各一隻；每個區域各一隻；貓咪不能彼此相鄰（連斜角也不行），放好後周圍八格都可排除。</span></div></li>
 <li><span class="rule-number">2</span><div><strong>自動模式（放貓自動標 X）</strong><span>關卡名稱旁有 AUTO／OFF 開關，預設為 OFF。開啟後，每次正確放貓，系統會自動在該貓的橫行、直行及周圍八格標 X；誤放不會觸發。開關設定會隨進度保存。</span></div></li>
 <li><span class="rule-number">3</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
@@ -686,7 +686,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.0.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.2.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
