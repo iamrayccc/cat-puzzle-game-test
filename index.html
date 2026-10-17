@@ -184,6 +184,9 @@ border-radius:4px;
 .footer-note { text-align:center; font-size:.78rem; color:var(--muted); margin:13px 0 0; }
 .jump-bottom-btn { display:block; margin:18px auto 0; border:1px solid var(--line); background:var(--panel);
 color:var(--muted); padding:8px 18px; border-radius:10px; font-size:.78rem; font-weight:800; cursor:pointer; }
+/* v40.9.beta：測試按鈕區（頁底：恢復我的資料＋版本號下方，每行兩欄） */
+#testBtnZone{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin:16px auto 24px;max-width:440px;padding:0 16px;}
+#testBtnZone .jump-bottom-btn{margin:0;width:100%;box-sizing:border-box;}
 .version { display:block; margin-top:7px; font-size:.7rem; font-variant-numeric:tabular-nums; opacity:.82; }
 dialog { border:0; padding:0; max-width:none; max-height:none; background:transparent; color:inherit; }
 dialog::backdrop { background:rgba(12,28,31,.62); backdrop-filter:blur(4px); }
@@ -825,7 +828,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.8.beta'; // v40.8.beta：修復抽獎獎勵雲端上傳競態（backupFireUpload 等 saveLocalProgress 完成後執行） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.9.beta'; // v40.8.beta：修復抽獎獎勵雲端上傳競態（backupFireUpload 等 saveLocalProgress 完成後執行） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -2244,7 +2247,7 @@ if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.hidden=false;showToast('請輸�
 jumpDialog.close();closeResultDialog();clearToast();newLevel(n-1);
 };
 jumpBtn.className='jump-bottom-btn';
-footer.parentNode.insertBefore(jumpBtn,footer);
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(jumpBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* 測試版專屬：設定最高積分。IS_TEST=false（玩家版）時此整塊不執行，
 頁面上無按鈕、無入口，功能完全不可觸達。 */
 var bestBtn=document.createElement('button');
@@ -2265,7 +2268,7 @@ if(!Number.isInteger(n)||n<0){bestError.hidden=false;showToast('請輸入 0 以�
 bestDialog.close();state.best=Math.floor(n);paintLevelChip();saveLocalProgress();
 showToast('最高積分已設為 '+Math.floor(n).toLocaleString('zh-Hant')+'（等級：'+currentLevelName()+'）');
 };
-footer.parentNode.insertBefore(bestBtn,footer);
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(bestBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* 測試版專屬：設定現時積分。IS_TEST=false（玩家版）時此整塊不執行，
    頁面上無按鈕、無入口，功能完全不可觸達。 */
 var scoreBtn=document.createElement('button');
@@ -2285,7 +2288,7 @@ if(!Number.isInteger(n)||n<0){scoreError.hidden=false;showToast('請輸入 0 以
 scoreDialog.close();state.score=Math.floor(n);paintScore();paintLevelChip();saveLocalProgress();
 showToast('現時積分已設為 '+Math.floor(n).toLocaleString('zh-Hant'));
 };
-footer.parentNode.insertBefore(scoreBtn,footer);
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(scoreBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* ===== 測試版專屬：移除暱稱（CC 要求，僅清本地暱稱，不動伺服器資料） ===== */
 (function(){
 var nickBtn=document.createElement('button');
@@ -2297,7 +2300,7 @@ if(!confirm('\u78ba\u5b9a\u8981\u79fb\u9664\u4f60\u7684\u66b1\u7a31\u55ce\uff1f\
 try{localStorage.removeItem('meowdoku-nickname-v1')}catch(_){}
 if(typeof showToast==='function')showToast('\u5df2\u79fb\u9664\u66b1\u7a31');
 };
-footer.parentNode.insertBefore(nickBtn,footer);
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(nickBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* v40.5.beta 測試版專屬：測試抽獎按鈕。IS_TEST=false（玩家版）時此整塊不執行，
    頁面上無按鈕、無入口，功能完全不可觸達。 */
 var lotteryTestBtn=document.createElement('button');
@@ -2307,7 +2310,7 @@ lotteryTestBtn.id='lotteryTestBtn';
 lotteryTestBtn.setAttribute('aria-label','測試抽獎輪盤（測試專用）');
 lotteryTestBtn.textContent='測試抽獎（測試）';
 lotteryTestBtn.onclick=function(){lotteryOpenModal(999,function(){if(typeof showToast==='function')showToast('測試抽獎完成');});};
-footer.parentNode.insertBefore(lotteryTestBtn,footer);
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(lotteryTestBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* v40.6.beta 測試版專屬：查詢存檔按鈕（2026-10-18 CC 要求）。
    IS_TEST=false（玩家版）時此整塊不執行，頁面上無按鈕、無入口，功能完全不可觸達。
    唯讀顯示 localStorage 內容，不提供修改／刪除功能。 */
@@ -2318,7 +2321,7 @@ lsqBtn.id='lsqBtn';
 lsqBtn.setAttribute('aria-label','查詢存檔（測試專用）');
 lsqBtn.textContent='查詢存檔（測試）';
 lsqBtn.onclick=function(){lsqOpenModal();};
-footer.parentNode.insertBefore(lsqBtn,footer);
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(lsqBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* 查詢存檔彈窗邏輯：讀取各 localStorage 鍵，JSON 格式化唯讀顯示 */
 function lsqReadKey(k){
   try{
@@ -2399,7 +2402,7 @@ function lbDiagnosticSubmit(){
     }).catch(function(e){if(done)return;done=true;clearTimeout(timer);alert('診斷結果：上傳失敗\n錯誤：'+(e&&e.message?e.message:String(e)));});
   }catch(e){done=true;clearTimeout(timer);alert('診斷結果：發起失敗\n錯誤：'+(e&&e.message?e.message:String(e)));}
 }
-footer.parentNode.insertBefore(diagBtn,footer);
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(diagBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 })();
 /* 測試版專屬：清除存檔工具。IS_TEST=false（玩家版）時此整塊不執行，
 頁面上無按鈕、無入口，功能完全不可觸達。 */
@@ -2446,7 +2449,7 @@ clearDialog.querySelector('#clearTestSave').onclick=function(){doClearSave(TEST_
 clearDialog.querySelector('#clearPlayerSave').onclick=function(){doClearSave(PLAYER_KEYS,'玩家版存檔');};
 clearDialog.querySelector('#clearAllSave').onclick=function(){doClearSave(TEST_KEYS.concat(PLAYER_KEYS),'全部存檔');};
 clearDialog.addEventListener('click',function(e){if(e.target===clearDialog)clearDialog.close();});
-footer2.parentNode.insertBefore(clearBtn,footer2);
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(clearBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 })();
 })();
 
@@ -2717,7 +2720,7 @@ answerBtn.textContent='顯示答案（測試）';
 answerBtn.onclick=function(){if(answerShown)hideAnswer();else showAnswer()};
 /* 供 newLevel() 轉關時重置：清除「顯示答案」旗標，避免標示殘留並洩漏新一關答案 */
 window.__resetAnswerShown=function(){if(answerShown)hideAnswer();};
-footer.parentNode.insertBefore(answerBtn,footer);
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(answerBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* 包裝 updateCell：答案顯示期間，任何格子重繪後自動補回覆蓋層。
    包裝程式碼本身亦在 if(IS_TEST) 內，玩家版不受影響。 */
 var _updateCell=updateCell;
