@@ -460,7 +460,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.38.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.39.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -686,7 +686,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.38.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.39.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -2117,13 +2117,16 @@ restoreLink.type='button';
 restoreLink.id='restoreDataLink';
 restoreLink.setAttribute('aria-label','恢復我的資料');
 restoreLink.textContent='恢復我的資料';
-/* 插入到 footer-note 內版本文字之前；footer 保持原本置中排版，版本不靠右 */
+/* 入口一置於頁底左側（向左對齊），版本文字置於右側（向右對齊） */
 var versionSpan=footerBk.querySelector('.version');
 if(versionSpan){
   footerBk.insertBefore(restoreLink,versionSpan);
 }else{
   footerBk.insertBefore(restoreLink,footerBk.firstChild);
 }
+footerBk.style.display='flex';
+footerBk.style.justifyContent='space-between';
+footerBk.style.alignItems='center';
 
 /* --- 入口二：「我的恢復碼」（過關對話框左下角，紅色連結） --- */
 var myCodeLink=document.createElement('button');
