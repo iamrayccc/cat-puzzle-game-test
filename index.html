@@ -460,7 +460,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.37.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.38.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -686,7 +686,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.37.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.38.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -2094,6 +2094,7 @@ bkStyle.textContent=
 '.backup-status.ok{color:#2e7d32;}'+
 '.backup-status.err{color:#c62828;}'+
 '.recovery-link{color:#ff0000!important;text-decoration:underline!important;text-decoration-color:#ff0000!important;text-underline-offset:3px;cursor:pointer;background:none!important;border:none!important;padding:0!important;font-size:.95rem;font-weight:900;font-family:inherit;}'+
+'#restoreDataLink{font-size:.85rem;margin-right:10px;}'+
 '.recovery-link:hover{color:#d50000!important;}'+
 'body.theme-dark .recovery-link{color:#ff5252!important;text-decoration-color:#ff5252!important;}'+
 'body.theme-dark .recovery-link:hover{color:#ff8a80!important;}'+
@@ -2116,13 +2117,10 @@ restoreLink.type='button';
 restoreLink.id='restoreDataLink';
 restoreLink.setAttribute('aria-label','恢復我的資料');
 restoreLink.textContent='恢復我的資料';
-/* 插入到 footer-note 內版本文字之前 */
+/* 插入到 footer-note 內版本文字之前；footer 保持原本置中排版，版本不靠右 */
 var versionSpan=footerBk.querySelector('.version');
 if(versionSpan){
   footerBk.insertBefore(restoreLink,versionSpan);
-  footerBk.style.display='flex';
-  footerBk.style.justifyContent='space-between';
-  footerBk.style.alignItems='center';
 }else{
   footerBk.insertBefore(restoreLink,footerBk.firstChild);
 }
