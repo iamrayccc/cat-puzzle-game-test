@@ -506,6 +506,8 @@ body.theme-dark {
 }
 .lsq-empty { color:#a08b6f; font-style:italic; }
 .lsq-note { font-size:.75rem; color:#a08b6f; text-align:center; margin-top:8px; }
+.lsq-bottom-close { display:block; width:100%; margin-top:12px; padding:10px; border:0; border-radius:10px; background:#c99a2e; color:#fff; font-size:.95rem; font-weight:800; cursor:pointer; }
+.lsq-bottom-close:hover { background:#b8860b; }
 </style>
 </head>
 <body>
@@ -661,6 +663,7 @@ body.theme-dark {
 <div class="lsq-title">查詢存檔（測試專用）</div>
 <div id="lsqContent"></div>
 <div class="lsq-note">唯讀顯示，不提供修改／刪除功能</div>
+<button class="lsq-bottom-close" id="lsqBottomClose" type="button">關閉</button>
 </div>
 </div>
 
@@ -822,7 +825,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.6.beta'; // v40.6.beta：新增測試版專屬查詢存檔按鈕 // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.8.beta'; // v40.8.beta：修復抽獎獎勵雲端上傳競態（backupFireUpload 等 saveLocalProgress 完成後執行） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1526,9 +1529,14 @@ paintLevelChip();
 }
 /* ③ 即時寫入 localStorage v3＋URL hash */
 persistProgress();
-saveLocalProgress();
-/* ④ 雲端備份（fire-and-forget） */
-backupFireUpload();
+var _slp=null;
+try{_slp=saveLocalProgress();}catch(e){_slp=null;}
+/* ④ 雲端備份（fire-and-forget）
+   v40.8.beta 修復（2026-10-18 CC 親測 bug）：saveLocalProgress 非同步（SHA-256 經 crypto.subtle.digest），
+   backupFireUpload 必須等其完成後才執行，否則上傳的是不含抽獎獎勵的舊數據，雲端恢復後獎勵消失。
+   以 .then() 鏈式調用，仍不阻塞 UI。 */
+function _lotteryDoUpload(){try{backupFireUpload();}catch(_){}}
+if(_slp&&_slp.then){_slp.then(_lotteryDoUpload);}else{_lotteryDoUpload();}
 /* 如為最佳積分，觸發排行榜更新（fire-and-forget，不阻塞） */
 if(isNewBest){try{lbFireSubmit();}catch(_){}}
 /* 顯示結果（取代抽獎鍵，不另彈窗） */
@@ -2205,10 +2213,7 @@ document.getElementById('lotteryClose').onclick=function(){lotteryCloseModal();}
 document.getElementById('lotteryOverlay').addEventListener('click',function(e){
 if(e.target===document.getElementById('lotteryOverlay'))lotteryCloseModal();
 });
-document.getElementById('lsqClose').onclick=function(){lsqCloseModal();};
-document.getElementById('lsqOverlay').addEventListener('click',function(e){
-if(e.target===document.getElementById('lsqOverlay'))lsqCloseModal();
-});
+/* v40.7.beta：移除此處的 lsq 接線（lsqCloseModal 定義在下方 IS_TEST IIFE 內，此處引用會 ReferenceError；接線已移至 IIFE 內） */
 document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();
 function proceedAfterLottery(){function lbProceedNext(){if(state.pendingLevelUp){state.pendingLevelUp=false;showLevelUpVeil(state.pendingLevelUpName);return}checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})}if(lbAutoPending){lbAutoPending=false;lbOpenAuto(lbProceedNext);return}lbProceedNext()}
 /* v40.5.beta：抽獎輪盤——點擊「下一關」時如有待領抽獎，先彈抽獎彈窗，完成後再繼續 */
@@ -2353,6 +2358,12 @@ function lsqOpenModal(){
 function lsqCloseModal(){
   document.getElementById('lsqOverlay').classList.remove('open');
 }
+/* v40.7.beta：查詢彈窗關閉接線（必須在 IS_TEST IIFE 內，lsqCloseModal 作用域可見處） */
+document.getElementById('lsqClose').onclick=function(){lsqCloseModal();};
+document.getElementById('lsqBottomClose').onclick=function(){lsqCloseModal();};
+document.getElementById('lsqOverlay').addEventListener('click',function(e){
+if(e.target===document.getElementById('lsqOverlay'))lsqCloseModal();
+});
 })();
 /* ===== 測試版專屬：診斷上傳（CC 要求：排查分數未上傳至排名榜問題） ===== */
 (function(){
@@ -2744,7 +2755,8 @@ function setTheme(theme){currentTheme=(theme==='dark')?'dark':'light';applyTheme
 /* ===== 放貓自動標 X 開關（v37.23）：僅正確放貓後觸發，預設 OFF ===== */
 function getAutoMode(){return autoMode}
 function paintAutoMode(){var on=document.getElementById('autoOnBtn'),off=document.getElementById('autoOffBtn');if(on)on.classList.toggle('active',autoMode);if(off)off.classList.toggle('active',!autoMode)}
-function setAutoMode(on){autoMode=!!on;paintAutoMode();try{localStorage.setItem(AUTO_MODE_KEY,autoMode?'on':'off')}catch(e){}}
+function setAutoMode(on){autoMode=!!on;paintAutoMode();/* v40.7.beta：寫入後讀回驗證，確保 localStorage 確實保存（2026-10-18 CC 發現未保存問題） */
+try{var _want=autoMode?'on':'off';localStorage.setItem(AUTO_MODE_KEY,_want);var _got=null;try{_got=localStorage.getItem(AUTO_MODE_KEY)}catch(_){}if(_got!==_want){try{localStorage.setItem(AUTO_MODE_KEY,_want)}catch(_){}}}catch(e){}}
 function autoMarkX(i,p){
 var pr=Math.floor(i/p.size),pc=i%p.size,marked=0;
 function tryMark(idx){if(idx===i)return;if(state.cells[idx]!==''||state.lockedXs[idx]||state.pendingCells[idx])return;state.cells[idx]='x';updateCell(idx,false);marked++}
