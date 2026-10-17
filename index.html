@@ -460,7 +460,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.36.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.37.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -686,7 +686,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.36.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.37.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -2083,9 +2083,8 @@ bkStyle.textContent=
 '#backupDialog .sheet,#backupInputDialog .sheet,#backupConfirmDialog .sheet{width:min(92vw,400px);text-align:center;}'+
 '#backupDialog .sheet h2,#backupInputDialog .sheet h2,#backupConfirmDialog .sheet h2{margin-bottom:12px;}'+
 '#backupDialog .sheet p,#backupConfirmDialog .sheet p{margin-bottom:14px;}'+
-'.recovery-code-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 12px;}'+
-'#recoveryCodeText{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.6rem;font-weight:900;letter-spacing:.12em;color:var(--ink);background:var(--panel-2);border:1px dashed var(--soft-line);border-radius:10px;padding:8px 14px;}'+
-'#copyCodeBtn{padding:8px 14px;}'+
+'.recovery-code-row{display:flex;align-items:center;justify-content:center;margin:10px 0 12px;}'+
+'#recoveryCodeText{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.6rem;font-weight:900;letter-spacing:.12em;color:var(--ink);background:var(--panel-2);border:1px dashed var(--soft-line);border-radius:10px;padding:8px 14px;white-space:nowrap;}'+
 '.backup-hint{font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:16px;}'+
 '#backupInputDialog label{display:block;margin-bottom:8px;font-weight:700;}'+
 '#recoveryCodeInput{width:100%;box-sizing:border-box;text-align:center;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.3rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2);color:var(--ink);margin-bottom:10px;}'+
@@ -2094,12 +2093,14 @@ bkStyle.textContent=
 '.backup-status{margin-top:12px;font-weight:700;}'+
 '.backup-status.ok{color:#2e7d32;}'+
 '.backup-status.err{color:#c62828;}'+
-'.recovery-link{color:#c62828!important;text-decoration:underline!important;text-decoration-color:#c62828!important;text-underline-offset:3px;cursor:pointer;background:none!important;border:none!important;padding:0!important;font-size:.82rem;font-weight:700;font-family:inherit;}'+
-'.recovery-link:hover{color:#a51f1f!important;}'+
-'body.theme-dark .recovery-link{color:#ef9a9a!important;text-decoration-color:#ef9a9a!important;}'+
-'body.theme-dark .recovery-link:hover{color:#ffcdd2!important;}'+
-'.backup-warn{color:#c62828;}'+
-'body.theme-dark .backup-warn{color:#ef9a9a;}';
+'.recovery-link{color:#ff0000!important;text-decoration:underline!important;text-decoration-color:#ff0000!important;text-underline-offset:3px;cursor:pointer;background:none!important;border:none!important;padding:0!important;font-size:.95rem;font-weight:900;font-family:inherit;}'+
+'.recovery-link:hover{color:#d50000!important;}'+
+'body.theme-dark .recovery-link{color:#ff5252!important;text-decoration-color:#ff5252!important;}'+
+'body.theme-dark .recovery-link:hover{color:#ff8a80!important;}'+
+'.backup-warn{color:#ff0000;font-weight:700;}'+
+'body.theme-dark .backup-warn{color:#ff5252;}'+
+'.backup-screenshot-note{font-size:.8rem;color:#ff0000;font-weight:700;}'+
+'body.theme-dark .backup-screenshot-note{color:#ff5252;}';
 document.head.appendChild(bkStyle);
 
 /* 測試版專屬：雲端備份 UI。IS_TEST=false（玩家版）時此整塊不執行，
@@ -2147,14 +2148,12 @@ if(lbBtn&&lbBtn.parentNode){
 var bkDialog=document.createElement('dialog');
 bkDialog.id='backupDialog';
 bkDialog.innerHTML='<div class="sheet">'+
-'<h2>我的恢復碼</h2>'+
-'<p>您的恢復碼：</p>'+
+'<h2>您的恢復碼 <span class="backup-screenshot-note">（請截圖妥善保管）</span></h2>'+
 '<div class="recovery-code-row">'+
 '<span id="recoveryCodeText">----</span>'+
-'<button class="secondary" id="copyCodeBtn" type="button">複製</button>'+
 '</div>'+
-'<p class="backup-hint">請截圖保存此碼，並妥善保管。<br><b class="backup-warn">請勿分享給他人，任何人取得此碼即可恢復您的遊戲進度。</b></p>'+
-'<p class="backup-hint">適用情況：資料損壞、無痕模式後資料遺失、更換手機。</p>'+
+'<p>適用情況：資料損壞、無痕模式後資料遺失、更換手機。</p>'+
+'<p><b class="backup-warn">請勿分享給他人，任何人取得此碼即可恢復您的遊戲進度。</b></p>'+
 '<div class="jump-actions" style="grid-template-columns:1fr;">'+
 '<button class="primary" id="restoreFromCloudBtn" type="button">從雲端恢復</button>'+
 '<button class="secondary" id="backupCloseBtn" type="button">關閉</button>'+
@@ -2229,21 +2228,7 @@ if(myCodeLink)myCodeLink.onclick=openBackupDialog;
 bkDialog.querySelector('#backupCloseBtn').onclick=function(){bkDialog.close();};
 bkDialog.addEventListener('click',function(e){if(e.target===bkDialog)bkDialog.close();});
 
-/* 複製按鈕 */
-bkDialog.querySelector('#copyCodeBtn').onclick=function(){
-  var code=bkDialog.querySelector('#recoveryCodeText').textContent;
-  var done=function(){showStatus('已複製',true);};
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(code).then(done,function(){showStatus('複製失敗，請手動截圖',false);});
-  }else{
-    /* 後備：選取文字 */
-    var ta=document.createElement('textarea');
-    ta.value=code;document.body.appendChild(ta);ta.select();
-    try{document.execCommand('copy');done();}
-    catch(e){showStatus('複製失敗，請手動截圖',false);}
-    document.body.removeChild(ta);
-  }
-};
+
 
 /* 從雲端恢復 → 輸入框 */
 bkDialog.querySelector('#restoreFromCloudBtn').onclick=function(){
