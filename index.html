@@ -95,7 +95,7 @@ display:flex; flex-direction:column;
 .top-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:18px; }
 .second-row { grid-column:1/-1; display:flex; gap:6px; align-items:center; }
 .second-row .quiet-btn { flex:0 1 auto; min-width:0; }
-.second-row .timer-display { flex:1 0 auto; min-width:0; }
+.second-row .timer-display { flex:1 0 auto; min-width:0; justify-content:flex-start; }
 .top-row { grid-column:1/-1; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
 .top-row .quiet-btn { justify-self:start; padding:8px 10px; }
 .top-row .theme-seg { justify-self:center; }
@@ -460,7 +460,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.31.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.33.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -686,7 +686,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.31.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.33.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -1520,7 +1520,7 @@ else{_doUpload();_showUI();}
 }catch(e){try{_doUpload();}catch(_){}try{_showUI();}catch(_){}}
 })();
 }
-function newLevel(index,skipSave,preserveVariant){clearToast();scheduleSway();state.level=index;state.hadBest=(typeof state.best==='number'&&state.best>0);if(!preserveVariant)state.variant=HARDEST_VARIANT[index];var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.catsRemaining=p.size;state.start=Date.now();state.activeMs=0;state.lastResume=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=index<30;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','先查看免費「開局指引」，或直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress()}
+function newLevel(index,skipSave,preserveVariant){if(typeof window.__resetAnswerShown==='function')window.__resetAnswerShown();clearToast();scheduleSway();state.level=index;state.hadBest=(typeof state.best==='number'&&state.best>0);if(!preserveVariant)state.variant=HARDEST_VARIANT[index];var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.catsRemaining=p.size;state.start=Date.now();state.activeMs=0;state.lastResume=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=index<30;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','先查看免費「開局指引」，或直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress()}
 function restartLevel(){
 if(state.locked)return;if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}
 for(var i=0;i<state.cells.length;i++){if(state.cells[i]!=='cat')state.cells[i]=''}state.lockedXs={};state.history=[];state.focus=0;
@@ -2319,6 +2319,8 @@ updateAll(false); /* 經下方包裝的 updateCell 重繪，不會補回覆蓋�
 answerBtn.textContent='顯示答案（測試）';
 }
 answerBtn.onclick=function(){if(answerShown)hideAnswer();else showAnswer()};
+/* 供 newLevel() 轉關時重置：清除「顯示答案」旗標，避免標示殘留並洩漏新一關答案 */
+window.__resetAnswerShown=function(){if(answerShown)hideAnswer();};
 footer.parentNode.insertBefore(answerBtn,footer);
 /* 包裝 updateCell：答案顯示期間，任何格子重繪後自動補回覆蓋層。
    包裝程式碼本身亦在 if(IS_TEST) 內，玩家版不受影響。 */
