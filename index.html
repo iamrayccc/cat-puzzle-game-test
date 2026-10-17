@@ -460,7 +460,7 @@ body.theme-dark {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </section>
-<p class="footer-note"><span class="version">Version 2026.10.11.39.34.beta</span></p>
+<p class="footer-note"><span class="version">Version 2026.10.11.39.36.beta</span></p>
 </main>
 <dialog id="rulesDialog">
 <div class="sheet">
@@ -686,7 +686,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.39.34.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.39.36.beta'; // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
 var paletteLight=['#f3a6a6','#f6c184','#e8da72','#b8db76','#b08968','#7fd6bc','#a7b8c4','#82bde5','#8ea3e1','#aa92dc'],paletteDark=['#eeb7ce','#f1ae77','#ddbc5d','#b5d79b','#a3734f','#67b1b0','#acbed6','#7fbae2','#9179cf','#dc89b5'];
 var first=['暖陽','月光','毛線','紙箱','星夜','清晨','雨聲','魚乾','雲朵','花影'];
@@ -2093,7 +2093,13 @@ bkStyle.textContent=
 '#backupConfirmDialog .jump-actions{grid-template-columns:1fr 1fr;}'+
 '.backup-status{margin-top:12px;font-weight:700;}'+
 '.backup-status.ok{color:#2e7d32;}'+
-'.backup-status.err{color:#c62828;}';
+'.backup-status.err{color:#c62828;}'+
+'.recovery-link{color:#c62828!important;text-decoration:underline!important;text-decoration-color:#c62828!important;text-underline-offset:3px;cursor:pointer;background:none!important;border:none!important;padding:0!important;font-size:.82rem;font-weight:700;font-family:inherit;}'+
+'.recovery-link:hover{color:#a51f1f!important;}'+
+'body.theme-dark .recovery-link{color:#ef9a9a!important;text-decoration-color:#ef9a9a!important;}'+
+'body.theme-dark .recovery-link:hover{color:#ffcdd2!important;}'+
+'.backup-warn{color:#c62828;}'+
+'body.theme-dark .backup-warn{color:#ef9a9a;}';
 document.head.appendChild(bkStyle);
 
 /* 測試版專屬：雲端備份 UI。IS_TEST=false（玩家版）時此整塊不執行，
@@ -2102,25 +2108,53 @@ document.head.appendChild(bkStyle);
 var footerBk=document.querySelector('.footer-note');
 if(!footerBk||!footerBk.parentNode)return;
 
-/* --- 入口按鈕 --- */
-var bkBtn=document.createElement('button');
-bkBtn.className='jump-bottom-btn';
-bkBtn.type='button';
-bkBtn.id='cloudBackupBtn';
-bkBtn.setAttribute('aria-label','雲端備份（測試專用）');
-bkBtn.textContent='雲端備份（測試）';
+/* --- 入口一：「恢復我的資料」（頁底版本左側，紅色連結） --- */
+var restoreLink=document.createElement('button');
+restoreLink.className='recovery-link';
+restoreLink.type='button';
+restoreLink.id='restoreDataLink';
+restoreLink.setAttribute('aria-label','恢復我的資料');
+restoreLink.textContent='恢復我的資料';
+/* 插入到 footer-note 內版本文字之前 */
+var versionSpan=footerBk.querySelector('.version');
+if(versionSpan){
+  footerBk.insertBefore(restoreLink,versionSpan);
+  footerBk.style.display='flex';
+  footerBk.style.justifyContent='space-between';
+  footerBk.style.alignItems='center';
+}else{
+  footerBk.insertBefore(restoreLink,footerBk.firstChild);
+}
+
+/* --- 入口二：「我的恢復碼」（過關對話框左下角，紅色連結） --- */
+var myCodeLink=document.createElement('button');
+myCodeLink.className='recovery-link';
+myCodeLink.type='button';
+myCodeLink.id='myRecoveryCodeLink';
+myCodeLink.setAttribute('aria-label','我的恢復碼');
+myCodeLink.textContent='我的恢復碼';
+/* 插入到結果對話框排名榜按鈕之後 */
+var lbBtn=document.getElementById('lbOpenBtn');
+if(lbBtn&&lbBtn.parentNode){
+  var wrap2=document.createElement('div');
+  wrap2.style.textAlign='left';
+  wrap2.style.marginTop='10px';
+  wrap2.appendChild(myCodeLink);
+  lbBtn.parentNode.insertBefore(wrap2,lbBtn.nextSibling);
+}
 
 /* --- 主對話框：顯示恢復碼 --- */
 var bkDialog=document.createElement('dialog');
 bkDialog.id='backupDialog';
 bkDialog.innerHTML='<div class="sheet">'+
-'<h2>雲端備份（測試專用）</h2>'+
+'<h2>我的恢復碼</h2>'+
 '<p>您的恢復碼：</p>'+
 '<div class="recovery-code-row">'+
 '<span id="recoveryCodeText">----</span>'+
 '<button class="secondary" id="copyCodeBtn" type="button">複製</button>'+
 '</div>'+
-'<p class="backup-hint">請截圖保存此碼，換設備或資料遺失時用此碼恢復進度</p>'+
+'<p class="backup-hint">請截圖保存此碼，並妥善保管。<br><b class="backup-warn">請勿分享給他人，任何人取得此碼即可恢復您的遊戲進度。</b></p>'+
+'<p class="backup-hint">適用情況：資料損壞、無痕模式後資料遺失、更換手機。</p>'+
 '<div class="jump-actions" style="grid-template-columns:1fr;">'+
 '<button class="primary" id="restoreFromCloudBtn" type="button">從雲端恢復</button>'+
 '<button class="secondary" id="backupCloseBtn" type="button">關閉</button>'+
@@ -2180,7 +2214,7 @@ function addStatusLine(msg,ok){
   st.hidden=false;
 }
 
-bkBtn.onclick=function(){
+function openBackupDialog(){
   hideStatus();
   try{
     var code=(typeof backupGetRecoveryCode==='function')?backupGetRecoveryCode():'----';
@@ -2189,7 +2223,9 @@ bkBtn.onclick=function(){
     bkDialog.querySelector('#recoveryCodeText').textContent='----';
   }
   bkDialog.showModal();
-};
+}
+if(restoreLink)restoreLink.onclick=openBackupDialog;
+if(myCodeLink)myCodeLink.onclick=openBackupDialog;
 bkDialog.querySelector('#backupCloseBtn').onclick=function(){bkDialog.close();};
 bkDialog.addEventListener('click',function(e){if(e.target===bkDialog)bkDialog.close();});
 
@@ -2274,7 +2310,7 @@ bkConfirmDialog.querySelector('#backupConfirmYes').onclick=function(){
   });
 };
 
-footerBk.parentNode.insertBefore(bkBtn,footerBk);
+/* 入口已在上方直接插入，無需額外插入 */
 })();
 /* 測試版專屬：顯示答案。IS_TEST=false（玩家版）時此整塊不執行，
 頁面上無按鈕、無入口，功能完全不可觸達。純視覺覆蓋，不修改 state.cells，
