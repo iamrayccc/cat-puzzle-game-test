@@ -831,7 +831,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.22.beta'; // v40.22.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.23.beta'; // v40.23.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2601,6 +2601,110 @@ clearDialog.querySelector('#clearAllSave').onclick=function(){doClearSave(TEST_K
 clearDialog.addEventListener('click',function(e){if(e.target===clearDialog)clearDialog.close();});
 (function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(clearBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 })();
+})();
+
+/* v40.23.beta：測試版專屬「查看雙版排行榜」按鈕＋對話框。IS_TEST=false（玩家版）時此整塊不執行，
+頁面上無按鈕、無對話框、無 CSS，功能完全不可觸達。（設計貓設計稿，建造貓實作） */
+(function(){
+/* 動態注入 CSS（不寫入主 <style>，仿 answerBtn 模式） */
+var dualLbStyle=document.createElement('style');
+dualLbStyle.textContent=
+'#dualLbDialog[open]{position:fixed;inset:0;width:auto;height:100dvh;margin:0;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow-y:auto;overscroll-behavior:contain;pointer-events:auto;-webkit-overflow-scrolling:touch;}'+
+'#dualLbDialog .sheet{width:min(94vw,460px);max-height:min(90vh,760px);}'+
+'#dualLbDialog .close-btn{transform:translateY(-8px);}'+
+'.dual-lb-section-title{margin:14px 0 0;font-size:1.05rem;font-weight:900;color:var(--ink);}'+
+'.dual-lb-section-title .lb-top10{font-size:0.68em;font-weight:900;color:var(--accent);}'+
+'.dual-lb-section:first-of-type .dual-lb-section-title{margin-top:6px;}'+
+'.dual-lb-divider{border:0;border-top:1px solid var(--soft-line);margin:16px 0 2px;}'+
+'#dualLbDialog .lb-list{margin:10px 0 4px;}';
+document.head.appendChild(dualLbStyle);
+/* 動態創建對話框（不寫入靜態 HTML，保證玩家版零殘留） */
+var dualLbDialog=document.createElement('dialog');
+dualLbDialog.id='dualLbDialog';
+dualLbDialog.setAttribute('aria-labelledby','dualLbTitle');
+dualLbDialog.innerHTML=
+'<div class="sheet">'+
+'<div class="sheet-head"><h2 id="dualLbTitle">🏆 雙版排行榜</h2>'+
+'<button class="close-btn" id="dualLbClose" type="button" aria-label="關閉">×</button></div>'+
+'<section class="dual-lb-section" aria-labelledby="dualLbProdTitle">'+
+'<h3 id="dualLbProdTitle" class="dual-lb-section-title">玩家版排行榜 <span class="lb-top10">TOP10</span></h3>'+
+'<ol class="lb-list" id="dualLbProdList"></ol>'+
+'<p class="lb-error" id="dualLbProdError" hidden>暫時未能載入</p></section>'+
+'<hr class="dual-lb-divider">'+
+'<section class="dual-lb-section" aria-labelledby="dualLbTestTitle">'+
+'<h3 id="dualLbTestTitle" class="dual-lb-section-title">測試版排行榜 <span class="lb-top10">TOP10</span></h3>'+
+'<ol class="lb-list" id="dualLbTestList"></ol>'+
+'<p class="lb-error" id="dualLbTestError" hidden>暫時未能載入</p></section>'+
+'<div class="lb-actions"><button class="secondary" id="dualLbCloseBtn" type="button">關閉</button></div>'+
+'</div>';
+document.body.appendChild(dualLbDialog);
+/* 榜單行渲染（沿用 lbRender 的行結構） */
+function dualLbRenderRows(listEl,top,myNickname){
+  listEl.innerHTML='';
+  if(!top.length){
+    var empty=document.createElement('li');empty.className='lb-empty';
+    empty.textContent='仍未有玩家上榜';listEl.appendChild(empty);return;
+  }
+  top.forEach(function(row,idx){
+    var li=document.createElement('li');li.className='lb-row';
+    var isMe=myNickname&&row.nickname===myNickname;
+    if(isMe)li.className+=' me';
+    var rank=document.createElement('span');
+    rank.className='lb-rank'+(idx===0?' r1':idx===1?' r2':idx===2?' r3':' plain');
+    rank.textContent=String(idx+1);
+    var nick=document.createElement('span');nick.className='lb-nick';
+    nick.textContent=row.nickname;
+    if(isMe){var tag=document.createElement('span');tag.className='lb-me-tag';tag.textContent='你';nick.appendChild(tag)}
+    var right=document.createElement('span');right.className='lb-right';
+    var lv=document.createElement('span');lv.className='lb-level';
+    lv.textContent=row.level+'關';
+    var sc=document.createElement('span');sc.className='lb-score';
+    sc.textContent=Number(row.best).toLocaleString('zh-Hant');
+    right.appendChild(lv);right.appendChild(sc);
+    li.appendChild(rank);li.appendChild(nick);li.appendChild(right);
+    listEl.appendChild(li);
+  });
+}
+/* 並行載入雙榜（獨立失敗處理，排行榜零阻塞） */
+function dualLbLoad(){
+  var testList=document.getElementById('dualLbTestList'),
+      prodList=document.getElementById('dualLbProdList'),
+      testErr=document.getElementById('dualLbTestError'),
+      prodErr=document.getElementById('dualLbProdError');
+  if(!testList||!prodList)return;
+  var myNick=null;try{myNick=lbGetNickname()}catch(_){}
+  testList.innerHTML='';prodList.innerHTML='';
+  testErr.hidden=true;prodErr.hidden=true;
+  lbFetchJson(LB_API+'/top?board=test&limit=10',10000).then(function(res){
+    dualLbRenderRows(testList,res&&res.top?res.top:[],myNick);
+  }).catch(function(){testErr.hidden=false});
+  lbFetchJson(LB_API+'/top?board=main&limit=10',10000).then(function(res){
+    dualLbRenderRows(prodList,res&&res.top?res.top:[],myNick);
+  }).catch(function(){prodErr.hidden=false});
+}
+/* 開關對話框（沿用 leaderboardDialog 的捲動鎖模式） */
+function dualLbOpen(){
+  if(dualLbDialog.open)return;
+  lockPageScroll();
+  dualLbDialog.showModal();dualLbDialog.scrollTop=0;
+  dualLbLoad();
+}
+function dualLbClose(){
+  if(dualLbDialog.open)dualLbDialog.close();
+}
+document.getElementById('dualLbClose').onclick=dualLbClose;
+document.getElementById('dualLbCloseBtn').onclick=dualLbClose;
+dualLbDialog.addEventListener('click',function(e){if(e.target===dualLbDialog)dualLbClose()});
+dualLbDialog.addEventListener('close',function(){unlockPageScroll()});
+/* 創建按鈕並置於 #testBtnZone（沿用 v40.9.beta 測試按鈕模式） */
+var dualLbBtn=document.createElement('button');
+dualLbBtn.className='jump-bottom-btn';
+dualLbBtn.type='button';
+dualLbBtn.id='dualLbBtn';
+dualLbBtn.setAttribute('aria-label','查看雙版排行榜（測試專用）');
+dualLbBtn.textContent='查看雙版排行榜（測試）';
+dualLbBtn.onclick=dualLbOpen;
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(dualLbBtn);})();
 })();
 
 }
