@@ -831,7 +831,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.23.beta'; // v40.23.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.24.beta'; // v40.24.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2451,8 +2451,8 @@ var lotClearBtn=document.createElement('button');
 lotClearBtn.className='jump-bottom-btn';
 lotClearBtn.type='button';
 lotClearBtn.id='lotClearBtn';
-lotClearBtn.setAttribute('aria-label','清除抽獎及最高關數紀錄（測試專用）');
-lotClearBtn.textContent='清除抽獎及最高關數紀錄（測試）';
+lotClearBtn.setAttribute('aria-label','清除抽獎及max關（測試專用）');
+lotClearBtn.textContent='清除抽獎及max關（測試）';
 lotClearBtn.onclick=function(){
 try{if(typeof LOTTERY_KEY!=='undefined')localStorage.removeItem(LOTTERY_KEY)}catch(_){}
 try{if(typeof MAXCOMP_KEY!=='undefined')localStorage.removeItem(MAXCOMP_KEY)}catch(_){}
