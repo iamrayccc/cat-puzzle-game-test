@@ -831,7 +831,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.20.beta'; // v40.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.21.beta'; // v40.21.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2327,6 +2327,60 @@ jumpDialog.close();closeResultDialog();clearToast();newLevel(n-1);
 };
 jumpBtn.className='jump-bottom-btn';
 (function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(jumpBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
+/* 測試版專屬：顯示答案。IS_TEST=false（玩家版）時此整塊不執行，
+頁面上無按鈕、無入口，功能完全不可觸達。純視覺覆蓋，不修改 state.cells，
+不觸發 checkWin/finish，不影響分數心數。 */
+(function(){
+var footer=document.querySelector('.footer-note');
+if(!footer||!footer.parentNode)return;
+/* 動態注入覆蓋層樣式（玩家版零殘留，不寫入主 <style>） */
+var st=document.createElement('style');
+st.textContent='.answer-cat{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:2}'
++'.answer-cat .answer-cat-svg{width:82%;height:82%;opacity:.35}';
+document.head.appendChild(st);
+var answerShown=false;
+var answerBtn=document.createElement('button');
+answerBtn.className='jump-bottom-btn';
+answerBtn.type='button';
+answerBtn.id='answerBtn';
+answerBtn.setAttribute('aria-label','顯示所有貓的正確位置（測試專用）');
+answerBtn.textContent='顯示答案（測試）';
+function isSolutionCell(i,p){var r=Math.floor(i/p.size);return r*p.size+p.solution[r]===i}
+function paintAnswerCell(i){
+var b=board.children[i];
+if(!b||b.querySelector('.answer-cat'))return;
+if(state.cells[i]==='cat')return; /* 已放對的格子維持原樣 */
+var p=currentPuzzle();
+if(!isSolutionCell(i,p))return;
+var s=document.createElement('span');
+s.className='answer-cat';
+s.setAttribute('aria-hidden','true');
+s.innerHTML=catSVG.replace('class="cat"','class="cat answer-cat-svg"');
+b.appendChild(s);
+}
+function showAnswer(){
+answerShown=true;
+var p=currentPuzzle();
+for(var r=0;r<p.size;r++)paintAnswerCell(r*p.size+p.solution[r]);
+answerBtn.textContent='隱藏答案（測試）';
+}
+function hideAnswer(){
+answerShown=false;
+updateAll(false); /* 經下方包裝的 updateCell 重繪，不會補回覆蓋層，棋盤恢復原狀 */
+answerBtn.textContent='顯示答案（測試）';
+}
+answerBtn.onclick=function(){if(answerShown)hideAnswer();else showAnswer()};
+/* 供 newLevel() 轉關時重置：清除「顯示答案」旗標，避免標示殘留並洩漏新一關答案 */
+window.__resetAnswerShown=function(){if(answerShown)hideAnswer();};
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(answerBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
+/* 包裝 updateCell：答案顯示期間，任何格子重繪後自動補回覆蓋層。
+   包裝程式碼本身亦在 if(IS_TEST) 內，玩家版不受影響。 */
+var _updateCell=updateCell;
+updateCell=function(i,animate){
+_updateCell(i,animate);
+if(answerShown)paintAnswerCell(i);
+};
+})();
 /* 測試版專屬：設定最高積分。IS_TEST=false（玩家版）時此整塊不執行，
 頁面上無按鈕、無入口，功能完全不可觸達。 */
 var bestBtn=document.createElement('button');
@@ -2770,60 +2824,6 @@ bkConfirmDialog.querySelector('#backupConfirmYes').onclick=function(){
 };
 
 /* 入口已在上方直接插入，無需額外插入 */
-})();
-/* 測試版專屬：顯示答案。IS_TEST=false（玩家版）時此整塊不執行，
-頁面上無按鈕、無入口，功能完全不可觸達。純視覺覆蓋，不修改 state.cells，
-不觸發 checkWin/finish，不影響分數心數。 */
-(function(){
-var footer=document.querySelector('.footer-note');
-if(!footer||!footer.parentNode)return;
-/* 動態注入覆蓋層樣式（玩家版零殘留，不寫入主 <style>） */
-var st=document.createElement('style');
-st.textContent='.answer-cat{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:2}'
-+'.answer-cat .answer-cat-svg{width:82%;height:82%;opacity:.35}';
-document.head.appendChild(st);
-var answerShown=false;
-var answerBtn=document.createElement('button');
-answerBtn.className='jump-bottom-btn';
-answerBtn.type='button';
-answerBtn.id='answerBtn';
-answerBtn.setAttribute('aria-label','顯示所有貓的正確位置（測試專用）');
-answerBtn.textContent='顯示答案（測試）';
-function isSolutionCell(i,p){var r=Math.floor(i/p.size);return r*p.size+p.solution[r]===i}
-function paintAnswerCell(i){
-var b=board.children[i];
-if(!b||b.querySelector('.answer-cat'))return;
-if(state.cells[i]==='cat')return; /* 已放對的格子維持原樣 */
-var p=currentPuzzle();
-if(!isSolutionCell(i,p))return;
-var s=document.createElement('span');
-s.className='answer-cat';
-s.setAttribute('aria-hidden','true');
-s.innerHTML=catSVG.replace('class="cat"','class="cat answer-cat-svg"');
-b.appendChild(s);
-}
-function showAnswer(){
-answerShown=true;
-var p=currentPuzzle();
-for(var r=0;r<p.size;r++)paintAnswerCell(r*p.size+p.solution[r]);
-answerBtn.textContent='隱藏答案（測試）';
-}
-function hideAnswer(){
-answerShown=false;
-updateAll(false); /* 經下方包裝的 updateCell 重繪，不會補回覆蓋層，棋盤恢復原狀 */
-answerBtn.textContent='顯示答案（測試）';
-}
-answerBtn.onclick=function(){if(answerShown)hideAnswer();else showAnswer()};
-/* 供 newLevel() 轉關時重置：清除「顯示答案」旗標，避免標示殘留並洩漏新一關答案 */
-window.__resetAnswerShown=function(){if(answerShown)hideAnswer();};
-(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(answerBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
-/* 包裝 updateCell：答案顯示期間，任何格子重繪後自動補回覆蓋層。
-   包裝程式碼本身亦在 if(IS_TEST) 內，玩家版不受影響。 */
-var _updateCell=updateCell;
-updateCell=function(i,animate){
-_updateCell(i,animate);
-if(answerShown)paintAnswerCell(i);
-};
 })();
 }
 /* 移出 if(IS_TEST)：玩家版亦需更新對話框正常運作 */
