@@ -831,7 +831,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.17.beta'; // v40.17.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.18.beta'; // v40.18.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1863,7 +1863,7 @@ function nextLevelName(name){var i=LEVEL_ORDER.indexOf(name);return(i>=0&&i<LEVE
 function showLevelUpVeil(levelName){var next=nextLevelName(levelName),html='恭喜您！升級至 <span class="level-up-name">'+levelName+'</span>';if(next)html+='<br><span class="level-next">（等待挑戰：'+next+'等級）</span>';document.getElementById('levelUpTitle').innerHTML=html;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
 function finish(win){
 if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
-var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
+var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&(completed>state.maxCompleted);/* v40.18.beta 防刷分（2026-10-18 CC 批准）：firstCompletion 改用 maxCompleted（持久化）判斷，取代未持久化的 levelAwarded。關閉分頁重進後重玩同一關 completed>maxCompleted 為假，不再加分。最高關無豁免（2026-10-14 永久規則已於今日撤銷）。 */
 if(firstCompletion){state.levelAwarded=true;changeScore(1000);earned=true;var bonusLines=['過關獎勵 ＋1000'],bonusTotal=1000;if(state.hintsUsed===0){changeScore(400);bonusLines.push('不用找貓提示獎勵 ＋400');bonusTotal+=400}var elMs=getActiveMs();if(elMs<=120000){changeScore(500);bonusLines.push('2 分鐘內完成獎勵 ＋500');bonusTotal+=500}else if(elMs<=300000){changeScore(300);bonusLines.push('5 分鐘內完成獎勵 ＋300');bonusTotal+=300}else if(elMs<=480000){changeScore(100);bonusLines.push('8 分鐘內完成獎勵 ＋100');bonusTotal+=100}var scoreBreakdown={lines:bonusLines,total:bonusTotal}}
 if(win&&firstCompletion){var oldLvName=currentLevelName();if(state.best===undefined||state.best===null||state.score>state.best)state.best=Math.floor(state.score);state.maxCompleted=Math.max(state.maxCompleted,state.level+1);saveMaxCompletedProgress();var newLvName=currentLevelName();if(newLvName!==oldLvName&&state.hadBest){state.pendingLevelUp=true;state.pendingLevelUpName=newLvName}paintLevelChip();saveLocalProgress()}
 if(firstCompletion&&completed%10===0&&!state.milestoneRewards[completed]){
