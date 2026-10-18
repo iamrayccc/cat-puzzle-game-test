@@ -604,8 +604,9 @@ body.theme-dark {
 <tr><td>補心</td><td>每通過十關補回 1 顆心</td></tr>
 <tr><td>心數上限</td><td>5 顆</td></tr>
 </table></div></li>
-<li><span class="rule-number">7</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
-<li><span class="rule-number">8</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級晉升順序如下）；等級提升時會有恭喜提示。</span>
+<li><span class="rule-number">7</span><div><strong>幸運抽獎</strong><span>每通過 15 關，可參加一次幸運抽獎。</span></div></li>
+<li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
+<li><span class="rule-number">9</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級晉升順序如下）；等級提升時會有恭喜提示。</span>
 <div class="lvl-flow" aria-label="玩家等級由低至高晉升順序">
 <span class="lvl-node"><b>新手</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
 <span class="lvl-node"><b>初階</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
@@ -627,6 +628,8 @@ body.theme-dark {
 
 </ol>
 <button class="primary close-rules" type="button">開始動腦</button>
+<br><br><br>
+<div style="text-align:right;font-family:'Nunito','Noto Sans TC',sans-serif;font-size:.88rem;color:var(--muted);">Created by Raymond Chiu</div>
 </div>
 </dialog>
 <dialog id="resultDialog">
@@ -828,7 +831,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.11.beta'; // v40.11.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.12.beta'; // v40.12.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1549,11 +1552,11 @@ var btn=document.getElementById('lotteryDrawBtn');
 var rt=document.getElementById('lotteryResultText');
 var cls='show';
 if(prize.type==='none'){
-rt.textContent='多謝參與';cls+=' plain';
+rt.textContent='多謝參與';cls+=' plain';lotteryPlayNeutral();
 }else if(prize.type==='hearts'){
-rt.textContent='🎉 恭喜！獲得 '+prize.label+'！（遊戲上限5個）';
+rt.textContent='🎉 恭喜！獲得 '+prize.label+'！（遊戲上限5個）';lotteryPlayWin();
 }else{
-rt.textContent='🎉 恭喜！獲得 '+prize.label+'！';
+rt.textContent='🎉 恭喜！獲得 '+prize.label+'！';lotteryPlayWin();
 }
 rt.className=cls;
 btn.style.display='none';
@@ -1570,7 +1573,7 @@ var totalSteps=34+Math.floor(Math.random()*10);
 var winIdx=totalSteps%9;
 var step=0,idx=0;
 function tick(){
-lotteryLight(idx);step++;
+lotteryLight(idx);lotteryPlayTick(step/totalSteps);step++;
 if(step>totalSteps){lotteryApplyPrize(winIdx);return;}
 var p=step/totalSteps;
 var interval=50+230*p*p+Math.random()*6;
@@ -1634,6 +1637,41 @@ var start=now+index*.13,osc=audioCtx.createOscillator(),gain=audioCtx.createGain
 osc.type=index===3?'sine':'triangle';osc.frequency.setValueAtTime(freq,start);
 gain.gain.setValueAtTime(.001,start);gain.gain.linearRampToValueAtTime(.16,start+.025);gain.gain.exponentialRampToValueAtTime(.001,start+.28);
 osc.connect(gain);gain.connect(masterGain);osc.start(start);osc.stop(start+.3);
+});
+});
+}
+/* ===== 九格抽獎輪盤音效（v40.12.beta；CC 批准音效 Demo；Web Audio 即時合成，經 masterGain 受音效開關控制）===== */
+function lotteryPlayTick(p){
+queueSound(.06,function(now){
+var osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+osc.type='triangle';osc.frequency.setValueAtTime(1400-500*p,now);
+gain.gain.setValueAtTime(.24,now);gain.gain.exponentialRampToValueAtTime(.0001,now+.06);
+osc.connect(gain);gain.connect(masterGain);osc.start(now);osc.stop(now+.08);
+});
+}
+function lotteryPlayWin(){
+queueSound(.9,function(now){
+var notes=[523.25,659.25,783.99,1046.5];
+notes.forEach(function(freq,index){
+var start=now+index*.11,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+osc.type='triangle';osc.frequency.setValueAtTime(freq,start);
+gain.gain.setValueAtTime(.38,start);gain.gain.exponentialRampToValueAtTime(.0001,start+.30);
+osc.connect(gain);gain.connect(masterGain);osc.start(start);osc.stop(start+.32);
+});
+var s=now+4*.11,osc2=audioCtx.createOscillator(),gain2=audioCtx.createGain();
+osc2.type='sine';osc2.frequency.setValueAtTime(1318.51,s);
+gain2.gain.setValueAtTime(.29,s);gain2.gain.exponentialRampToValueAtTime(.0001,s+.45);
+osc2.connect(gain2);gain2.connect(masterGain);osc2.start(s);osc2.stop(s+.47);
+});
+}
+function lotteryPlayNeutral(){
+queueSound(.55,function(now){
+var seq=[[392.00,0],[329.63,.18]];
+seq.forEach(function(n){
+var start=now+n[1],osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+osc.type='sine';osc.frequency.setValueAtTime(n[0],start);
+gain.gain.setValueAtTime(.24,start);gain.gain.exponentialRampToValueAtTime(.0001,start+.35);
+osc.connect(gain);gain.connect(masterGain);osc.start(start);osc.stop(start+.37);
 });
 });
 }
