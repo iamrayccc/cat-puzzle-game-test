@@ -831,7 +831,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.13.beta'; // v40.13.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.17.beta'; // v40.17.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1173,7 +1173,7 @@ out.push(variants);
 return out;
 }
 var puzzles=buildVariantPuzzles();validateFirstFive(puzzles);
-var state={level:0,variant:0,cells:[],lockedXs:{},history:[],hearts:MAX_HEARTS,hintsRemaining:2,mistakes:0,hintsUsed:0,moves:0,catsRemaining:0,score:0,best:undefined,maxCompleted:0,pendingLevelUp:false,pendingLevelUpName:'',hadBest:false,mode:'x',start:Date.now(),activeMs:0,lastResume:Date.now(),locked:false,pendingCells:{},resultShown:false,levelAwarded:false,focus:0,milestoneRewards:{},lotteryClaimed:{},pendingLottery:0,openingAvailable:true,openingGuide:null,restoredEntry:false};
+var state={level:0,variant:0,cells:[],lockedXs:{},history:[],hearts:MAX_HEARTS,hintsRemaining:2,mistakes:0,hintsUsed:0,moves:0,catsRemaining:0,score:0,best:undefined,maxCompleted:0,pendingLevelUp:false,pendingLevelUpName:'',hadBest:false,mode:'x',start:Date.now(),activeMs:0,lastResume:Date.now(),locked:false,pendingCells:{},resultShown:false,levelAwarded:false,focus:0,milestoneRewards:{},maxLotteryLevel:0,pendingLottery:0,openingAvailable:true,openingGuide:null,restoredEntry:false};
 /* ===== 計時器後台暫停（2026-10-17 CC 批准，v39.23.beta）：Page Visibility API，頁面隱藏時凍結累計 */ function getActiveMs(){try{if(typeof state==='undefined'||!state)return 0;var b=state.activeMs||0;if(document.hidden)return b;return b+(Date.now()-(state.lastResume||state.start||Date.now()));}catch(_){return 0;}} document.addEventListener('visibilitychange',function(){try{if(typeof state==='undefined'||!state)return;if(document.hidden){state.activeMs=(state.activeMs||0)+(Date.now()-(state.lastResume||state.start||Date.now()));}else{state.lastResume=Date.now();}if(typeof updateGameTimer==='function'){try{updateGameTimer();}catch(_){}}}catch(_){}});
 /* 遊戲計時器永久顯示（2026-10-17 CC 指示，v39.26.beta）：置於原開局指引位置，靠右對齊；格式為 xx分xx秒；使用 getActiveMs()，後台暫停。 */
 window.updateGameTimer=function(){try{var tt=document.getElementById('gameTimerText');if(!tt)return;var ms=getActiveMs(),s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;tt.textContent=(m>0?m+'分':'')+s+'秒';}catch(_){}};
@@ -1432,19 +1432,20 @@ if(!sum||sum!==d.sum)return Promise.resolve(null);
 return Promise.resolve({level:d.level,hints:d.hints});
 }catch(e){return Promise.resolve(null)}
 }
-/* ===== 九格抽獎輪盤持久化（v40.5.beta）：lotteryClaimed 防刷記錄 =====
+/* ===== 九格抽獎輪盤持久化（v40.5.beta；v40.17.beta 簡化：記最大值）=====
    CC 最高優先要求（2026-10-18）：發獎前先標記已領取並同步落盤（含 SHA-256），
    再發放獎勵。即使玩家在發獎瞬間 refresh，也不會重複獲得。
-   採用同步 sha256hexSync，即時寫入，無異步競態。 */
+   採用同步 sha256hexSync，即時寫入，無異步競態。
+   v40.17.beta（2026-10-18 CC 批准）：舊 map 格式改為 maxLotteryLevel 單一數字；
+   遊戲只向前推進，抽獎關必按序領取，map 鍵必為連續前綴，故等價。舊 v:1 格式直接忽略（無遷移）。 */
 var LOTTERY_KEY='meowdoku-lottery-v1'+_storeSfx;
 function saveLotteryProgress(){
 try{
 if(!window.localStorage)return;
-var claimed=state.lotteryClaimed||{};
-var data=JSON.stringify(claimed);
+var data=String(Math.max(0,Math.floor(state.maxLotteryLevel||0)));
 var sum=sha256hexSync(data+'|'+LS_SECRET);
 if(!sum)return;
-try{localStorage.setItem(LOTTERY_KEY,JSON.stringify({v:1,data:data,sum:sum}))}catch(e){}
+try{localStorage.setItem(LOTTERY_KEY,JSON.stringify({v:2,data:data,sum:sum}))}catch(e){}
 }catch(e){}
 }
 function loadLotteryProgress(){
@@ -1455,18 +1456,47 @@ try{raw=localStorage.getItem(LOTTERY_KEY)}catch(e){return null}
 if(!raw)return null;
 var d;
 try{d=JSON.parse(raw)}catch(e){return null}
+if(!d||d.v!==2||typeof d.data!=='string'||typeof d.sum!=='string')return null;
+var sum=sha256hexSync(d.data+'|'+LS_SECRET);
+if(!sum||sum!==d.sum)return null;
+var n=parseInt(d.data,10);
+if(!isFinite(n)||n<0)return null;
+return n;
+}catch(e){return null}
+}
+/* ===== 最高過關關數持久化（v40.17.beta）：僅儲存，不啟用防刷 =====
+   2026-10-18 CC 批准：新增隔離鍵＋SHA-256 同步寫入，仿 lottery 模式。
+   注意：firstCompletion 仍用 levelAwarded 定義，遊戲邏輯零變更；
+   此鍵現僅作數據基礎設施，日後啟用防刷時無需再動存儲層。 */
+var MAXCOMP_KEY='meowdoku-maxcompleted-v1'+_storeSfx;
+function saveMaxCompletedProgress(){
+try{
+if(!window.localStorage)return;
+var data=String(Math.max(0,Math.floor(state.maxCompleted||0)));
+var sum=sha256hexSync(data+'|'+LS_SECRET);
+if(!sum)return;
+try{localStorage.setItem(MAXCOMP_KEY,JSON.stringify({v:1,data:data,sum:sum}))}catch(e){}
+}catch(e){}
+}
+function loadMaxCompletedProgress(){
+try{
+if(!window.localStorage)return null;
+var raw=null;
+try{raw=localStorage.getItem(MAXCOMP_KEY)}catch(e){return null}
+if(!raw)return null;
+var d;
+try{d=JSON.parse(raw)}catch(e){return null}
 if(!d||d.v!==1||typeof d.data!=='string'||typeof d.sum!=='string')return null;
 var sum=sha256hexSync(d.data+'|'+LS_SECRET);
 if(!sum||sum!==d.sum)return null;
-var claimed;
-try{claimed=JSON.parse(d.data)}catch(e){return null}
-if(!claimed||typeof claimed!=='object')return null;
-return claimed;
+var n=parseInt(d.data,10);
+if(!isFinite(n)||n<0)return null;
+return n;
 }catch(e){return null}
 }
 /* ===== 九格抽獎輪盤核心邏輯（v40.5.beta，2026-10-18 CC 批准實裝）=====
    觸發：固定每 15 關（15、30、45…）首次過關後，點擊「下一關」時彈出。
-   防刷：lotteryClaimed 在發獎前先標記並同步落盤，再發放獎勵。 */
+   防刷：maxLotteryLevel 在發獎前先標記並同步落盤，再發放獎勵。 */
 /* 獎品定義：type: hearts=加心 / points=加分 / none=多謝參與 */
 var LOTTERY_PRIZES=[
 {label:'❤️+1',type:'hearts',value:1},
@@ -1520,7 +1550,7 @@ function lotteryApplyPrize(winIdx){
    三重保障，refresh 後絕不能還原、不重複發放。 */
 var prize=LOTTERY_PRIZES[winIdx];
 /* ① 先標記已領取（同步落盤） */
-state.lotteryClaimed[_lotteryLevel]=true;
+state.maxLotteryLevel=_lotteryLevel;
 saveLotteryProgress();
 /* ② 發放獎勵 */
 var isNewBest=false;
@@ -1835,20 +1865,20 @@ function finish(win){
 if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)clearProgress();
 var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&!state.levelAwarded;
 if(firstCompletion){state.levelAwarded=true;changeScore(1000);earned=true;var bonusLines=['過關獎勵 ＋1000'],bonusTotal=1000;if(state.hintsUsed===0){changeScore(400);bonusLines.push('不用找貓提示獎勵 ＋400');bonusTotal+=400}var elMs=getActiveMs();if(elMs<=120000){changeScore(500);bonusLines.push('2 分鐘內完成獎勵 ＋500');bonusTotal+=500}else if(elMs<=300000){changeScore(300);bonusLines.push('5 分鐘內完成獎勵 ＋300');bonusTotal+=300}else if(elMs<=480000){changeScore(100);bonusLines.push('8 分鐘內完成獎勵 ＋100');bonusTotal+=100}var scoreBreakdown={lines:bonusLines,total:bonusTotal}}
-if(win&&firstCompletion){var oldLvName=currentLevelName();if(state.best===undefined||state.best===null||state.score>state.best)state.best=Math.floor(state.score);state.maxCompleted=Math.max(state.maxCompleted,state.level+1);var newLvName=currentLevelName();if(newLvName!==oldLvName&&state.hadBest){state.pendingLevelUp=true;state.pendingLevelUpName=newLvName}paintLevelChip();saveLocalProgress()}
+if(win&&firstCompletion){var oldLvName=currentLevelName();if(state.best===undefined||state.best===null||state.score>state.best)state.best=Math.floor(state.score);state.maxCompleted=Math.max(state.maxCompleted,state.level+1);saveMaxCompletedProgress();var newLvName=currentLevelName();if(newLvName!==oldLvName&&state.hadBest){state.pendingLevelUp=true;state.pendingLevelUpName=newLvName}paintLevelChip();saveLocalProgress()}
 if(firstCompletion&&completed%10===0&&!state.milestoneRewards[completed]){
 state.milestoneRewards[completed]=true;
 if(state.hearts<MAX_HEARTS){state.hearts=Math.min(MAX_HEARTS,state.hearts+1);recovered=true;paintHearts();persistProgress()}
 }
 /* v40.5.beta 九格抽獎輪盤：固定每 15 關（15、30、45…）首次過關後觸發。
-   防刷：與首次通過綁定（firstCompletion）＋ lotteryClaimed 記錄。
-   注意：lotteryClaimed 的實際標記在 lotteryApplyPrize 發獎前執行（先標記再發獎）。
+   防刷：與首次通過綁定（firstCompletion）＋ maxLotteryLevel 記錄（v40.17.beta 簡化）。
+   注意：maxLotteryLevel 的實際標記在 lotteryApplyPrize 發獎前執行（先標記再發獎）。
    v40.13.beta 順序保證（2026-10-18 CC 明令）：抽獎彈窗必在排行榜彈窗之前顯示。
    實現：點擊「下一關」時先檢查 pendingLottery（抽獎），其回調 proceedAfterLottery
    再檢查 lbAutoPending（排行榜）。重疊關（30、60…）順序為：抽獎 → 排行榜 → 下一關。
    抽獎獎勵（加分／加心）在 lotteryApplyPrize 內即時寫入存檔並上傳，
    如為新最佳積分亦觸發 lbFireSubmit，排行榜彈窗開啟時讀取的已是更新後數據。 */
-if(firstCompletion&&completed%15===0&&!state.lotteryClaimed[completed]){
+if(firstCompletion&&completed%15===0&&completed>state.maxLotteryLevel){
 state.pendingLottery=completed;
 }
 var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor(getActiveMs()/1000)),nextBtn=document.getElementById('nextBtn'),retryBtn=document.getElementById('retryBtn');document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');var crownEl=document.getElementById('scoreCrown');if(crownEl){crownEl.style.display=(win&&state.best!==undefined&&state.best!==null&&Math.floor(state.score)>=Math.floor(state.best))?'block':'none'}document.getElementById('levelStat').textContent=currentLevelName();document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';var rtEl=document.getElementById('resultText');if(win){rtEl.style.display='none'}else{rtEl.style.display='block';rtEl.textContent='5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。';}var bdEl=document.getElementById('scoreBreakdown');if(win&&earned&&typeof scoreBreakdown!=='undefined'){bdEl.innerHTML='計分明細<br>'+scoreBreakdown.lines.join('<br>')+'<br><b>本關合計 ＋'+scoreBreakdown.total+'</b>';bdEl.style.display='block'}else{bdEl.style.display='none'}var bsEl=document.getElementById('bestStat');if(win&&bsEl){var bTxt=(state.best===undefined||state.best===null)?'–':Math.floor(state.best).toLocaleString('zh-Hant');bsEl.textContent='個人紀錄：累計最高積分 '+bTxt;bsEl.style.display='block'}else if(bsEl){bsEl.style.display='none'}if(win){var finishedAll=state.level===TOTAL-1;nextBtn.textContent=finishedAll?'完成':'下一關';nextBtn.style.display='block';nextBtn.className='primary';nextBtn.autofocus=true;retryBtn.style.display='none';retryBtn.autofocus=false;nextBtn.parentNode.insertBefore(nextBtn,retryBtn)}else{nextBtn.style.display='none';nextBtn.autofocus=false;retryBtn.textContent='繼續玩';retryBtn.style.display='block';retryBtn.className='primary';retryBtn.autofocus=true;nextBtn.parentNode.insertBefore(retryBtn,nextBtn)}d.dataset.win=win?'1':'0';
@@ -2358,6 +2388,22 @@ lotteryTestBtn.setAttribute('aria-label','測試抽獎輪盤（測試專用）')
 lotteryTestBtn.textContent='測試抽獎（測試）';
 lotteryTestBtn.onclick=function(){lotteryOpenModal(999,function(){if(typeof showToast==='function')showToast('測試抽獎完成');});};
 (function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(lotteryTestBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
+/* v40.17.beta 測試版專屬：清除抽獎及最高關數紀錄（2026-10-18 CC 要求）。
+   IS_TEST=false（玩家版）時此整塊不執行，頁面上無按鈕、無入口，功能完全不可觸達。
+   按新格式：重置 maxLotteryLevel=0、maxCompleted=state.level。 */
+var lotClearBtn=document.createElement('button');
+lotClearBtn.className='jump-bottom-btn';
+lotClearBtn.type='button';
+lotClearBtn.id='lotClearBtn';
+lotClearBtn.setAttribute('aria-label','清除抽獎及最高關數紀錄（測試專用）');
+lotClearBtn.textContent='清除抽獎及最高關數紀錄（測試）';
+lotClearBtn.onclick=function(){
+try{if(typeof LOTTERY_KEY!=='undefined')localStorage.removeItem(LOTTERY_KEY)}catch(_){}
+try{if(typeof MAXCOMP_KEY!=='undefined')localStorage.removeItem(MAXCOMP_KEY)}catch(_){}
+if(typeof state!=='undefined'){state.maxLotteryLevel=0;state.maxCompleted=state.level;}
+if(typeof showToast==='function')showToast('已清除抽獎及最高關數紀錄');
+};
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(lotClearBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* v40.6.beta 測試版專屬：查詢存檔按鈕（2026-10-18 CC 要求）。
    IS_TEST=false（玩家版）時此整塊不執行，頁面上無按鈕、無入口，功能完全不可觸達。
    唯讀顯示 localStorage 內容，不提供修改／刪除功能。 */
@@ -2381,7 +2427,8 @@ function lsqOpenModal(){
   var sfx=(typeof _storeSfx!=='undefined')?_storeSfx:'-test';
   var keys=[
     ['主存檔（關數／心數／積分／best）','meowdoku-progress-v1'+sfx],
-    ['抽獎記錄（lotteryClaimed）','meowdoku-lottery-v1'+sfx],
+    ['抽獎記錄（maxLotteryLevel）','meowdoku-lottery-v1'+sfx],
+    ['最高過關關數','meowdoku-maxcompleted-v1'+sfx],
     ['找貓提示次數','meowdoku-hints-v1'+sfx],
     ['主題','meowdoku-theme-v1'+sfx],
     ['自動標X模式','meowdoku-automode-v1'+sfx],
@@ -2839,10 +2886,11 @@ if(saved){
 /* 先讀提示次數存檔：newLevel() 內的 persistProgress() 會同步覆寫該 key，必須在 newLevel 之前讀取 */
 var hs=null;
 try{hs=await loadHintsProgress();}catch(e){hs=null}
-try{var lott=loadLotteryProgress();if(lott)state.lotteryClaimed=lott;}catch(e){}
+try{var lott=loadLotteryProgress();if(typeof lott==='number'&&lott>0)state.maxLotteryLevel=lott;}catch(e){}
 state.hearts=saved.hearts;state.score=saved.score;
 if(saved.best!==undefined&&saved.best!==null)state.best=Math.floor(saved.best);
 state.maxCompleted=saved.level;
+try{var _mc=loadMaxCompletedProgress();if(typeof _mc==='number'&&_mc>state.maxCompleted)state.maxCompleted=_mc;}catch(e){}
 if(saved.theme)setTheme(saved.theme);
 newLevel(saved.level,true);  // skipSave：恢復期間先不寫入，避免 newLevel 污染 hints key
 if(hs&&hs.level===saved.level&&hs.hints>=0&&hs.hints<=2){state.hintsRemaining=hs.hints;paintHintButton();}
