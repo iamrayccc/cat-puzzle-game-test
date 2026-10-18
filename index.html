@@ -831,7 +831,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.21.beta'; // v40.21.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.22.beta'; // v40.22.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2603,7 +2603,8 @@ clearDialog.addEventListener('click',function(e){if(e.target===clearDialog)clear
 })();
 })();
 
-/* 測試版專屬：雲端備份 UI（設計貓，v39.9.beta） */
+}
+/* 雲端備份 UI（全版本適用，2026-10-17 CC 明令；設計貓，v39.9.beta） */
 var bkStyle=document.createElement('style');
 bkStyle.textContent=
 '#backupDialog[open],#backupInputDialog[open],#backupConfirmDialog[open]{position:fixed;inset:0;width:auto;height:100dvh;margin:0;padding:16px;display:flex;align-items:center;justify-content:center;}'+
@@ -2631,8 +2632,7 @@ bkStyle.textContent=
 'body.theme-dark .backup-screenshot-note{color:#ff5252;}';
 document.head.appendChild(bkStyle);
 
-/* 測試版專屬：雲端備份 UI。IS_TEST=false（玩家版）時此整塊不執行，
-   頁面上無按鈕、無入口，功能完全不可觸達。 */
+/* 雲端備份 UI：全版本適用（2026-10-17 CC 明令），絕非測試版獨有。 */
 (function(){
 var footerBk=document.querySelector('.footer-note');
 if(!footerBk||!footerBk.parentNode)return;
@@ -2825,7 +2825,6 @@ bkConfirmDialog.querySelector('#backupConfirmYes').onclick=function(){
 
 /* 入口已在上方直接插入，無需額外插入 */
 })();
-}
 /* 移出 if(IS_TEST)：玩家版亦需更新對話框正常運作 */
 document.getElementById('updateNow').onclick=async function(){closeUpdateDialog(false);newLevel(state.level+1);try{await saveLocalProgress()}catch(e){}location.href=location.pathname+'?_='+Date.now()+location.hash};
 document.getElementById('updateLater').onclick=function(){closeUpdateDialog()};
