@@ -831,7 +831,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.18.beta'; // v40.18.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.19.beta'; // v40.18.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2063,15 +2063,16 @@ function backupGetRecoveryCode(){
 }
 function backupFireUpload(){
   try{
-    var v3raw=null,hintsraw=null,lotteryraw=null;
+    var v3raw=null,hintsraw=null,lotteryraw=null,maxcompletedraw=null;
     try{v3raw=localStorage.getItem(LS_KEY)}catch(_){}
     try{hintsraw=localStorage.getItem(HINTS_KEY)}catch(_){}
     try{lotteryraw=localStorage.getItem(LOTTERY_KEY)}catch(_){}
+    try{maxcompletedraw=localStorage.getItem(MAXCOMP_KEY)}catch(_){}
     if(!v3raw)return;
     var v3d=null,hd=null;
     try{v3d=JSON.parse(v3raw)}catch(_){}
     try{hd=JSON.parse(hintsraw)}catch(_){}
-    var payload={player_id:backupGetPlayerId(),recovery_code:backupGetRecoveryCode(),nickname:lbGetNickname(),save_json:JSON.stringify({v3:v3raw,hints:hintsraw,lottery:lotteryraw}),
+    var payload={player_id:backupGetPlayerId(),recovery_code:backupGetRecoveryCode(),nickname:lbGetNickname(),save_json:JSON.stringify({v3:v3raw,hints:hintsraw,lottery:lotteryraw,maxcompleted:maxcompletedraw}),
       max_level:v3d?(v3d.level+1):null,hearts:v3d?v3d.hearts:null,score:v3d?v3d.score:null,best:(v3d&&v3d.best!==undefined)?v3d.best:null,theme:v3d?v3d.theme:null,
       hints:hd?hd.hints:null};
     fetch(BACKUP_API+'/backup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(){}).catch(function(){});
@@ -2095,6 +2096,7 @@ function backupDownload(code,onProgress){
       try{localStorage.setItem(LS_KEY,outer.v3)}catch(e){throw new Error('write_fail')}
       try{if(outer.hints)localStorage.setItem(HINTS_KEY,outer.hints)}catch(e){}
       try{if(outer.lottery)localStorage.setItem(LOTTERY_KEY,outer.lottery)}catch(e){}
+      if(outer.maxcompleted){try{localStorage.setItem(MAXCOMP_KEY,outer.maxcompleted)}catch(_){}}else{try{localStorage.removeItem(MAXCOMP_KEY)}catch(_){}}
       try{localStorage.setItem('meowdoku-recovery-code-v1'+_storeSfx,q)}catch(e){}
       try{if(j.nickname)localStorage.setItem('meowdoku-nickname-v1',j.nickname)}catch(e){} // v39.19：恢復時一併採用雲端暱稱，避免舊紀錄配新暱稱
       prog('覆蓋本地資料成功');
