@@ -628,8 +628,8 @@ body.theme-dark {
 
 </ol>
 <button class="primary close-rules" type="button">開始動腦</button>
-<br><br><br>
-<div style="text-align:right;font-family:'Nunito','Noto Sans TC',sans-serif;font-size:.88rem;color:var(--muted);">Created by Raymond Chiu</div>
+<br><br><br><br><br><br><br><br><br>
+<div style="text-align:right;font-family:'Nunito','Noto Sans TC',sans-serif;font-size:.88rem;color:var(--muted);">遊戲開發：Raymond C.</div>
 </div>
 </dialog>
 <dialog id="resultDialog">
@@ -831,7 +831,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.12.beta'; // v40.12.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.13.beta'; // v40.13.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1842,7 +1842,12 @@ if(state.hearts<MAX_HEARTS){state.hearts=Math.min(MAX_HEARTS,state.hearts+1);rec
 }
 /* v40.5.beta 九格抽獎輪盤：固定每 15 關（15、30、45…）首次過關後觸發。
    防刷：與首次通過綁定（firstCompletion）＋ lotteryClaimed 記錄。
-   注意：lotteryClaimed 的實際標記在 lotteryApplyPrize 發獎前執行（先標記再發獎）。 */
+   注意：lotteryClaimed 的實際標記在 lotteryApplyPrize 發獎前執行（先標記再發獎）。
+   v40.13.beta 順序保證（2026-10-18 CC 明令）：抽獎彈窗必在排行榜彈窗之前顯示。
+   實現：點擊「下一關」時先檢查 pendingLottery（抽獎），其回調 proceedAfterLottery
+   再檢查 lbAutoPending（排行榜）。重疊關（30、60…）順序為：抽獎 → 排行榜 → 下一關。
+   抽獎獎勵（加分／加心）在 lotteryApplyPrize 內即時寫入存檔並上傳，
+   如為新最佳積分亦觸發 lbFireSubmit，排行榜彈窗開啟時讀取的已是更新後數據。 */
 if(firstCompletion&&completed%15===0&&!state.lotteryClaimed[completed]){
 state.pendingLottery=completed;
 }
@@ -2259,7 +2264,9 @@ if(e.target===document.getElementById('lotteryOverlay'))lotteryCloseModal();
 /* v40.7.beta：移除此處的 lsq 接線（lsqCloseModal 定義在下方 IS_TEST IIFE 內，此處引用會 ReferenceError；接線已移至 IIFE 內） */
 document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();
 function proceedAfterLottery(){function lbProceedNext(){if(state.pendingLevelUp){state.pendingLevelUp=false;showLevelUpVeil(state.pendingLevelUpName);return}checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})}if(lbAutoPending){lbAutoPending=false;lbOpenAuto(lbProceedNext);return}lbProceedNext()}
-/* v40.5.beta：抽獎輪盤——點擊「下一關」時如有待領抽獎，先彈抽獎彈窗，完成後再繼續 */
+/* v40.5.beta：抽獎輪盤——點擊「下一關」時如有待領抽獎，先彈抽獎彈窗，完成後再繼續。
+   v40.13.beta：順序保證——抽獎必在排行榜（lbAutoPending）之前。proceedAfterLottery
+   在抽獎關閉後才檢查 lbAutoPending，確保重疊關先抽獎、後看榜。 */
 if(state.pendingLottery){var lv=state.pendingLottery;state.pendingLottery=0;lotteryOpenModal(lv,proceedAfterLottery);return;}
 proceedAfterLottery()};
 document.getElementById('levelUpBtn').onclick=function(){var d=document.getElementById('levelUpDialog');if(d.open)d.close();unlockPageScroll();checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})};document.getElementById('retryBtn').onclick=function(){var won=result.dataset.win==='1';if(!won){closeResultDialog();clearToast();state.hearts=MAX_HEARTS;state.score=Math.max(0,state.score-5000);state.mode='x';newLevel(state.level,false,true);return}};result.addEventListener('cancel',function(e){e.preventDefault()});result.addEventListener('close',unlockPageScroll);[rules,result].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d&&d===rules)d.close()})});
