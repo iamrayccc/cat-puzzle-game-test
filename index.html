@@ -684,9 +684,9 @@ body.theme-dark {
 </dialog>
 <dialog id="jumpDialog">
 <form class="sheet" id="jumpForm" method="dialog">
-<label for="jumpInput">跳到第幾關？（1–600）</label>
-<input id="jumpInput" type="number" min="1" max="600" step="1" inputmode="numeric" required />
-<p class="jump-error" id="jumpError" role="alert" hidden>請輸入 1–600 的關號</p>
+<label for="jumpInput" id="jumpLabel">跳到第幾關？</label>
+<input id="jumpInput" type="number" min="1" step="1" inputmode="numeric" required />
+<p class="jump-error" id="jumpError" role="alert" hidden></p>
 <div class="jump-actions">
 <button class="secondary" id="jumpCancel" type="button">取消</button>
 <button class="primary" type="submit">跳關</button>
@@ -834,7 +834,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.19.40.26.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.19.40.27.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=630, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2317,15 +2317,15 @@ jumpBtn.type='button';
 jumpBtn.id='jumpBtn';
 jumpBtn.setAttribute('aria-label','跳到指定關卡（測試專用）');
 jumpBtn.textContent='跳關（測試）';
-var jumpDialog=document.getElementById('jumpDialog'),jumpForm=document.getElementById('jumpForm'),jumpInput=document.getElementById('jumpInput'),jumpError=document.getElementById('jumpError');
-jumpBtn.onclick=function(){jumpInput.value=String(state.level+1);jumpError.hidden=true;jumpDialog.showModal();jumpInput.focus();jumpInput.select()};
+var jumpDialog=document.getElementById('jumpDialog'),jumpForm=document.getElementById('jumpForm'),jumpInput=document.getElementById('jumpInput'),jumpError=document.getElementById('jumpError'),jumpLabel=document.getElementById('jumpLabel');
+jumpBtn.onclick=function(){jumpLabel.textContent='跳到第幾關？（1–'+TOTAL+'）';jumpInput.value=String(state.level+1);jumpError.hidden=true;jumpDialog.showModal();jumpInput.focus();jumpInput.select()};
 document.getElementById('jumpCancel').onclick=function(){jumpDialog.close()};
 /* 版本更新對話框按鈕 */
 jumpDialog.addEventListener('click',function(e){if(e.target===jumpDialog)jumpDialog.close()});
 jumpForm.onsubmit=function(e){
 e.preventDefault();
 var n=Number(jumpInput.value);
-if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.hidden=false;showToast('請輸入 1–600 的關號');jumpInput.focus();return}
+if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.textContent='請輸入 1–'+TOTAL+' 的關號';jumpError.hidden=false;showToast('請輸入 1–'+TOTAL+' 的關號');jumpInput.focus();return}
 jumpDialog.close();closeResultDialog();clearToast();newLevel(n-1);
 };
 jumpBtn.className='jump-bottom-btn';
