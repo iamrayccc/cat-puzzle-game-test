@@ -586,7 +586,7 @@ body.theme-dark {
 <ol class="rules-list">
 <li class="warn-item"><span class="rule-number warn">💾</span><div><strong>🐱 開始遊戲前請注意</strong><span>請注意：如你正在使用瀏覽器的無痕／私密模式，遊戲進度將無法保留。請用一般模式開啟，以免進度遺失。</span><span style="margin-top:1.35em;"><span style="display:inline;color:#ff0000;font-weight:bold;">雲端修復</span>：遊戲進度自動備份至雲端。如因資料損壞或更換手機後需取回進度，點擊頁底「恢復我的資料」，輸入您的恢復碼即可。</span></div></li>
 <li><span class="rule-number">1</span><div><strong>基本規則</strong><span>每一行、每一列各一隻；每個區域各一隻；貓咪不能彼此相鄰（連斜角也不行），放好後周圍八格都可排除。</span></div></li>
-<li><span class="rule-number">2</span><div><strong>自動模式（放貓自動標 X）</strong><span>關卡名稱旁有 AUTO／OFF 開關，預設為 OFF。開啟後，每次正確放貓，系統會自動在該貓的橫行、直行及周圍八格標 X；誤放不會觸發。開關設定會隨進度保存。</span></div></li>
+<li><span class="rule-number">2</span><div><strong>自動模式（放貓自動標 X）</strong><span>關卡名稱旁有 AUTO／OFF 開關，預設為開啟。開啟後，每次正確放貓，系統會自動在該貓的橫行、直行及周圍八格標 X；誤放不會觸發。開關設定會隨進度保存。</span></div></li>
 <li><span class="rule-number">3</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
 <li><span class="rule-number">4</span><div><strong>開局指引</strong><span>只在第 1–30 關提供，第 31 關起不再提供；非進度恢復進入關卡時，可查看一次不直接落子的起手推理；高亮只教一步，由你親自標記，也不會消耗找貓提示。</span></div></li>
 <li><span class="rule-number">5</span><div><strong>找貓提示</strong><span>每關可使用 2 次「找貓提示」；提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
@@ -831,7 +831,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.11.40.24.beta'; // v40.24.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.11.40.25.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=600, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1320,8 +1320,8 @@ return true;
 只在轉關卡時寫入（nextBtn → newLevel 後呼叫 saveLocalProgress）。
 啟動時優先讀取：校驗通過則恢復，否則回退 URL hash 或從第 1 關開始。 */
 var _storeSfx=IS_TEST?'-test':'',LS_KEY='meowdoku-progress-v1'+_storeSfx,LS_SECRET='meowdoku-cat-2026',THEME_KEY='meowdoku-theme-v1'+_storeSfx,AUTO_MODE_KEY='meowdoku-automode-v1'+_storeSfx,HINTS_KEY='meowdoku-hints-v1'+_storeSfx;
-var currentTheme='light'; /* 主題記憶體變數：切換即時生效，升關存檔時才寫入 localStorage */
-var autoMode=false; /* 自動標 X 模式：預設 OFF；正確放貓後自動標記橫行／直行／周圍 8 格 */
+var currentTheme='dark'; /* 主題記憶體變數：預設深色；切換即時生效，升關存檔時才寫入 localStorage */
+var autoMode=true; /* 自動標 X 模式：預設開啟；正確放貓後自動標記橫行／直行／周圍 8 格 */
 function sha256hex(str){
 try{
 if(!(window.crypto&&crypto.subtle&&crypto.subtle.digest))return Promise.resolve(null);
@@ -2954,7 +2954,7 @@ if(lb)lb.classList.toggle('active',!dark);
 repaintBoardColors();
 }
 function setTheme(theme){currentTheme=(theme==='dark')?'dark':'light';applyTheme(currentTheme)}
-/* ===== 放貓自動標 X 開關（v37.23）：僅正確放貓後觸發，預設 OFF ===== */
+/* ===== 放貓自動標 X 開關（v37.23）：僅正確放貓後觸發，預設開啟（v40.25 起） ===== */
 function getAutoMode(){return autoMode}
 function paintAutoMode(){var on=document.getElementById('autoOnBtn'),off=document.getElementById('autoOffBtn');if(on)on.classList.toggle('active',autoMode);if(off)off.classList.toggle('active',!autoMode)}
 function setAutoMode(on){autoMode=!!on;paintAutoMode();/* v40.7.beta：寫入後讀回驗證，確保 localStorage 確實保存（2026-10-18 CC 發現未保存問題） */
@@ -2971,9 +2971,21 @@ for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){if(dr===0&&dc===0)continue;va
 return marked;
 }
 function toggleTheme(){setTheme(getTheme()==='dark'?'light':'dark')}
+/* v40.25 一次性遷移：舊玩家無明確設定時保留舊預設，僅新玩家用新預設 */
+try{
+var _migKey='meowdoku-defaults-migrated-v40_25'+_storeSfx;
+if(!localStorage.getItem(_migKey)){
+var _hasProg=null;try{_hasProg=localStorage.getItem(LS_KEY)}catch(e){}
+if(_hasProg){
+try{if(!localStorage.getItem(THEME_KEY))localStorage.setItem(THEME_KEY,'light')}catch(e){}
+try{if(!localStorage.getItem(AUTO_MODE_KEY))localStorage.setItem(AUTO_MODE_KEY,'off')}catch(e){}
+}
+try{localStorage.setItem(_migKey,'1')}catch(e){}
+}
+}catch(e){}
 /* 啟動時：從 localStorage 恢復主題到記憶體（同步，避免閃爍），按鈕接線 */
-try{var _st=localStorage.getItem(THEME_KEY);if(_st==='dark')currentTheme='dark'}catch(e){}
-try{var _am=localStorage.getItem(AUTO_MODE_KEY);if(_am==='on')autoMode=true}catch(e){}
+try{var _st=localStorage.getItem(THEME_KEY);if(_st==='dark'||_st==='light')currentTheme=_st}catch(e){}
+try{var _am=localStorage.getItem(AUTO_MODE_KEY);if(_am==='on')autoMode=true;else if(_am==='off')autoMode=false}catch(e){}
 applyTheme(getTheme());paintAutoMode();
 (function(){
 var db=document.getElementById('themeDarkBtn'),lb=document.getElementById('themeLightBtn');
