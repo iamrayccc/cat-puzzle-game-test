@@ -841,7 +841,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.20.40.31.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.20.40.32.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2978,6 +2978,9 @@ for(var c=0;c<p.size;c++)tryMark(pr*p.size+c);
 for(var r=0;r<p.size;r++)tryMark(r*p.size+pc);
 /* 周圍 8 格 */
 for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){if(dr===0&&dc===0)continue;var r=pr+dr,c=pc+dc;if(r>=0&&r<p.size&&c>=0&&c<p.size)tryMark(r*p.size+c)}
+/* 同色區其餘格（v40.32.beta 延伸：一區一貓，該貓所在色區的其餘格必然不是貓） */
+var myReg=p.regions[pr][pc];
+for(var rr2=0;rr2<p.size;rr2++)for(var cc2=0;cc2<p.size;cc2++)if(p.regions[rr2][cc2]===myReg)tryMark(rr2*p.size+cc2);
 return marked;
 }
 function toggleTheme(){setTheme(getTheme()==='dark'?'light':'dark')}
