@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>無痕模式偵測示範</title>
+<style>
+  body{font-family:-apple-system,"PingFang HK","Microsoft JhengHei",sans-serif;margin:0;padding:20px;background:#f6f3ee;color:#333;line-height:1.6}
+  .card{max-width:640px;margin:0 auto;background:#fff;border-radius:14px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+  h1{font-size:20px;margin:0 0 6px}
+  .sub{color:#777;font-size:13px;margin-bottom:16px}
+  #verdict{font-size:22px;font-weight:700;text-align:center;padding:16px;border-radius:10px;margin:14px 0}
+  .v-private{background:#fde8e8;color:#b02a2a}
+  .v-normal{background:#e6f6e9;color:#217a35}
+  .v-unsure{background:#fff4d6;color:#8a6d00}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+  td,th{border-bottom:1px solid #eee;padding:8px 6px;text-align:left;vertical-align:top}
+  th{color:#888;font-weight:600;width:42%}
+  button{display:block;width:100%;margin-top:18px;padding:13px;font-size:16px;border:0;border-radius:10px;background:#e07840;color:#fff;font-weight:700}
+  .note{font-size:13px;color:#666;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🐱 無痕模式偵測示範</h1>
+  <div class="sub">試驗方法：先以一般模式開啟本頁記下結果，再以無痕／私密模式開啟同一網址，對比兩次判定及儲存配額數字。</div>
+  <div id="verdict" class="v-unsure">偵測中…</div>
+  <table id="signals"></table>
+  <button onclick="run()">重新偵測</button>
+  <div class="note">判定原理：無痕模式下瀏覽器會大幅收緊儲存配額，部分儲存介面亦會失敗或受限。本頁綜合多個訊號判定，並列出原始數字供對照。Safari 的偵測可靠度較低，數字差距是最誠實的證據。</div>
+</div>
+<script>
+function fmt(b){
+  if(b==null) return '不支援讀取';
+  if(b>=1073741824) return (b/1073741824).toFixed(2)+' GB（'+b.toLocaleString()+' 位元組）';
+  if(b>=1048576) return (b/1048576).toFixed(1)+' MB（'+b.toLocaleString()+' 位元組）';
+  return b.toLocaleString()+' 位元組';
+}
+function row(k,v){return '<tr><th>'+k+'</th><td>'+v+'</td></tr>';}
+async function run(){
+  var verdictEl=document.getElementById('verdict');
+  verdictEl.textContent='偵測中…'; verdictEl.className='v-unsure';
+  var ua=navigator.userAgent;
+  var family=/Firefox/.test(ua)?'Firefox':(/Chrome|Chromium|Edg/.test(ua)?'Chromium（Chrome／Edge）':(/Safari/.test(ua)?'Safari（WebKit）':'其他'));
+  var rows='', strong=[], weak=[];
+  rows+=row('瀏覽器家族',family);
+  rows+=row('裝置記憶體（參考）', navigator.deviceMemory? navigator.deviceMemory+' GB':'瀏覽器未提供');
+
+  // 訊號一：localStorage 可否寫入
+  var lsOk=false, lsErr='';
+  try{ localStorage.setItem('__detect','1'); lsOk=(localStorage.getItem('__detect')==='1'); localStorage.removeItem('__detect'); }catch(e){ lsErr=e.name||'錯誤'; }
+  rows+=row('本地儲存可寫入', lsOk?'可以':('不可以（'+lsErr+'）'));
+  if(!lsOk) strong.push('本地儲存被拒');
+
+  // 訊號二：IndexedDB 可否開啟
+  var idbRes='未能完成測試';
+  try{
+    idbRes=await new Promise(function(resolve){
+      var done=false;
+      var req=indexedDB.open('__detect_db',1);
+      req.onsuccess=function(){ idbRes='可以開啟'; try{req.result.close();}catch(e){} done=true; resolve(idbRes); };
+      req.onerror=function(){ idbRes='失敗（'+(req.error?req.error.name:'未知')+'）'; done=true; resolve(idbRes); };
+      req.onblocked=function(){ idbRes='被阻擋'; done=true; resolve(idbRes); };
+      setTimeout(function(){ if(!done) resolve('逾時'); },2000);
+    });
+  }catch(e){ idbRes='例外（'+e.name+'）'; }
+  rows+=row('資料庫（IndexedDB）', idbRes);
+  if(idbRes.indexOf('失敗')===0||idbRes.indexOf('例外')===0) strong.push('資料庫開啟失敗');
+
+  // 訊號三：儲存配額
+  var quota=null;
+  if(navigator.storage&&navigator.storage.estimate){
+    try{ var est=await navigator.storage.estimate(); quota=est.quota; rows+=row('儲存配額', fmt(quota)); rows+=row('已用儲存', fmt(est.usage||0)); }
+    catch(e){ rows+=row('儲存配額','讀取失敗'); }
+  } else {
+    rows+=row('儲存配額','此瀏覽器不支援讀取');
+  }
+  if(quota!=null){
+    if(quota<160*1048576) strong.push('配額極小（'+fmt(quota)+'）');
+    else if(quota<1073741824) weak.push('配額偏小（'+fmt(quota)+'）');
+  }
+
+  // 判定
+  var v, cls;
+  if(strong.length){ v='偵測結果：正在使用無痕／私密模式'; cls='v-private'; }
+  else if(weak.length){ v='偵測結果：疑似無痕／私密模式（訊號較弱）'; cls='v-unsure'; }
+  else if(quota==null&&family.indexOf('Safari')===0){ v='偵測結果：未能確定（Safari 未提供足夠訊號）'; cls='v-unsure'; }
+  else { v='偵測結果：一般模式'; cls='v-normal'; }
+  verdictEl.textContent=v; verdictEl.className=cls;
+  rows+=row('判定依據', strong.length?('強訊號：'+strong.join('、')):(weak.length?('弱訊號：'+weak.join('、')):'未發現無痕訊號'));
+  document.getElementById('signals').innerHTML=rows;
+}
+run();
+</script>
+</body>
+</html>
