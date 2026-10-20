@@ -841,7 +841,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.20.40.29.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.20.40.31.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1400,7 +1400,7 @@ if(!raw)return Promise.resolve(null);
 var d;
 try{d=JSON.parse(raw)}catch(e){return Promise.resolve(null)}
 if(!d||(d.v!==1&&d.v!==2&&d.v!==3)||typeof d.level!=='number'||typeof d.hearts!=='number'||typeof d.score!=='number'||typeof d.sum!=='string')return Promise.resolve(null);
-if(d.level<0||d.level>=TOTAL||d.hearts<1||d.hearts>MAX_HEARTS||d.score<0||!isFinite(d.score))return Promise.resolve(null);
+if(d.level<0||d.level>=TOTAL||d.hearts<0||d.hearts>MAX_HEARTS||d.score<0||!isFinite(d.score))return Promise.resolve(null);
 var best=undefined;
 if(d.v===3){
 if(d.best!==undefined&&(typeof d.best!=='number'||d.best<0||!isFinite(d.best)))return Promise.resolve(null);
@@ -1888,7 +1888,7 @@ if(state.hearts<MAX_HEARTS){state.hearts=Math.min(MAX_HEARTS,state.hearts+1);rec
    再檢查 lbAutoPending（排行榜）。重疊關（30、60…）順序為：抽獎 → 排行榜 → 下一關。
    抽獎獎勵（加分／加心）在 lotteryApplyPrize 內即時寫入存檔並上傳，
    如為新最佳積分亦觸發 lbFireSubmit，排行榜彈窗開啟時讀取的已是更新後數據。 */
-if(firstCompletion&&completed%15===0&&completed>state.maxLotteryLevel){
+if(win&&completed%15===0&&completed>state.maxLotteryLevel){
 state.pendingLottery=completed;
 }
 var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor(getActiveMs()/1000)),nextBtn=document.getElementById('nextBtn'),retryBtn=document.getElementById('retryBtn');document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');var crownEl=document.getElementById('scoreCrown');if(crownEl){crownEl.style.display=(win&&state.best!==undefined&&state.best!==null&&Math.floor(state.score)>=Math.floor(state.best))?'block':'none'}document.getElementById('levelStat').textContent=currentLevelName();document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';var rtEl=document.getElementById('resultText');if(win){rtEl.style.display='none'}else{rtEl.style.display='block';rtEl.textContent='5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。';}var bdEl=document.getElementById('scoreBreakdown');if(win&&earned&&typeof scoreBreakdown!=='undefined'){bdEl.innerHTML='計分明細<br>'+scoreBreakdown.lines.join('<br>')+'<br><b>本關合計 ＋'+scoreBreakdown.total+'</b>';bdEl.style.display='block'}else{bdEl.style.display='none'}var bsEl=document.getElementById('bestStat');if(win&&bsEl){var bTxt=(state.best===undefined||state.best===null)?'–':Math.floor(state.best).toLocaleString('zh-Hant');bsEl.textContent='個人紀錄：累計最高積分 '+bTxt;bsEl.style.display='block'}else if(bsEl){bsEl.style.display='none'}if(win){var finishedAll=state.level===TOTAL-1;nextBtn.textContent=finishedAll?'完成':'下一關';nextBtn.style.display='block';nextBtn.className='primary';nextBtn.autofocus=true;retryBtn.style.display='none';retryBtn.autofocus=false;nextBtn.parentNode.insertBefore(nextBtn,retryBtn)}else{nextBtn.style.display='none';nextBtn.autofocus=false;retryBtn.textContent='繼續玩';retryBtn.style.display='block';retryBtn.className='primary';retryBtn.autofocus=true;nextBtn.parentNode.insertBefore(retryBtn,nextBtn)}d.dataset.win=win?'1':'0';
@@ -3022,8 +3022,13 @@ if(saved.theme)setTheme(saved.theme);
 newLevel(saved.level,true);  // skipSave：恢復期間先不寫入，避免 newLevel 污染 hints key
 if(hs&&hs.level===saved.level&&hs.hints>=0&&hs.hints<=2){state.hintsRemaining=hs.hints;paintHintButton();}
 persistProgress();  // state 已完全恢復，一次寫入正確值（含 hash、v3、hints）
+if(state.hearts<=0){
+/* 劇毒存檔修復（v40.30.beta）：hearts=0 存檔＝上次完結未按「繼續玩」；比照 hash 恢復路徑，鎖定並重現完結流程，不顯示成功 toast */
+state.locked=true;setLogic('已恢復上次進度','錯放懲罰已保存；5 顆心已用完。','!');setTimeout(function(){finish(false)},120);
+}else{
 setLogic('已恢復上次進度','已從本機存檔恢復：第 '+(saved.level+1)+' 關，積分 '+saved.score.toLocaleString('zh-Hant')+'。','↻');
 setTimeout(function(){showToast('已恢復上次進度：第 '+(saved.level+1)+' 關')},120);
+}
 lsDone=true;
 }
 }catch(e){lsDone=false}
