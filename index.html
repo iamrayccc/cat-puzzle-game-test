@@ -872,7 +872,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.21.41.4.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.21.41.5.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1888,15 +1888,26 @@ unlockPageScroll();
 var p=pendingProceed;pendingProceed=null;
 if(runProceed!==false&&p)p();
 }
+/* v41.5.beta（CC 批准）：版本檢查加 5 秒超時及單次保證——請求懸掛（例如電話喚醒後
+網絡重建期間 Promise 永不落定）時不再卡住前進；逾時視同檢查失敗，靜默前進。
+proceed 經 once 旗標包裹全程只執行一次；逾時後遲到的回應完全忽略（不前進、不彈提示）；
+顯示新版本提示前先清除計時器，避免彈窗開啟期間誤觸超時前進。 */
 function checkVersionThen(proceed){
+var done=false,timer=null;
+function go(){if(done)return;done=true;if(timer!==null){clearTimeout(timer);timer=null;}proceed();}
+timer=setTimeout(function(){timer=null;go();},5000);
 try{
 fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){
 if(!r.ok)throw 0;return r.text();
 }).then(function(t){
+if(done)return; /* 已逾時前進：遲到回應完全忽略 */
 t=(t||'').trim();
-if(t&&t!==CURRENT_VERSION){showUpdateDialog(proceed)}else{proceed()}
-}).catch(function(){proceed()});
-}catch(e){proceed()}
+if(t&&t!==CURRENT_VERSION){
+if(timer!==null){clearTimeout(timer);timer=null;} /* 顯示提示前先清除計時器，彈窗開啟期間不誤觸超時 */
+showUpdateDialog(go);
+}else{go()}
+}).catch(function(){go()});
+}catch(e){go()}
 }
 /* ===== 玩家等級提升恭喜（v37.0）：取代舊晉級恭喜彈窗 ===== */
 var LEVEL_ORDER=['新手','初階','中階','高階','好手','高手','精英','專家','大師','宗師','傳奇','殿堂','皇者1段','皇者2段','皇者3段','至尊1段','至尊2段','至尊3段','神話1段','神話2段','神話3段'];
@@ -3087,7 +3098,7 @@ if(aon)aon.addEventListener('click',function(){setAutoMode(true)});
 if(aoff)aoff.addEventListener('click',function(){setAutoMode(false)});
 })();
 (async function boot(){
-var lsDone=false;
+var lsDone=false,bootLotteryLevel=0;
 try{
 var saved=await loadLocalProgress();
 if(saved){
@@ -3100,20 +3111,42 @@ if(saved.best!==undefined&&saved.best!==null)state.best=Math.floor(saved.best);
 state.maxCompleted=saved.level;
 try{var _mc=loadMaxCompletedProgress();if(typeof _mc==='number'&&_mc>state.maxCompleted)state.maxCompleted=_mc;}catch(e){}
 if(saved.theme)setTheme(saved.theme);
-newLevel(saved.level,true);  // skipSave：恢復期間先不寫入，避免 newLevel 污染 hints key
-if(hs&&hs.level===saved.level&&hs.hints>=0&&hs.hints<=2){state.hintsRemaining=hs.hints;paintHintButton();}
+/* v41.5.beta 載入自動前進（CC 批准）：「已過關、未前進」狀態——maxCompleted 恰為
+saved.level+1、心數>0、尚未完成最後一關——下次載入直接開啟下一關，不再要求重玩
+已完成關卡。差異大於 1（回頭重玩低關）或 hearts<=0（完結待處理）均不觸發，行為不變。 */
+var effLevel=saved.level,autoFwd=false;
+if(state.hearts>0&&state.maxCompleted===saved.level+1&&state.maxCompleted<TOTAL){effLevel=state.maxCompleted;autoFwd=true;}
+newLevel(effLevel,true);  // skipSave：恢復期間先不寫入，避免 newLevel 污染 hints key
+if(hs&&hs.level===effLevel&&hs.hints>=0&&hs.hints<=2){state.hintsRemaining=hs.hints;paintHintButton();}
 persistProgress();  // state 已完全恢復，一次寫入正確值（含 hash、v3、hints）
 if(state.hearts<=0){
 /* 劇毒存檔修復（v40.30.beta）：hearts=0 存檔＝上次完結未按「繼續玩」；比照 hash 恢復路徑，鎖定並重現完結流程，不顯示成功 toast */
 state.locked=true;setLogic('已恢復上次進度','錯放懲罰已保存；5 顆心已用完。','!');setTimeout(function(){finish(false)},120);
+}else if(autoFwd){
+setLogic('已恢復上次進度','第 '+state.maxCompleted+' 關已完成，已直接開啟第 '+(effLevel+1)+' 關。','↻');
+setTimeout(function(){showToast('上一關已完成，已直接開啟第 '+(effLevel+1)+' 關')},120);
 }else{
 setLogic('已恢復上次進度','已從本機存檔恢復：第 '+(saved.level+1)+' 關，積分 '+saved.score.toLocaleString('zh-Hant')+'。','↻');
 setTimeout(function(){showToast('已恢復上次進度：第 '+(saved.level+1)+' 關')},120);
 }
+/* 抽獎承接：自動前進且剛完成關卡為 15 的倍數且該次抽獎未領取時，進入新關後呈現
+該次待領抽獎（發獎沿用 lotteryApplyPrize 既有寫入及上傳路徑）。排行榜自動顯示及
+升級彈窗於自動前進時略過（純顯示；提交及升級判定數據已於 finish 時完成）。 */
+bootLotteryLevel=(autoFwd&&state.maxCompleted%15===0&&state.maxCompleted>state.maxLotteryLevel)?state.maxCompleted:0;
 lsDone=true;
 }
 }catch(e){lsDone=false}
-if(lsDone){lbCheckNicknameOnBoot();return;}
+if(lsDone){
+if(bootLotteryLevel>0){
+/* 抽獎呈現次序：暱稱已設定即直接呈現；未設定時排在暱稱對話框關閉之後（沿用
+lbOpenNicknameDialog 的關閉回調，其計時重置行為與 lbCheckNicknameOnBoot 一致），
+避免暱稱對話框與抽獎同時開啟。抽獎關閉後玩家留在新關，不作任何前進。 */
+var presentBootLottery=function(){try{lotteryOpenModal(bootLotteryLevel,function(){})}catch(_){}};
+if(lbGetNickname()){lbCheckNicknameOnBoot();presentBootLottery();}
+else{lbOpenNicknameDialog(function(){try{if(typeof state!=='undefined'&&state){state.start=Date.now();state.activeMs=0;state.lastResume=Date.now();}}catch(_){}presentBootLottery();});}
+}else{lbCheckNicknameOnBoot();}
+return;
+}
 if(restoreProgress()){
 var restoredPuzzle=currentPuzzle(),healedOnLoad=healPoisonedLocks(restoredPuzzle);
 render();updateAll(false);scheduleSway();
