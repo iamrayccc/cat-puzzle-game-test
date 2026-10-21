@@ -767,7 +767,7 @@ body.theme-dark {
 <div class="result-cat" id="recCodeTipCat"></div>
 <h2 id="recCodeTipTitle">請保存您的恢復碼</h2>
 </div>
-<p>換手機或遺失進度時，可用以下恢復碼取回遊戲紀錄。請截圖妥善保管：</p>
+<p>換手機或遺失進度時，可用以下恢復碼取回遊戲紀錄。請截圖妥善保管，切勿分享給他人；日後可於『我的恢復碼』再次查看：</p>
 <div class="recovery-code-row">
 <span id="recCodeTipText">----</span>
 </div>
@@ -891,7 +891,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.21.41.8.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.21.41.9.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -3074,7 +3074,7 @@ var okBtn=document.getElementById('incognitoTipOkBtn');
 if(okBtn)okBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll()});
 })();
 /* ===== 第 1 關無痕模式提醒（完） ===== */
-/* ===== 第 5 關保存恢復碼提示（v41.8.beta 重做，CC 2026-10-21 定奪） =====
+/* ===== 第 5 關保存恢復碼提示（v41.8.beta 重做，CC 2026-10-21 定奪；v41.9.beta 文案補充及計時補償，CC 2026-10-21 採納試玩貓建議並即時建造） =====
 觸發條件只有一項：進入第 5 關即顯示，做法完全比照第 1 關無痕提醒與第 10 關
 AUTO 提示——專屬彈窗、觸發函數通過守衛後直接 showModal；不設旗標、不儲存
 顯示紀錄、不分新／舊玩家、不論首次或重玩，每次符合守衛的進入均顯示。唯一
@@ -3083,7 +3083,14 @@ AUTO 提示——專屬彈窗、觸發函數通過守衛後直接 showModal；�
 無碼時該函數即場產生新碼並寫入本地恢復碼鍵，行為與玩家手動開啟「我的恢復
 碼」完全一致。v41.7.beta 舊做法另設無碼不顯示守衛、轉手呼叫既有恢復碼彈窗
 開啟函數及多重對話框銜接守衛，致 CC 親測無彈窗，本版全數移除。hash 恢復
-路徑不經 newLevel，於啟動段另補觸發。全版本適用，不置於 if(IS_TEST) 內。 */
+路徑不經 newLevel，於啟動段另補觸發。全版本適用，不置於 if(IS_TEST) 內。
+v41.9.beta 兩項補充：(1) 內文加「切勿分享給他人；日後可於『我的恢復碼』
+再次查看」，提醒玩家勿分享並告知後路；(2) 計時補償——newLevel 於顯示提示
+前已重置本關計時起點，提示停留（閱讀及截圖）會計入本關用時，故玩家按
+「知道了」關閉提示時，比照暱稱對話框關閉回調的既有處理，一併重置
+state.start／state.activeMs／state.lastResume，令本關計時由關閉提示一刻
+重新起算。Esc 已封截，關閉路徑只有「知道了」按鈕一途；newLevel 掛鉤與
+hash 補觸發兩條開啟路徑共用同一個「知道了」關閉處理，故同樣受補償。 */
 function maybeShowRecCodeTip(){
 if(state.level!==4)return;
 if(state.hearts<=0)return; /* 心數耗盡的完結恢復流程優先，不疊加顯示；無旗標，下次符合條件進入時自然再顯示 */
@@ -3096,7 +3103,7 @@ lockPageScroll();d.showModal();d.scrollTop=0;
 var d=document.getElementById('recCodeTipDialog');if(!d)return;
 d.addEventListener('cancel',function(e){e.preventDefault()}); /* 封截 Esc：只可按掣關閉 */
 var okBtn=document.getElementById('recCodeTipOkBtn');
-if(okBtn)okBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll()});
+if(okBtn)okBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll();state.start=Date.now();state.activeMs=0;state.lastResume=Date.now()}); /* v41.9.beta 計時補償：關閉提示時重置本關計時起點（同暱稱對話框關閉回調寫法），提示停留不計入本關用時 */
 })();
 /* ===== 第 5 關保存恢復碼提示（完） ===== */
 function autoMarkX(i,p){
