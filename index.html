@@ -891,7 +891,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.21.41.10.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.21.41.11.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2800,6 +2800,7 @@ acpStyle.textContent=
 '.acp-field label{display:block;font-weight:700;margin-bottom:4px;}'+
 '.acp-field input,.acp-field select{width:100%;box-sizing:border-box;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2);color:var(--ink);font-size:1rem;}'+
 '#acpCodeInput{font-family:ui-monospace,Menlo,Consolas,monospace;text-transform:uppercase;letter-spacing:.08em;}'+
+'#acpNickInput.invalid{border-color:var(--bad);}' +
 '.acp-err{color:#c62828;font-weight:700;margin:8px 0;}'+
 '.acp-note{font-size:.82rem;color:var(--muted);line-height:1.6;}'+
 '.acp-summary{background:var(--panel-2);border:1px dashed var(--soft-line);border-radius:10px;padding:10px 12px;margin:10px 0;text-align:left;line-height:1.7;}'+
@@ -2843,6 +2844,15 @@ acpDialog.innerHTML=
 '<button id="acpConfirm" type="button" hidden>確認覆寫並建立</button></div>'+
 '</div>';
 document.body.appendChild(acpDialog);
+/* 暱稱格式錯誤提示：由 JS 動態建立並置於暱稱欄下方（沿用 .acp-err 樣式），預設隱藏；
+   文案與玩家暱稱對話框的 #nicknameError 完全相同。 */
+var acpNickError=document.createElement('p');
+acpNickError.className='acp-err';
+acpNickError.id='acpNickError';
+acpNickError.setAttribute('role','alert');
+acpNickError.textContent='格式不正確：4–8 個英文字母＋4 個數字';
+acpNickError.hidden=true;
+acpDialog.querySelector('#acpNickInput').parentNode.appendChild(acpNickError);
 var acpPwInput=acpDialog.querySelector('#acpPwInput'),
     acpCodeInput=acpDialog.querySelector('#acpCodeInput'),
     acpNickInput=acpDialog.querySelector('#acpNickInput'),
@@ -2865,6 +2875,28 @@ var acpPwInput=acpDialog.querySelector('#acpPwInput'),
 function acpEsc(s){return String(s===null||s===undefined?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function acpShowError(msg){acpError.textContent=msg;acpError.hidden=!msg}
 function acpSetStatus(msg){acpStatus.textContent=msg;acpStatus.hidden=!msg}
+function acpSetNickError(show){acpNickError.hidden=!show;acpNickInput.classList.toggle('invalid',!!show)}
+/* 恢復碼欄即時格式化：與玩家「恢復我的資料」的 #recoveryCodeInput input 處理逐行相同
+   （轉大寫、剔除 [^A-Z2-9] 以外字元、截斷 12 字元、每 4 字自動插入「-」） */
+acpCodeInput.addEventListener('input',function(e){
+  var v=e.target.value.toUpperCase().replace(/[^A-Z2-9]/g,'');
+  if(v.length>12)v=v.slice(0,12);
+  var f=v;
+  if(v.length>8)f=v.slice(0,4)+'-'+v.slice(4,8)+'-'+v.slice(8);
+  else if(v.length>4)f=v.slice(0,4)+'-'+v.slice(4);
+  if(e.target.value!==f)e.target.value=f;
+});
+/* 暱稱欄輸入行為：與玩家 #nicknameInput 的 input 處理一致
+   （只清除格式錯誤顯示、不做即時驗證；自動轉大寫並保留游標位置） */
+acpNickInput.addEventListener('input',function(){
+  acpSetNickError(false);
+  var v=this.value,up=v.toUpperCase();
+  if(v!==up){
+    var s=this.selectionStart,e=this.selectionEnd;
+    this.value=up;
+    try{this.setSelectionRange(s,e)}catch(_){}
+  }
+});
 function acpSetBusy(busy){
   acpSubmitBtn.disabled=busy;acpConfirmBtn.disabled=busy;
   acpPwInput.disabled=busy;
@@ -2947,11 +2979,13 @@ function acpSubmit(){
   });
 }
 function acpSubmitBody(){
-  acpShowError('');acpResult.hidden=true;acpResetConfirm();
+  acpShowError('');acpSetNickError(false);acpResult.hidden=true;acpResetConfirm();
   var codeIn=acpCodeInput.value.trim().toUpperCase();
   if(codeIn&&!/^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(codeIn)){acpShowError('恢復碼格式不正確（須為 XXXX-XXXX-XXXX，字元限 A–Z 及 2–9）。');return}
   var code=codeIn||acpGenCode();
   var nick=acpNickInput.value.trim();
+  /* 暱稱（可選）：非空時套用玩家同一格式限制 LB_NICK_RE；不符即顯示同一錯誤文案並攔截，零網絡請求 */
+  if(nick&&!LB_NICK_RE.test(nick)){acpSetNickError(true);acpNickInput.focus();return}
   var startLevel=Number(acpLevelInput.value),hearts=Number(acpHeartsInput.value),
       score=Number(acpScoreInput.value),best=Number(acpBestInput.value);
   if(!Number.isInteger(startLevel)||startLevel<1||startLevel>TOTAL){acpShowError('開始關卡須為 1–'+TOTAL+' 的整數。');return}
@@ -3010,6 +3044,7 @@ acpDialog.querySelector('#acpCancel').onclick=acpCloseMain;
 acpDialog.addEventListener('click',function(e){if(e.target===acpDialog)acpCloseMain()});
 acpDialog.addEventListener('close',function(){
   acpPending=null;
+  acpSetNickError(false);
   /* 表格取消或關閉後不保留任何輸入（包括密碼）：全部欄位回復預設值 */
   acpPwInput.value='';acpCodeInput.value='';acpNickInput.value='';acpLevelInput.value='';
   acpHeartsInput.value='5';acpScoreInput.value='0';acpBestInput.value='0';
