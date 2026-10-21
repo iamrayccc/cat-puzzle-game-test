@@ -891,7 +891,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.21.41.9.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.21.41.10.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2776,6 +2776,255 @@ dualLbBtn.setAttribute('aria-label','查看雙版排行榜（測試專用）');
 dualLbBtn.textContent='查看雙版排行榜（測試）';
 dualLbBtn.onclick=dualLbOpen;
 (function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(dualLbBtn);})();
+})();
+
+/* v41.10.beta 測試版專屬：建立玩家資料（管理員工具，CC 2026-10-21 批准規格）。
+   IS_TEST=false（玩家版）時此整塊不執行：無按鈕、無對話框、無 CSS、密碼雜湊常數不進入任何運行路徑；
+   對話框與樣式全部動態建立，不寫入靜態 HTML，玩家版零殘留。
+   用途：CC 輸入玩家資料，直接建立一筆可恢復的備份紀錄；寫入目標可於對話框選擇
+   正式 player_info 表或測試 player_info_test 表（預設正式表，board 隨選擇傳送），
+   玩家其後可於對應版本以該恢復碼取回進度（ZZZZ3388 個案人手流程的工具化）。
+   安全：密碼欄位併入表格本身（CC 2026-10-21 22:03 修訂），點擊按鈕直接開啟表格，
+   不設先行解鎖的門禁步驟；每次按「建立」提交時，先以 SHA-256 雜湊（沿用遊戲既有
+   sha256hex，與 v3 存檔 sum 相同機制）核對密碼欄位值與內置雜湊常數，錯誤或留空
+   即拒絕並清空密碼欄、不發出任何網絡請求、不進入後續任何步驟；原始密碼不出現於
+   程式碼，密碼輸入值不作任何持久儲存（不寫 localStorage、不寫存檔）、不加入任何日誌。 */
+(function(){
+var ACP_PW_HASH='45e2577db53c97dada3c2de84f08d198e1b92e54a21bca868ca835182573bcca';
+/* 動態注入 CSS（不寫入主 <style>，仿 dualLb 模式） */
+var acpStyle=document.createElement('style');
+acpStyle.textContent=
+'#acpDialog[open]{position:fixed;inset:0;width:auto;height:100dvh;margin:0;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow-y:auto;overscroll-behavior:contain;pointer-events:auto;-webkit-overflow-scrolling:touch;}'+
+'#acpDialog .sheet{width:min(94vw,440px);max-height:min(92vh,840px);}'+
+'.acp-field{margin:10px 0;text-align:left;}'+
+'.acp-field label{display:block;font-weight:700;margin-bottom:4px;}'+
+'.acp-field input,.acp-field select{width:100%;box-sizing:border-box;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2);color:var(--ink);font-size:1rem;}'+
+'#acpCodeInput{font-family:ui-monospace,Menlo,Consolas,monospace;text-transform:uppercase;letter-spacing:.08em;}'+
+'.acp-err{color:#c62828;font-weight:700;margin:8px 0;}'+
+'.acp-note{font-size:.82rem;color:var(--muted);line-height:1.6;}'+
+'.acp-summary{background:var(--panel-2);border:1px dashed var(--soft-line);border-radius:10px;padding:10px 12px;margin:10px 0;text-align:left;line-height:1.7;}'+
+'.acp-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}'+
+'#acpResultCode{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.5rem;font-weight:900;letter-spacing:.12em;}';
+document.head.appendChild(acpStyle);
+/* ===== 主對話框（動態建立；密碼欄位併入本表最上方，提交時核對） ===== */
+var acpDialog=document.createElement('dialog');
+acpDialog.id='acpDialog';
+acpDialog.setAttribute('aria-labelledby','acpTitle');
+acpDialog.innerHTML=
+'<div class="sheet">'+
+'<div class="sheet-head"><h2 id="acpTitle">建立玩家資料（測試專用）</h2>'+
+'<button class="close-btn" id="acpClose" type="button" aria-label="關閉">×</button></div>'+
+'<p class="acp-note">建立一筆備份紀錄，並可選擇寫入的目標資料表；玩家可於對應版本以恢復碼取回進度。</p>'+
+'<div class="acp-field"><label for="acpPwInput">密碼</label>'+
+'<input id="acpPwInput" type="password" autocomplete="off" placeholder="請輸入密碼"></div>'+
+'<div class="acp-field"><label for="acpCodeInput">恢復碼（留空自動產生）</label>'+
+'<input id="acpCodeInput" type="text" autocomplete="off" placeholder="XXXX-XXXX-XXXX"></div>'+
+'<div class="acp-field"><label for="acpNickInput">暱稱（可選）</label>'+
+'<input id="acpNickInput" type="text" autocomplete="off" maxlength="12"></div>'+
+'<div class="acp-field"><label for="acpLevelInput">開始關卡（玩家所見關數，1–'+TOTAL+'）</label>'+
+'<input id="acpLevelInput" type="number" min="1" max="'+TOTAL+'" step="1" placeholder="例如 26"></div>'+
+'<div class="acp-field"><label for="acpHeartsInput">心數（1–5）</label>'+
+'<input id="acpHeartsInput" type="number" min="1" max="5" step="1" value="5"></div>'+
+'<div class="acp-field"><label for="acpScoreInput">目前積分（非負整數）</label>'+
+'<input id="acpScoreInput" type="number" min="0" step="1" value="0"></div>'+
+'<div class="acp-field"><label for="acpBestInput">最高積分（非負整數）</label>'+
+'<input id="acpBestInput" type="number" min="0" step="1" value="0"></div>'+
+'<div class="acp-field"><label for="acpThemeSelect">主題</label>'+
+'<select id="acpThemeSelect"><option value="light">淺色</option><option value="dark">深色</option></select></div>'+
+'<div class="acp-field"><label for="acpBoardSelect">目標資料表</label>'+
+'<select id="acpBoardSelect"><option value="prod" selected>正式玩家資料（player_info）</option><option value="test">測試版資料（player_info_test）</option></select></div>'+
+'<p class="acp-err" id="acpError" hidden></p>'+
+'<p class="acp-note" id="acpStatus" hidden></p>'+
+'<div class="acp-summary" id="acpSummary" hidden></div>'+
+'<p id="acpResult" hidden>✅ 已建立。目標資料表：<span id="acpResultTarget"></span><br>恢復碼：<br><span id="acpResultCode"></span><br>'+
+'<span class="acp-note" id="acpResultNote"></span></p>'+
+'<div class="acp-actions"><button class="secondary" id="acpCancel" type="button">取消</button>'+
+'<button id="acpSubmit" type="button">建立</button>'+
+'<button id="acpConfirm" type="button" hidden>確認覆寫並建立</button></div>'+
+'</div>';
+document.body.appendChild(acpDialog);
+var acpPwInput=acpDialog.querySelector('#acpPwInput'),
+    acpCodeInput=acpDialog.querySelector('#acpCodeInput'),
+    acpNickInput=acpDialog.querySelector('#acpNickInput'),
+    acpLevelInput=acpDialog.querySelector('#acpLevelInput'),
+    acpHeartsInput=acpDialog.querySelector('#acpHeartsInput'),
+    acpScoreInput=acpDialog.querySelector('#acpScoreInput'),
+    acpBestInput=acpDialog.querySelector('#acpBestInput'),
+    acpThemeSelect=acpDialog.querySelector('#acpThemeSelect'),
+    acpBoardSelect=acpDialog.querySelector('#acpBoardSelect'),
+    acpError=acpDialog.querySelector('#acpError'),
+    acpStatus=acpDialog.querySelector('#acpStatus'),
+    acpSummary=acpDialog.querySelector('#acpSummary'),
+    acpResult=acpDialog.querySelector('#acpResult'),
+    acpResultTarget=acpDialog.querySelector('#acpResultTarget'),
+    acpResultNote=acpDialog.querySelector('#acpResultNote'),
+    acpResultCode=acpDialog.querySelector('#acpResultCode'),
+    acpSubmitBtn=acpDialog.querySelector('#acpSubmit'),
+    acpConfirmBtn=acpDialog.querySelector('#acpConfirm'),
+    acpPending=null; /* 待二次確認才發送的 payload（記憶體暫存，關閉對話框即棄） */
+function acpEsc(s){return String(s===null||s===undefined?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function acpShowError(msg){acpError.textContent=msg;acpError.hidden=!msg}
+function acpSetStatus(msg){acpStatus.textContent=msg;acpStatus.hidden=!msg}
+function acpSetBusy(busy){
+  acpSubmitBtn.disabled=busy;acpConfirmBtn.disabled=busy;
+  acpPwInput.disabled=busy;
+  acpCodeInput.disabled=busy;acpNickInput.disabled=busy;acpLevelInput.disabled=busy;
+  acpHeartsInput.disabled=busy;acpScoreInput.disabled=busy;acpBestInput.disabled=busy;acpThemeSelect.disabled=busy;acpBoardSelect.disabled=busy;
+}
+function acpResetConfirm(){acpPending=null;acpSummary.hidden=true;acpSummary.innerHTML='';acpConfirmBtn.hidden=true;acpSubmitBtn.hidden=false}
+/* 目標資料表：board='prod' 對應正式 player_info 表、'test' 對應測試 player_info_test 表（預設 'prod'） */
+function acpTableName(board){return board==='test'?'player_info_test':'player_info'}
+/* 恢復碼產生：與 backupGetRecoveryCode 相同的字元集及格式邏輯；
+   不直接呼叫該函數，因其會把碼寫入本地 localStorage（會覆蓋操作者本人的恢復碼），
+   此處僅在記憶體產生新碼，不寫任何本地儲存。 */
+function acpGenCode(){
+  var chars='ABCDEFGHJKMNPQRSTUVWXYZ23456789',code='';
+  for(var i=0;i<12;i++)code+=chars.charAt(Math.floor(Math.random()*chars.length));
+  return code.slice(0,4)+'-'+code.slice(4,8)+'-'+code.slice(8);
+}
+/* 組裝與 backupFireUpload 完全相同形狀的 payload（鍵名及巢狀結構逐鍵一致），
+   惟 board 由操作者於對話框選擇（'prod'＝寫入正式 player_info 表、'test'＝寫入測試 player_info_test 表，預設 'prod'），
+   save_json 四個 raw 均按各保存函數的原格式及校驗方式在記憶體組裝：
+   v3：{v:3,level,hearts,score,theme,sum[,best]}，sum 由 sha256hex 計算（同 saveLocalProgress）；
+   hints：{v:1,level,hints:2,sum}（新關卡未用提示，同 saveHintsProgress 格式，sum 用 sha256hexSync）；
+   lottery：{v:2,data:'0',sum}（未領取，同 saveLotteryProgress 格式）；
+   maxcompleted：{v:1,data:String(開始關卡-1),sum}（最高完成關＝開始關卡前一關，同 saveMaxCompletedProgress 格式）。 */
+function acpBuildPayload(code,nick,startLevel,hearts,score,best,theme,board){
+  var level0=startLevel-1;
+  var bestFloor=Math.floor(best);
+  return sha256hex(level0+'|'+hearts+'|'+score+'|'+bestFloor+'|'+theme+'|'+LS_SECRET).then(function(sum){
+    if(!sum)return null;
+    var v3obj={v:3,level:level0,hearts:hearts,score:score,theme:theme,sum:sum,best:bestFloor};
+    var v3raw=JSON.stringify(v3obj);
+    var hintsRaw=JSON.stringify({v:1,level:level0,hints:2,sum:sha256hexSync(level0+'|2|'+LS_SECRET)});
+    var lotteryRaw=JSON.stringify({v:2,data:'0',sum:sha256hexSync('0|'+LS_SECRET)});
+    var mcStr=String(startLevel-1);
+    var maxcompRaw=JSON.stringify({v:1,data:mcStr,sum:sha256hexSync(mcStr+'|'+LS_SECRET)});
+    return {board:(board==='test'?'test':'prod'),player_id:backupGetPlayerId(),recovery_code:code,nickname:nick,
+      save_json:JSON.stringify({v3:v3raw,hints:hintsRaw,lottery:lotteryRaw,maxcompleted:maxcompRaw}),
+      max_level:startLevel,hearts:hearts,score:score,best:bestFloor,theme:theme,hints:2};
+  });
+}
+function acpFetch(url,opts){
+  return Promise.race([fetch(url,opts),new Promise(function(_,rej){setTimeout(function(){rej(new Error('請求逾時'))},15000)})]);
+}
+function acpPost(payload){
+  acpSetBusy(true);acpShowError('');acpSetStatus('正在建立紀錄…');
+  acpFetch(BACKUP_API+'/backup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(r){
+    return r.json().catch(function(){return null}).then(function(j){return {r:r,j:j}});
+  }).then(function(res){
+    acpSetBusy(false);acpSetStatus('');
+    if(res.r.ok&&res.j&&res.j.ok){
+      acpResetConfirm();
+      acpCodeInput.value=payload.recovery_code;
+      acpResultTarget.textContent=acpTableName(payload.board)+'（'+(payload.board==='test'?'測試版資料':'正式玩家資料')+'）';
+      acpResultNote.textContent=payload.board==='test'?'請截圖並通知玩家；玩家可於測試版「恢復我的資料」輸入此碼取回進度。':'請截圖並通知玩家；玩家可於玩家版「恢復我的資料」輸入此碼取回進度。';
+      acpResultCode.textContent=payload.recovery_code;
+      acpResult.hidden=false;
+    }else{
+      acpResetConfirm();
+      acpShowError('伺服器拒絕建立（'+(res.j&&res.j.error?res.j.error:('HTTP '+res.r.status))+'），紀錄未建立。');
+    }
+  }).catch(function(e){
+    acpSetBusy(false);acpSetStatus('');acpResetConfirm();
+    acpShowError('網絡錯誤，紀錄未建立：'+(e&&e.message?e.message:'未知錯誤'));
+  });
+}
+function acpSubmit(){
+  /* 提交第一步：先核對表格內的密碼欄位（密碼與資料同表，無先行解鎖狀態）。
+     密碼錯誤或留空：即時拒絕並顯示密碼錯誤、清空密碼欄位、零網絡請求，
+     不進行後續任何步驟（不查紀錄、不顯示摘要、不寫入）。 */
+  var pw=acpPwInput.value;
+  acpPwInput.value=''; /* 輸入值即用即棄 */
+  if(!pw){acpShowError('密碼錯誤，無法建立。');acpPwInput.focus();return}
+  acpSetBusy(true);
+  sha256hex(pw).then(function(h){
+    if(!h||h!==ACP_PW_HASH){acpSetBusy(false);acpShowError('密碼錯誤，無法建立。');acpPwInput.focus();return}
+    acpSetBusy(false);
+    acpSubmitBody();
+  },function(){
+    acpSetBusy(false);acpShowError('密碼錯誤，無法建立。');
+  });
+}
+function acpSubmitBody(){
+  acpShowError('');acpResult.hidden=true;acpResetConfirm();
+  var codeIn=acpCodeInput.value.trim().toUpperCase();
+  if(codeIn&&!/^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(codeIn)){acpShowError('恢復碼格式不正確（須為 XXXX-XXXX-XXXX，字元限 A–Z 及 2–9）。');return}
+  var code=codeIn||acpGenCode();
+  var nick=acpNickInput.value.trim();
+  var startLevel=Number(acpLevelInput.value),hearts=Number(acpHeartsInput.value),
+      score=Number(acpScoreInput.value),best=Number(acpBestInput.value);
+  if(!Number.isInteger(startLevel)||startLevel<1||startLevel>TOTAL){acpShowError('開始關卡須為 1–'+TOTAL+' 的整數。');return}
+  if(!Number.isInteger(hearts)||hearts<1||hearts>5){acpShowError('心數須為 1–5 的整數。');return}
+  if(!Number.isInteger(score)||score<0){acpShowError('目前積分須為非負整數。');return}
+  if(!Number.isInteger(best)||best<0){acpShowError('最高積分須為非負整數。');return}
+  var theme=acpThemeSelect.value==='dark'?'dark':'light';
+  var board=acpBoardSelect.value==='test'?'test':'prod';
+  var tableName=acpTableName(board);
+  acpSetBusy(true);acpSetStatus('正在查詢此恢復碼於目標資料表（'+tableName+'）是否已有紀錄…');
+  /* 防誤覆寫：先查所選目標表（board 隨對話框選擇）；404 即無紀錄；網絡或伺服器錯誤一律中止並顯示，絕不當作無紀錄 */
+  acpFetch(BACKUP_API+'/backup?recovery_code='+encodeURIComponent(code)+'&board='+board).then(function(r){
+    if(r.status===404)return {exists:false};
+    if(!r.ok)throw new Error('查詢失敗（HTTP '+r.status+'）');
+    return r.json().then(function(j){
+      if(j&&j.ok&&j.save_json)return {exists:true,j:j};
+      return {exists:false};
+    });
+  }).then(function(chk){
+    return acpBuildPayload(code,nick,startLevel,hearts,score,best,theme,board).then(function(payload){
+      acpSetBusy(false);acpSetStatus('');
+      if(!payload){acpShowError('無法計算存檔校驗碼，紀錄未建立。');return}
+      if(chk.exists){
+        var oLevel='?',oBest='（無）';
+        try{var ov3=JSON.parse(JSON.parse(chk.j.save_json).v3);oLevel=String(ov3.level+1);if(ov3.best!==undefined&&ov3.best!==null)oBest=Number(ov3.best).toLocaleString('zh-Hant');}catch(_){}
+        var html='此恢復碼在目標資料表已有紀錄：<br>目標資料表：'+acpEsc(tableName)+'<br>暱稱：'+acpEsc(chk.j.nickname||'（無）')+'<br>目前關卡：第 '+acpEsc(oLevel)+' 關<br>最高積分：'+acpEsc(oBest)+'<br>覆寫將以本次輸入的資料取代該紀錄（寫入 '+acpEsc(tableName)+'）。';
+        acpSummary.innerHTML=html;acpSummary.hidden=false;
+        acpPending=payload;
+        acpSubmitBtn.hidden=true;acpConfirmBtn.textContent='確認覆寫並建立';acpConfirmBtn.hidden=false;
+      }else{
+        acpPost(payload);
+      }
+    });
+  }).catch(function(e){
+    acpSetBusy(false);acpSetStatus('');
+    acpShowError((e&&e.message?e.message:'查詢失敗')+'，紀錄未建立。');
+  });
+}
+acpSubmitBtn.onclick=acpSubmit;
+acpConfirmBtn.onclick=function(){
+  if(!acpPending)return;
+  var payload=acpPending;
+  acpSummary.hidden=true;acpConfirmBtn.hidden=true;acpSubmitBtn.hidden=false;
+  acpPost(payload);
+};
+/* 開關主對話框 */
+function acpOpenMain(){
+  acpShowError('');acpSetStatus('');acpResult.hidden=true;acpResetConfirm();acpSetBusy(false);
+  lockPageScroll();
+  acpDialog.showModal();acpDialog.scrollTop=0;
+  acpPwInput.focus();
+}
+function acpCloseMain(){if(acpDialog.open)acpDialog.close()}
+acpDialog.querySelector('#acpClose').onclick=acpCloseMain;
+acpDialog.querySelector('#acpCancel').onclick=acpCloseMain;
+acpDialog.addEventListener('click',function(e){if(e.target===acpDialog)acpCloseMain()});
+acpDialog.addEventListener('close',function(){
+  acpPending=null;
+  /* 表格取消或關閉後不保留任何輸入（包括密碼）：全部欄位回復預設值 */
+  acpPwInput.value='';acpCodeInput.value='';acpNickInput.value='';acpLevelInput.value='';
+  acpHeartsInput.value='5';acpScoreInput.value='0';acpBestInput.value='0';
+  acpThemeSelect.value='light';acpBoardSelect.value='prod';
+  unlockPageScroll();
+});
+/* 創建按鈕並置於 #testBtnZone（沿用 v40.9.beta 測試按鈕模式）；點擊直接開啟表格，密碼於表格內提交時核對 */
+var acpBtn=document.createElement('button');
+acpBtn.className='jump-bottom-btn';
+acpBtn.type='button';
+acpBtn.id='acpBtn';
+acpBtn.setAttribute('aria-label','建立玩家資料（測試專用）');
+acpBtn.textContent='建立玩家資料（測試）';
+acpBtn.onclick=acpOpenMain;
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(acpBtn);})();
 })();
 
 }
