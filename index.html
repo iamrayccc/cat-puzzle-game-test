@@ -872,7 +872,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.21.41.5.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.21.41.6.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2124,7 +2124,7 @@ function backupFireUpload(){
     var v3d=null,hd=null;
     try{v3d=JSON.parse(v3raw)}catch(_){}
     try{hd=JSON.parse(hintsraw)}catch(_){}
-    var payload={player_id:backupGetPlayerId(),recovery_code:backupGetRecoveryCode(),nickname:lbGetNickname(),save_json:JSON.stringify({v3:v3raw,hints:hintsraw,lottery:lotteryraw,maxcompleted:maxcompletedraw}),
+    var payload={board:(IS_TEST?'test':'prod'),player_id:backupGetPlayerId(),recovery_code:backupGetRecoveryCode(),nickname:lbGetNickname(),save_json:JSON.stringify({v3:v3raw,hints:hintsraw,lottery:lotteryraw,maxcompleted:maxcompletedraw}),
       max_level:v3d?(v3d.level+1):null,hearts:v3d?v3d.hearts:null,score:v3d?v3d.score:null,best:(v3d&&v3d.best!==undefined)?v3d.best:null,theme:v3d?v3d.theme:null,
       hints:hd?hd.hints:null};
     fetch(BACKUP_API+'/backup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(){}).catch(function(){});
@@ -2133,7 +2133,7 @@ function backupFireUpload(){
 function backupDownload(code,onProgress){
   var q=String(code||'').toUpperCase();
   var prog=(typeof onProgress==='function')?onProgress:function(){};
-  var url=BACKUP_API+'/backup?'+(/^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(q)?'recovery_code=':'player_id=')+encodeURIComponent(q);
+  var url=BACKUP_API+'/backup?'+(/^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(q)?'recovery_code=':'player_id=')+encodeURIComponent(q)+'&board='+(IS_TEST?'test':'prod');
   return fetch(url).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json()}).then(function(j){
     if(!j||!j.ok||!j.save_json)throw new Error('bad_backup');
     var outer;try{outer=JSON.parse(j.save_json)}catch(e){throw new Error('bad_backup')}
