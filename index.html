@@ -159,7 +159,7 @@ border-radius:4px;
 .cell.buddy-flash { animation:buddyCellFlash .1s ease; }
 @keyframes buddyCellFlash { 0%{filter:brightness(1)} 40%{filter:brightness(1.55) saturate(1.2)} 100%{filter:brightness(1)} }
 .rule-paw { display:inline-block; line-height:0; vertical-align:-.18em; margin:0 .1em; }
-.rule-paw svg { height:1.15em; width:1.15em; }
+.rule-paw svg, svg.rule-paw { height:1.15em; width:1.15em; }
 .cat-svg { width:82%; height:82%; filter:drop-shadow(0 2px 0 rgba(255,255,255,.5)); }
 .cat-svg.pop { animation:catPop .28s cubic-bezier(.2,1.8,.4,1); }
 @keyframes catPop { from{transform:scale(.2) rotate(-12deg)} to{transform:scale(1) rotate(0)} }
@@ -612,7 +612,7 @@ body.theme-dark {
 <li><span class="rule-number">2</span><div><strong>自動模式（放貓自動標 X）</strong><span>新玩家預設為關閉，讓您先親手標記、熟習規則；到達第 10 關時，遊戲會提示您一次，可即時開啟。您亦可隨時以關卡名稱旁的 AUTO／OFF 開關切換。開啟後，每次正確放貓，系統會自動在該貓的橫行、直行、周圍八格及其所屬色區的其餘全部格標 X；誤放不會觸發。開關設定會隨進度保存。</span></div></li>
 <li><span class="rule-number">3</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
 <li><span class="rule-number">4</span><div><strong>找貓提示</strong><span>每關可使用 2 次「找貓提示」；提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
-<li><span class="rule-number">5</span><div><strong>小夥伴<span class="rule-paw"><svg viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.92)" stroke-width="2.2" stroke-linejoin="round"><ellipse cx="13" cy="27.5" rx="5.6" ry="7.4" transform="rotate(-18 13 27.5)" fill="#f78fb0"/><ellipse cx="23.5" cy="19.5" rx="6" ry="7.9" transform="rotate(-6 23.5 19.5)" fill="#f78fb0"/><ellipse cx="40.5" cy="19.5" rx="6" ry="7.9" transform="rotate(6 40.5 19.5)" fill="#f78fb0"/><ellipse cx="51" cy="27.5" rx="5.6" ry="7.4" transform="rotate(18 51 27.5)" fill="#f78fb0"/><ellipse cx="32" cy="41.5" rx="13.5" ry="10.8" fill="#ef6391"/></g></svg></span>（第 51 關起）</strong><span>第 51 關起，每關有一隻小夥伴藏在棋盤的其中一格。放下第一隻貓後牠便會藏好；只要您親手在該格標 X，牠便會現身，替您開啟 3 至 5 格，並以藍色 X 標示。每關只幫忙一次，不扣分、不扣心。</span></div></li>
+<li><span class="rule-number">5</span><div><span>第 51 關起，每關有一隻小夥伴<svg class="rule-paw" viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.92)" stroke-width="2.2" stroke-linejoin="round"><ellipse cx="13" cy="27.5" rx="5.6" ry="7.4" transform="rotate(-18 13 27.5)" fill="#f78fb0"/><ellipse cx="23.5" cy="19.5" rx="6" ry="7.9" transform="rotate(-6 23.5 19.5)" fill="#f78fb0"/><ellipse cx="40.5" cy="19.5" rx="6" ry="7.9" transform="rotate(6 40.5 19.5)" fill="#f78fb0"/><ellipse cx="51" cy="27.5" rx="5.6" ry="7.4" transform="rotate(18 51 27.5)" fill="#f78fb0"/><ellipse cx="32" cy="41.5" rx="13.5" ry="10.8" fill="#ef6391"/></g></svg>藏在棋盤的其中一格。放下貓後牠便會藏好；只要您親手在該格標 X，牠便會現身，替您開啟 3 至 5 格，並以藍色 X 標示。每關只幫忙一次，不扣分、不扣心。</span></div></li>
 <li><span class="rule-number">6</span><div><strong>積分與補心</strong><span>積分與心數規則如下表。</span>
 <table class="level-table">
 <tr><th>項目</th><th>規則</th></tr>
@@ -905,7 +905,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.22.42.0.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.22.42.1.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1859,8 +1859,8 @@ buddyAfterPlacement(); /* 小夥伴：放貓連同 AUTO 標記完成後才選格
 checkWin()
 }
 /* ===== 小夥伴（v42.0.beta；CC 2026-10-21 定案，小樣第四版效果）=====
-   每關一個：玩家每次進入頁面後，須在該次入頁成功放下第一隻貓（放貓或找貓提示
-   皆可）之後，才隨機選定一個藏身格（當時未標記的非貓格）；玩家親手標中該格即
+   每關一個：玩家每次進入頁面後，須在該次入頁放貓後棋盤上貓數達到兩隻（放貓或找貓提示
+   皆可）時，才隨機選定一個藏身格（當時未標記的非貓格）；玩家親手標中該格即
    觸發：pop 一聲、爪印壓入，逐格（約 0.1 秒）開啟 3 至 5 格為藍色 X（此段無
    聲），全部開畢後爪印淡出（約 0.5 秒）藏身格變藍色 X 並 pop 一聲。全程兩聲 pop。
    藍色 X 僅為來源標示（#0f5fd0 加白色光暈），行為與一般 X 完全相同：
@@ -1928,10 +1928,11 @@ return state.buddyCell;
 function buddyMaybePick(){
 if(!buddyEnabled())return; /* 門檻以下：不選格 */
 if(state.buddyDone||state.buddyCell>=0)return;
-for(var i=0;i<state.cells.length;i++)if(state.cells[i]==='cat'){buddyPickCell();return}
+var cats=0;for(var i=0;i<state.cells.length;i++)if(state.cells[i]==='cat')cats++;
+if(cats>=2)buddyPickCell(); /* CC 2026-10-22 改動：以棋盤現況計算，貓數達到兩隻才選格（不另設工作階段計數器、不寫入任何存檔） */
 }
 /* 放貓（含其 AUTO 標記）全部完成後的選格入口（CC 23:48 定案次序）：
-   未選格而棋盤已有貓 → 首次選格；已選格但藏身格已被 AUTO 標記佔用 → 即時靜默
+   未選格而棋盤上貓數達到兩隻 → 首次選格；已選格但藏身格已被 AUTO 標記佔用 → 即時靜默
    重新選格（同關可多次）；藏身格被放錯貓佔用則由 placeCat 錯誤分支即時重選。 */
 function buddyAfterPlacement(){
 if(!buddyEnabled())return; /* 門檻以下：不選格／不重選 */
