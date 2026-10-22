@@ -612,7 +612,7 @@ body.theme-dark {
 <li><span class="rule-number">2</span><div><strong>自動模式（放貓自動標 X）</strong><span>新玩家預設為關閉，讓您先親手標記、熟習規則；到達第 10 關時，遊戲會提示您一次，可即時開啟。您亦可隨時以關卡名稱旁的 AUTO／OFF 開關切換。開啟後，每次正確放貓，系統會自動在該貓的橫行、直行、周圍八格及其所屬色區的其餘全部格標 X；誤放不會觸發。開關設定會隨進度保存。</span></div></li>
 <li><span class="rule-number">3</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
 <li><span class="rule-number">4</span><div><strong>找貓提示</strong><span>每關可使用 2 次「找貓提示」；提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
-<li><span class="rule-number">5</span><div><span>第 51 關起，每關有一隻小夥伴<svg class="rule-paw" viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.92)" stroke-width="2.2" stroke-linejoin="round"><ellipse cx="13" cy="27.5" rx="5.6" ry="7.4" transform="rotate(-18 13 27.5)" fill="#f78fb0"/><ellipse cx="23.5" cy="19.5" rx="6" ry="7.9" transform="rotate(-6 23.5 19.5)" fill="#f78fb0"/><ellipse cx="40.5" cy="19.5" rx="6" ry="7.9" transform="rotate(6 40.5 19.5)" fill="#f78fb0"/><ellipse cx="51" cy="27.5" rx="5.6" ry="7.4" transform="rotate(18 51 27.5)" fill="#f78fb0"/><ellipse cx="32" cy="41.5" rx="13.5" ry="10.8" fill="#ef6391"/></g></svg>藏在棋盤的其中一格。放下貓後牠便會藏好；只要您親手在該格標 X，牠便會現身，替您開啟 3 至 5 格，並以藍色 X 標示。每關只幫忙一次，不扣分、不扣心。</span></div></li>
+<li><span class="rule-number">5</span><div><strong>小夥伴</strong><span>第 51 關起，每關有一隻小夥伴<svg class="rule-paw" viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.92)" stroke-width="2.2" stroke-linejoin="round"><ellipse cx="13" cy="27.5" rx="5.6" ry="7.4" transform="rotate(-18 13 27.5)" fill="#f78fb0"/><ellipse cx="23.5" cy="19.5" rx="6" ry="7.9" transform="rotate(-6 23.5 19.5)" fill="#f78fb0"/><ellipse cx="40.5" cy="19.5" rx="6" ry="7.9" transform="rotate(6 40.5 19.5)" fill="#f78fb0"/><ellipse cx="51" cy="27.5" rx="5.6" ry="7.4" transform="rotate(18 51 27.5)" fill="#f78fb0"/><ellipse cx="32" cy="41.5" rx="13.5" ry="10.8" fill="#ef6391"/></g></svg>藏在棋盤的其中一格。放下貓後牠便會藏好；只要您親手在該格標 X，牠便會現身，替您開啟 3 至 5 格，並以藍色 X 標示。每關只幫忙一次，不扣分、不扣心。藍色 X 與普通 X 相同，可以照常清除。</span></div></li>
 <li><span class="rule-number">6</span><div><strong>積分與補心</strong><span>積分與心數規則如下表。</span>
 <table class="level-table">
 <tr><th>項目</th><th>規則</th></tr>
@@ -905,7 +905,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.22.42.2.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.22.42.3.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1996,6 +1996,7 @@ var cr2=board.children[at]?board.children[at].querySelector('.cross'):null;
 if(cr2)cr2.classList.add('buddy-pop');
 soundPop(); /* 藍色 X 落定一刻：第二聲 pop */
 buddySaveState();persistProgress();
+showToast('小夥伴現身，替您開啟了 '+(picks.length+1)+' 格。'); /* v42.3：觸發完成文字說明；比照放錯貓訊息以 toast 顯示、自動消失；N 為藍色 X 總數（開啟格＋藏身格） */
 }finally{
 if(runId===buddyRunSeq)state.buddyAnim=false;
 }
@@ -3007,6 +3008,7 @@ acpDialog.innerHTML=
 '<input id="acpPwInput" type="password" autocomplete="off" placeholder="請輸入密碼"></div>'+
 '<div class="acp-field"><label for="acpCodeInput">恢復碼（留空自動產生）</label>'+
 '<input id="acpCodeInput" type="text" autocomplete="off" placeholder="XXXX-XXXX-XXXX"></div>'+
+'<p class="acp-note">字元限 A–Z 及 2–9（不含 0、1、I、O）</p>'+
 '<div class="acp-field"><label for="acpNickInput">暱稱（可選）</label>'+
 '<input id="acpNickInput" type="text" autocomplete="off" maxlength="12"></div>'+
 '<div class="acp-field"><label for="acpLevelInput">開始關卡（玩家所見關數，1–'+TOTAL+'）</label>'+
@@ -3059,6 +3061,11 @@ var acpPwInput=acpDialog.querySelector('#acpPwInput'),
     acpSubmitBtn=acpDialog.querySelector('#acpSubmit'),
     acpConfirmBtn=acpDialog.querySelector('#acpConfirm'),
     acpPending=null; /* 待二次確認才發送的 payload（記憶體暫存，關閉對話框即棄） */
+/* v42.3（做法乙）：覆寫摘要顯示期間（acpPending 存在）任一欄位一經改動，即令摘要失效
+   （沿用 acpResetConfirm：隱藏摘要、棄置待確認 payload、恢復「建立」按鈕），須重新產生摘要才可寫入 */
+[acpPwInput,acpCodeInput,acpNickInput,acpLevelInput,acpHeartsInput,acpScoreInput,acpBestInput,acpThemeSelect,acpBoardSelect].forEach(function(el){
+  ['input','change'].forEach(function(ev){el.addEventListener(ev,function(){if(acpPending)acpResetConfirm()})});
+});
 function acpEsc(s){return String(s===null||s===undefined?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function acpShowError(msg){acpError.textContent=msg;acpError.hidden=!msg}
 function acpSetStatus(msg){acpStatus.textContent=msg;acpStatus.hidden=!msg}
@@ -3135,6 +3142,7 @@ function acpPost(payload){
     acpSetBusy(false);acpSetStatus('');
     if(res.r.ok&&res.j&&res.j.ok){
       acpResetConfirm();
+      if(!acpDialog.open)return; /* v42.3：對話框已關閉則跳過結果欄位寫入（伺服器端資料寫入本身不受影響） */
       acpCodeInput.value=payload.recovery_code;
       acpResultTarget.textContent=acpTableName(payload.board)+'（'+(payload.board==='test'?'測試版資料':'正式玩家資料')+'）';
       acpResultNote.textContent=payload.board==='test'?'請截圖並通知玩家；玩家可於測試版「恢復我的資料」輸入此碼取回進度。':'請截圖並通知玩家；玩家可於玩家版「恢復我的資料」輸入此碼取回進度。';
@@ -3179,6 +3187,7 @@ function acpSubmitBody(){
   if(!Number.isInteger(hearts)||hearts<1||hearts>5){acpShowError('心數須為 1–5 的整數。');return}
   if(!Number.isInteger(score)||score<0){acpShowError('目前積分須為非負整數。');return}
   if(!Number.isInteger(best)||best<0){acpShowError('最高積分須為非負整數。');return}
+  if(score>best){acpShowError('目前積分不可大於最高積分。');acpScoreInput.focus();return} /* v42.3：積分交叉檢查，位於一切查詢／寫入之前，違反即拒絕、零網絡請求 */
   var theme=acpThemeSelect.value==='dark'?'dark':'light';
   var board=acpBoardSelect.value==='test'?'test':'prod';
   var tableName=acpTableName(board);
