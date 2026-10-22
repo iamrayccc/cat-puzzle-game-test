@@ -154,7 +154,7 @@ border-radius:4px;
 @keyframes buddyCrossPop { from{transform:scale(.3)} to{transform:scale(1)} }
 .cell > .buddy-paw { position:absolute; inset:5%; z-index:3; pointer-events:none; display:grid; place-items:center; filter:drop-shadow(0 2px 2px rgba(24,50,58,.35)); animation:buddyPawPress .55s cubic-bezier(.3,1.3,.4,1) both; }
 .buddy-paw svg { width:100%; height:100%; }
-.buddy-paw.out { transition:opacity .5s ease; opacity:0; }
+.buddy-paw.out { transition:opacity 1s ease; opacity:0; }
 @keyframes buddyPawPress { 0%{transform:scale(1.38) translateY(-7%);opacity:0} 32%{transform:scale(1.03) translateY(0);opacity:1} 52%{transform:scale(.9) scaleY(.83);opacity:1} 74%{transform:scale(1.045);opacity:1} 100%{transform:scale(1);opacity:1} }
 .cell.buddy-flash { animation:buddyCellFlash .1s ease; }
 @keyframes buddyCellFlash { 0%{filter:brightness(1)} 40%{filter:brightness(1.55) saturate(1.2)} 100%{filter:brightness(1)} }
@@ -905,7 +905,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.22.42.1.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.22.42.2.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1862,7 +1862,7 @@ checkWin()
    每關一個：玩家每次進入頁面後，須在該次入頁放貓後棋盤上貓數達到兩隻（放貓或找貓提示
    皆可）時，才隨機選定一個藏身格（當時未標記的非貓格）；玩家親手標中該格即
    觸發：pop 一聲、爪印壓入，逐格（約 0.1 秒）開啟 3 至 5 格為藍色 X（此段無
-   聲），全部開畢後爪印淡出（約 0.5 秒）藏身格變藍色 X 並 pop 一聲。全程兩聲 pop。
+   聲），全部開畢後爪印淡出（約 1 秒）藏身格變藍色 X 並 pop 一聲。全程兩聲 pop。
    藍色 X 僅為來源標示（#0f5fd0 加白色光暈），行為與一般 X 完全相同：
    可逐格清除、全部清除一併消失、不鎖定；免費、不扣分不扣心、不計提示次數。
    選格／重選一律在一次放貓連同其 AUTO 標記全部完成之後才進行：AUTO 可照常
@@ -1988,8 +1988,8 @@ if(cr)cr.classList.add('buddy-pop');
 if(pel)pel.classList.remove('buddy-flash');
 }
 var pawEl=board.children[at]?board.children[at].querySelector('.buddy-paw'):null;
-if(pawEl)pawEl.classList.add('out'); /* 全部開畢：爪印淡出（約 0.5 秒） */
-await buddySleep(500);
+if(pawEl)pawEl.classList.add('out'); /* 全部開畢：爪印淡出（約 1 秒） */
+await buddySleep(1000);
 if(runId!==buddyRunSeq||state.level!==levelAtStart)return;
 state.buddyPaw=-1;state.buddyBlue[at]=true;updateCell(at,false);
 var cr2=board.children[at]?board.children[at].querySelector('.cross'):null;
