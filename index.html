@@ -905,7 +905,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.22.42.3.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.22.42.5.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2264,7 +2264,7 @@ buddyAfterPlacement(); /* 小夥伴：以找貓提示放下的貓同樣觸發選
 persistProgress();checkWin()
 }
 function onKey(e){var p=currentPuzzle(),i=+e.currentTarget.dataset.i,r=Math.floor(i/p.size),c=i%p.size,ni=i;if(e.key==='ArrowUp')ni=Math.max(0,r-1)*p.size+c;else if(e.key==='ArrowDown')ni=Math.min(p.size-1,r+1)*p.size+c;else if(e.key==='ArrowLeft')ni=r*p.size+Math.max(0,c-1);else if(e.key==='ArrowRight')ni=r*p.size+Math.min(p.size-1,c+1);else if(e.key===' '||e.key==='Enter'){e.preventDefault();handleCellTap(i);return}else if(e.key.toLowerCase()==='c'){e.preventDefault();chooseMode('cat');return}else if(e.key.toLowerCase()==='x'){e.preventDefault();chooseMode('x');return}else return;e.preventDefault();focusCell(ni);board.children[ni].focus()}
-var toastTimer=null;function clearToast(){if(toastTimer!==null){clearTimeout(toastTimer);toastTimer=null}toast.classList.remove('show');toast.textContent=''}function showToast(t){clearToast();toast.textContent=t;void toast.offsetWidth;toast.classList.add('show');var id=setTimeout(function(){if(toastTimer===id){toastTimer=null;toast.classList.remove('show')}},2500);toastTimer=id}function vibrate(ms){if(navigator.vibrate)navigator.vibrate(ms)}
+var toastTimer=null;function clearToast(){if(toastTimer!==null){clearTimeout(toastTimer);toastTimer=null}toast.classList.remove('show');toast.textContent=''}function showToast(t,ms){clearToast();toast.textContent=t;void toast.offsetWidth;toast.classList.add('show');var id=setTimeout(function(){if(toastTimer===id){toastTimer=null;toast.classList.remove('show')}},(typeof ms==='number'&&ms>0)?ms:2500);toastTimer=id}function vibrate(ms){if(navigator.vibrate)navigator.vibrate(ms)}
 function burst(){var box=document.getElementById('confetti'),colors=['#ec6f5c','#f2b84b','#4aa98e','#6b8fd8'];box.innerHTML='';for(var i=0;i<26;i++){var x=document.createElement('i');x.style.left=(5+Math.random()*90)+'%';x.style.background=colors[i%colors.length];x.style.setProperty('--drift',(Math.random()*160-80)+'px');x.style.animationDelay=(Math.random()*.45)+'s';box.appendChild(x)}setTimeout(function(){box.innerHTML=''},2400)}
 function toggleSound(){
 muted=!muted;
@@ -2334,8 +2334,83 @@ function backupFireUpload(){
     var payload={board:(IS_TEST?'test':'prod'),player_id:backupGetPlayerId(),recovery_code:backupGetRecoveryCode(),nickname:lbGetNickname(),save_json:JSON.stringify({v3:v3raw,hints:hintsraw,lottery:lotteryraw,maxcompleted:maxcompletedraw}),
       max_level:v3d?(v3d.level+1):null,hearts:v3d?v3d.hearts:null,score:v3d?v3d.score:null,best:(v3d&&v3d.best!==undefined)?v3d.best:null,theme:v3d?v3d.theme:null,
       hints:hd?hd.hints:null};
-    fetch(BACKUP_API+'/backup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(){}).catch(function(){});
+    var sentNick=payload.nickname;
+    /* v42.4.beta：暱稱衝突提示（CC 2026-10-22 定案）：player_info_test nickname 改為 UNIQUE 後，
+       同暱稱被另一恢復碼佔用時後端回 409 + {error:'nickname_taken'}。仍然 fire-and-forget、
+       絕不 await、絕不阻塞；僅在此錯誤時提示玩家一次（見 backupNickTakenNotice），
+       其他一切回應及失敗（斷網、逾時、500 等）維持完全靜默。此錯誤只由測試表路徑產生，
+       玩家版 board=prod 永不收到，故共用路徑按錯誤回應觸發、不設 IS_TEST 閘。 */
+    fetch(BACKUP_API+'/backup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(r){
+      try{
+        if(r&&typeof r.json==='function'){
+          r.json().then(function(j){
+            if(j&&j.error==='nickname_taken')backupNickTakenNotice(sentNick);
+          }).catch(function(){});
+        }
+      }catch(_){}
+    }).catch(function(){});
   }catch(_){}
+}
+/* 暱稱衝突提示：以暱稱值為鍵持久記住已提示（本機鍵 meowdoku-nicktaken-noticed-v1，
+   比照暱稱鍵本身兩版共用、不加 _storeSfx）；同一暱稱只提示一次，玩家改用新暱稱
+   再遇衝突時才再提示。提示為非阻塞浮動提示，顯示約 4 秒。 */
+function backupNickTakenNotice(nick){
+  try{
+    if(!nick)return;
+    var KEY='meowdoku-nicktaken-noticed-v1';
+    var seen=null;try{seen=localStorage.getItem(KEY)}catch(_){}
+    if(seen===nick)return;
+    try{localStorage.setItem(KEY,nick)}catch(_){}
+    if(typeof showToast==='function')showToast('暱稱「'+nick+'」已被其他玩家使用，雲端備份暫時未能更新，請改用另一個暱稱。',4000);
+  }catch(_){}
+}
+/* 暱稱登記（v42.5.beta；CC 2026-10-21 提出、2026-10-22 定案及修訂）：新玩家於暱稱對話框
+   確認一刻即時向伺服器登記（首次登記），登記成功才放行進入遊戲。此功能屬放行關卡：
+   暱稱既屬必要，登記未成功即不放行，故不適用零阻塞原則；但網絡中斷、超時或伺服器
+   錯誤必須在對話框內清楚提示並可重試，不得無聲卡死（見暱稱提交處理）。
+   與 backupFireUpload 的分別：本函數等待回應並分類結果（成功／撞名／網絡／伺服器）；
+   backupFireUpload 本身維持 fire-and-forget、零阻塞，原封不動。
+   payload 組裝與 backupFireUpload 完全一致（十一鍵及 board 值），僅暱稱改用剛輸入、
+   尚未寫入本機的值；組裝前先 persistProgress 確保當下存檔已落盤（全新玩家尚未過關，
+   存檔可能尚未寫入；比照過關上傳「先存檔、後上傳」的既有次序）。 */
+function backupRegisterNickname(nick){
+  var assemble=function(){
+    var v3raw=null,hintsraw=null,lotteryraw=null,maxcompletedraw=null;
+    try{v3raw=localStorage.getItem(LS_KEY)}catch(_){}
+    try{hintsraw=localStorage.getItem(HINTS_KEY)}catch(_){}
+    try{lotteryraw=localStorage.getItem(LOTTERY_KEY)}catch(_){}
+    try{maxcompletedraw=localStorage.getItem(MAXCOMP_KEY)}catch(_){}
+    var v3d=null,hd=null;
+    try{v3d=JSON.parse(v3raw)}catch(_){}
+    try{hd=JSON.parse(hintsraw)}catch(_){}
+    return {board:(IS_TEST?'test':'prod'),player_id:backupGetPlayerId(),recovery_code:backupGetRecoveryCode(),nickname:nick,save_json:JSON.stringify({v3:v3raw,hints:hintsraw,lottery:lotteryraw,maxcompleted:maxcompletedraw}),
+      max_level:v3d?(v3d.level+1):null,hearts:v3d?v3d.hearts:null,score:v3d?v3d.score:null,best:(v3d&&v3d.best!==undefined)?v3d.best:null,theme:v3d?v3d.theme:null,
+      hints:hd?hd.hints:null};
+  };
+  var send=function(){
+    return new Promise(function(resolve){
+      var done=false;
+      var finish=function(res){if(done)return;done=true;resolve(res)};
+      var timer=setTimeout(function(){finish({ok:false,reason:'network'})},10000);
+      var payload;
+      try{payload=assemble()}catch(_){clearTimeout(timer);finish({ok:false,reason:'server'});return}
+      fetch(BACKUP_API+'/backup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(r){
+        if(done)return;
+        var classify=function(j){
+          if(j&&j.error==='nickname_taken'){clearTimeout(timer);finish({ok:false,reason:'taken'});return}
+          if(r.ok&&j&&j.ok){clearTimeout(timer);finish({ok:true});return}
+          clearTimeout(timer);finish({ok:false,reason:'server'});
+        };
+        if(r&&typeof r.json==='function'){r.json().then(classify).catch(function(){clearTimeout(timer);finish({ok:false,reason:'server'})})}
+        else{classify(null)}
+      }).catch(function(){clearTimeout(timer);finish({ok:false,reason:'network'})});
+    });
+  };
+  try{
+    var pp=persistProgress();
+    if(pp&&typeof pp.then==='function')return pp.then(function(){return send()},function(){return send()});
+  }catch(_){}
+  return send();
 }
 function backupDownload(code,onProgress){
   var q=String(code||'').toUpperCase();
@@ -2528,10 +2603,34 @@ document.getElementById('leaderboardClose').onclick=lbCloseDialog;
 (function(){var d=document.getElementById('leaderboardDialog');if(!d)return;d.addEventListener('click',function(e){if(e.target===d)lbCloseDialog()});d.addEventListener('close',function(){if(d._lbOwnsLock){d._lbOwnsLock=false;unlockPageScroll()}var f=lbAfterClose;lbAfterClose=null;if(f)f()})})();
 
 
+/* v42.5.beta：暱稱登記制（CC 2026-10-22 定案）——確認一刻先攔截表單的自動關閉
+   （form method="dialog" 原會於 submit 後自動關閉），格式驗證通過後即時向伺服器
+   登記；成功才寫入本機暱稱並以程式關閉對話框（close 事件及 lbNickCallback 回調鏈
+   於此時才發生）；撞名、網絡或伺服器錯誤均留在對話框內顯示並可再按確認重試。 */
+var lbNickRegistering=false;
 document.getElementById('nicknameForm').addEventListener('submit',function(e){
-  var v=document.getElementById('nicknameInput').value.trim();
-  if(!LB_NICK_RE.test(v)){e.preventDefault();lbPaintNicknameValidity();return}
-  try{localStorage.setItem('meowdoku-nickname-v1',v)}catch(_){}
+  e.preventDefault();
+  if(lbNickRegistering)return;
+  var input=document.getElementById('nicknameInput'),err=document.getElementById('nicknameError'),btn=document.getElementById('nicknameSubmit');
+  var v=input.value.trim();
+  if(!LB_NICK_RE.test(v)){if(err)err.textContent='格式不正確：4–8 個英文字母＋4 個數字';lbPaintNicknameValidity();return}
+  lbNickRegistering=true;
+  if(err)err.hidden=true;
+  if(btn){btn.disabled=true;btn.textContent='正在登記，請稍候……'}
+  backupRegisterNickname(v).then(function(res){
+    lbNickRegistering=false;
+    if(btn){btn.disabled=false;btn.textContent='確定'}
+    if(res&&res.ok){
+      try{localStorage.setItem('meowdoku-nickname-v1',v)}catch(_){}
+      var d=document.getElementById('nicknameDialog');
+      if(d&&d.open)d.close();
+      return;
+    }
+    if(err){
+      err.textContent=(res&&res.reason==='taken')?'此暱稱已被其他玩家使用，請改用另一個暱稱。':(res&&res.reason==='network')?'網絡連線不穩定，未能完成暱稱登記。請檢查網絡連線後，再按確認重試。':'伺服器暫時未能處理登記，請稍後再按確認重試。';
+      err.hidden=false;
+    }
+  });
 })
 /* 輸入／刪除文字時：清除格式錯誤警告（只清顯示，不做即時驗證）＋自動轉大楷 */
 document.getElementById('nicknameInput').addEventListener('input',function(){
