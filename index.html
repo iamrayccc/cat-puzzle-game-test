@@ -440,6 +440,21 @@ body.theme-dark {
 .lvl-node b { font-weight:900; }
 .lvl-node span { color:var(--muted); font-size:.68rem; white-space:nowrap; }
 .lvl-arrow { color:var(--accent); font-weight:900; }
+/* ===== 玩家等級箭嘴圖：神話之上 12 級（設計貓交付片段）=====
+   權重驗算（ID, class, 元素）：
+   - 本規則 .lvl-node.lvl-node--beyond ＝ (0,2,0)，高於 .lvl-node 的 (0,1,0)，不依賴寫入順序。
+   - 子規則 .lvl-node.lvl-node--beyond b ＝ (0,2,1)，高於 .lvl-node b 的 (0,1,1)。
+   三個屬性全以現有主題變數（--sun / --line / --panel / --ink）運算，
+   淺色、系統深色及 body.theme-dark 三條主題路徑自動成立，無須另寫深色覆寫。
+   color-mix 已於本檔案 .logic-note.guide-active 一處使用，支援基線與現行成品一致；
+   若個別舊瀏覽器不支援 color-mix，本規則整體不生效，節點自動退回 .lvl-node 原樣式，屬安全降級。 */
+.lvl-node.lvl-node--beyond {
+  border-color: color-mix(in srgb, var(--sun) 55%, var(--line));
+  background: color-mix(in srgb, var(--sun) 10%, var(--panel));
+}
+.lvl-node.lvl-node--beyond b {
+  color: color-mix(in srgb, var(--sun) 38%, var(--ink));
+}
 
 /* ===== 九格抽獎輪盤（v40.5.beta，2026-10-18 CC 批准實裝）=====
    方案三金色系；彈窗標題「🎰 遊戲幸運抽獎 🎰」；✕ 只在結果後出現 */
@@ -651,7 +666,7 @@ body.theme-dark {
 </table></div></li>
 <li><span class="rule-number">7</span><div><strong>幸運抽獎</strong><span>每通過 15 關，可參加一次幸運抽獎。</span></div></li>
 <li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
-<li><span class="rule-number">9</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下你的最高積分並評定等級（等級晉升順序如下）；等級提升時會有恭喜提示。</span>
+<li><span class="rule-number">9</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下您的最高積分並評定等級（等級晉升順序如下）；等級提升時會有恭喜提示。</span>
 <div class="lvl-flow" aria-label="玩家等級由低至高晉升順序">
 <span class="lvl-node"><b>新手</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
 <span class="lvl-node"><b>初階</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
@@ -667,9 +682,21 @@ body.theme-dark {
 <span class="lvl-node"><b>殿堂</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
 <span class="lvl-node"><b>皇者</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
 <span class="lvl-node"><b>至尊</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
-<span class="lvl-node"><b>神話</b></span>
+<span class="lvl-node"><b>神話</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>不朽</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>聖域</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>天界</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>天人</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>泰坦</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>諸神</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>主神</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>神王</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>原初</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>以太</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>創世</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
+<span class="lvl-node lvl-node--beyond"><b>無極</b></span>
 </div>
-<p class="level-note">尚未有最高積分紀錄時（例如舊存檔），按最高完成關卡衡量：1–5 關為新手、6–10 關為初階、11–30 關為中階、31 關以上為高階。</p></div></li>
+</div></li>
 
 </ol>
 <button class="primary close-rules" type="button">開始動腦</button>
@@ -953,7 +980,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.23.42.10.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.23.43.0.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=800, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1836,7 +1863,7 @@ function heartSVG(){return '<svg class="heart" viewBox="0 0 24 22" fill="current
 function paintHearts(){state.hearts=Math.min(MAX_HEARTS,Math.max(0,state.hearts));var h=document.getElementById('hearts');h.innerHTML='<span class="heart-wrap">'+heartSVG()+'</span><b class="heart-num">'+state.hearts+'</b>';h.setAttribute('aria-label','剩餘'+state.hearts+'次機會')}
 function paintScore(){state.score=Math.max(0,state.score);document.getElementById('scoreValue').textContent=state.score.toLocaleString('zh-Hant')}
 /* ===== 玩家等級系統（v37.0）：依最高積分評級 ===== */
-function levelForScore21(s){s=Math.floor(s);if(s>=550001)return'神話3段';if(s>=500001)return'神話2段';if(s>=450001)return'神話1段';if(s>=400001)return'至尊3段';if(s>=350001)return'至尊2段';if(s>=300001)return'至尊1段';if(s>=260001)return'皇者3段';if(s>=220001)return'皇者2段';if(s>=180001)return'皇者1段';if(s>=140001)return'殿堂';if(s>=120001)return'傳奇';if(s>=100001)return'宗師';if(s>=80001)return'大師';if(s>=60001)return'專家';if(s>=40001)return'精英';if(s>=30001)return'高手';if(s>=20001)return'好手';if(s>=10001)return'高階';if(s>=5001)return'中階';if(s>=3001)return'初階';return'新手'}
+function levelForScore21(s){s=Math.floor(s);if(s>=4200001)return'無極3段';if(s>=4100001)return'無極2段';if(s>=4000001)return'無極1段';if(s>=3900001)return'創世3段';if(s>=3800001)return'創世2段';if(s>=3700001)return'創世1段';if(s>=3600001)return'以太3段';if(s>=3500001)return'以太2段';if(s>=3400001)return'以太1段';if(s>=3300001)return'原初3段';if(s>=3200001)return'原初2段';if(s>=3100001)return'原初1段';if(s>=3000001)return'神王3段';if(s>=2900001)return'神王2段';if(s>=2800001)return'神王1段';if(s>=2700001)return'主神3段';if(s>=2600001)return'主神2段';if(s>=2500001)return'主神1段';if(s>=2400001)return'諸神3段';if(s>=2300001)return'諸神2段';if(s>=2200001)return'諸神1段';if(s>=2100001)return'泰坦3段';if(s>=2000001)return'泰坦2段';if(s>=1900001)return'泰坦1段';if(s>=1800001)return'天人3段';if(s>=1700001)return'天人2段';if(s>=1600001)return'天人1段';if(s>=1500001)return'天界3段';if(s>=1400001)return'天界2段';if(s>=1300001)return'天界1段';if(s>=1200001)return'聖域3段';if(s>=1100001)return'聖域2段';if(s>=1000001)return'聖域1段';if(s>=900001)return'不朽3段';if(s>=800001)return'不朽2段';if(s>=700001)return'不朽1段';if(s>=550001)return'神話3段';if(s>=500001)return'神話2段';if(s>=450001)return'神話1段';if(s>=400001)return'至尊3段';if(s>=350001)return'至尊2段';if(s>=300001)return'至尊1段';if(s>=260001)return'皇者3段';if(s>=220001)return'皇者2段';if(s>=180001)return'皇者1段';if(s>=140001)return'殿堂';if(s>=120001)return'傳奇';if(s>=100001)return'宗師';if(s>=80001)return'大師';if(s>=60001)return'專家';if(s>=40001)return'精英';if(s>=30001)return'高手';if(s>=20001)return'好手';if(s>=10001)return'高階';if(s>=5001)return'中階';if(s>=3001)return'初階';return'新手'}
 function levelForScore(s){return levelForScore21(s)}
 function levelForLevel(n){n=Math.floor(n);if(n>=31)return'高階';if(n>=11)return'中階';if(n>=6)return'初階';return'新手'}
 function currentLevelName(){if(state.best!==undefined&&state.best!==null)return levelForScore(state.best);return levelForLevel(state.maxCompleted||0)}
@@ -2175,7 +2202,7 @@ showUpdateDialog(go);
 }catch(e){go()}
 }
 /* ===== 玩家等級提升恭喜（v37.0）：取代舊晉級恭喜彈窗 ===== */
-var LEVEL_ORDER=['新手','初階','中階','高階','好手','高手','精英','專家','大師','宗師','傳奇','殿堂','皇者1段','皇者2段','皇者3段','至尊1段','至尊2段','至尊3段','神話1段','神話2段','神話3段'];
+var LEVEL_ORDER=['新手','初階','中階','高階','好手','高手','精英','專家','大師','宗師','傳奇','殿堂','皇者1段','皇者2段','皇者3段','至尊1段','至尊2段','至尊3段','神話1段','神話2段','神話3段','不朽1段','不朽2段','不朽3段','聖域1段','聖域2段','聖域3段','天界1段','天界2段','天界3段','天人1段','天人2段','天人3段','泰坦1段','泰坦2段','泰坦3段','諸神1段','諸神2段','諸神3段','主神1段','主神2段','主神3段','神王1段','神王2段','神王3段','原初1段','原初2段','原初3段','以太1段','以太2段','以太3段','創世1段','創世2段','創世3段','無極1段','無極2段','無極3段'];
 function nextLevelName(name){var i=LEVEL_ORDER.indexOf(name);return(i>=0&&i<LEVEL_ORDER.length-1)?LEVEL_ORDER[i+1]:null}
 function showLevelUpVeil(levelName){var next=nextLevelName(levelName),html='恭喜您！升級至 <span class="level-up-name">'+levelName+'</span>';if(next)html+='<br><span class="level-next">（等待挑戰：'+next+'等級）</span>';document.getElementById('levelUpTitle').innerHTML=html;var pc=document.getElementById('levelUpCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;var d=document.getElementById('levelUpDialog');lockPageScroll();if(d&&!d.open){d.showModal();d.scrollTop=0}}
 function finish(win){
