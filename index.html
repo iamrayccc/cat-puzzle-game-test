@@ -953,7 +953,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.23.42.9.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.23.42.10.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=800, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2131,9 +2131,11 @@ function closeResultDialog(){var dialog=document.getElementById('resultDialog');
    TOTAL 日後增大時本畫面自動不再觸發，boot 的 autoFwd 機制不受影響。
    本畫面只在按「完成」時呈現，頁面載入（boot）路徑不呼叫，refresh 不重現。 */
 function isGameCleared(){return state.maxCompleted>=TOTAL}
-function showFinaleDialog(){if(!isGameCleared())return;var fd=document.getElementById('finaleDialog');if(!fd||fd.open)return;document.getElementById('finaleSub').textContent='恭喜您完成全部 '+TOTAL+' 關，正式全破！';document.getElementById('finaleScore').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('finaleLevel').textContent=currentLevelName();var bTxt=(state.best===undefined||state.best===null)?'–':Math.floor(state.best).toLocaleString('zh-Hant');document.getElementById('finaleBest').textContent='個人紀錄：累計最高積分 '+bTxt;lockPageScroll();fd.showModal();burst(document.getElementById('finaleConfetti'))}
-function closeFinaleDialog(){var fd=document.getElementById('finaleDialog');if(fd&&fd.open)fd.close();unlockPageScroll()}
-(function(){var fd=document.getElementById('finaleDialog');if(!fd)return;fd.addEventListener('cancel',function(e){e.preventDefault()});fd.addEventListener('close',unlockPageScroll);document.getElementById('finaleCloseBtn').onclick=closeFinaleDialog;document.getElementById('finaleLbBtn').onclick=function(){var lb=document.getElementById('lbOpenBtn');if(lb)lb.click()};document.getElementById('finaleRecoveryBtn').onclick=function(){var rc=document.getElementById('myRecoveryCodeLink');if(rc)rc.click()};})();
+function showFinaleDialog(){if(!isGameCleared())return;var fd=document.getElementById('finaleDialog');if(!fd||fd.open)return;document.getElementById('finaleSub').textContent='恭喜您完成全部 '+TOTAL+' 關，正式全破！';document.getElementById('finaleScore').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('finaleLevel').textContent=currentLevelName();var bTxt=(state.best===undefined||state.best===null)?'–':Math.floor(state.best).toLocaleString('zh-Hant');document.getElementById('finaleBest').textContent='個人紀錄：累計最高積分 '+bTxt;finaleReentryDone=false;lockPageScroll();fd.showModal();burst(document.getElementById('finaleConfetti'))}
+var finaleReentryDone=false;
+function finaleReenterLastLevel(){if(finaleReentryDone)return;finaleReentryDone=true;if(!isGameCleared())return;newLevel(TOTAL-1)}
+function closeFinaleDialog(){var fd=document.getElementById('finaleDialog');var wasOpen=!!(fd&&fd.open);if(wasOpen)fd.close();unlockPageScroll();if(wasOpen)finaleReenterLastLevel()}
+(function(){var fd=document.getElementById('finaleDialog');if(!fd)return;fd.addEventListener('cancel',function(e){e.preventDefault()});fd.addEventListener('close',function(){unlockPageScroll();finaleReenterLastLevel()});document.getElementById('finaleCloseBtn').onclick=closeFinaleDialog;document.getElementById('finaleLbBtn').onclick=function(){var lb=document.getElementById('lbOpenBtn');if(lb)lb.click()};document.getElementById('finaleRecoveryBtn').onclick=function(){var rc=document.getElementById('myRecoveryCodeLink');if(rc)rc.click()};})();
 /* ===== 過關時版本檢查（v35.56） =====
 玩家點擊「下一關」時檢查 version.txt；有新版則彈提示，
 無新版或檢查失敗時靜默繼續，不打擾玩家 */
