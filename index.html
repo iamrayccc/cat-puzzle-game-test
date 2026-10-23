@@ -259,6 +259,24 @@ pointer-events:auto; -webkit-overflow-scrolling:touch;
 .result-cat { flex:0 0 auto; width:48px; height:48px; margin:0; color:var(--accent); animation:celebrate .7s ease; }
 @keyframes celebrate { 0%{transform:translateY(20px) scale(.6);opacity:0} 70%{transform:translateY(-8px) scale(1.05)} 100%{transform:none;opacity:1} }
 #resultDialog .sheet { position:relative; }
+/* ===== 全破收尾畫面（v42.9.beta） ===== */
+#finaleDialog[open] {
+position:fixed; inset:0; width:auto; height:100dvh; margin:0;
+padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
+display:flex; flex-direction:column; align-items:center; justify-content:safe center;
+overflow-y:auto; overscroll-behavior:contain; pointer-events:auto; -webkit-overflow-scrolling:touch;
+}
+#finaleDialog .sheet {
+position:relative; z-index:1; flex:0 0 auto; width:min(92vw,520px);
+max-height:min(90dvh,700px); overflow-y:auto; overscroll-behavior:contain;
+pointer-events:auto; -webkit-overflow-scrolling:touch;
+}
+#finaleDialog .result-cat { width:56px; height:56px;}
+#finaleDialog .finale-sub { margin:0 0 2px;}
+#finaleDialog .finale-note { margin:14px 0 2px; font-size:1rem; font-weight:900; color:var(--ink); line-height:1.5;}
+#finaleLbBtn { margin-top:10px; width:100%; font-size:1rem;}
+#finaleLbBtn .lb-trophy { font-size:1.5em; line-height:1;}
+.finale-recovery-wrap { text-align:left; margin-top:10px;}
 .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:8px 0; }
 .stat { background:var(--panel-2); padding:12px 6px; border-radius:14px; }
 .stat b { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; }
@@ -362,6 +380,9 @@ pointer-events:auto;
 @media (max-width:560px) {
 #resultDialog[open] { padding:10px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left)); }
 #resultDialog .sheet { width:min(94vw,520px); padding:18px; border-radius:20px; }
+#finaleDialog[open] { padding:10px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));}
+#finaleDialog .sheet { width:min(94vw,520px); padding:18px; border-radius:20px;}
+#finaleDialog .result-cat { width:48px; height:48px;}
 .result { padding-top:18px; }
 .result-heading { gap:10px; margin-bottom:6px; }
 .result-cat { width:44px; height:44px; }
@@ -673,6 +694,23 @@ body.theme-dark {
 </div>
 <div class="confetti" id="confetti" aria-hidden="true"></div>
 </dialog>
+<!-- 全破收尾畫面：完成最後一關後呈現；元素次序按 CC 批准規格（由上至下） -->
+<dialog id="finaleDialog" aria-labelledby="finaleTitle">
+<div class="sheet result">
+<div class="result-heading">
+<div class="result-cat" id="finaleCat"></div>
+<h2 id="finaleTitle">全關完成！</h2>
+</div>
+<p class="finale-sub" id="finaleSub">恭喜您，完成全部關卡！</p>
+<div class="top-stats"><div class="stat stat-total"><b id="finaleScore">0</b><span>總積分</span></div><div class="stat stat-level"><b id="finaleLevel">新手</b><span>最終等級</span></div></div>
+<p id="finaleBest" class="best-stat">個人紀錄：累計最高積分 –</p>
+<p class="finale-note">新關卡正在準備中，期待您再來挑戰</p>
+<button class="quiet-btn" id="finaleLbBtn" type="button"><span class="lb-trophy" aria-hidden="true">🏆</span> 排名榜</button>
+<div class="finale-recovery-wrap"><button class="recovery-link" id="finaleRecoveryBtn" type="button" aria-label="我的恢復碼">我的恢復碼</button></div>
+<button class="primary" id="finaleCloseBtn" type="button">關閉</button>
+</div>
+<div class="confetti" id="finaleConfetti" aria-hidden="true"></div>
+</dialog>
 <!-- 九格抽獎輪盤彈窗（v40.5.beta，2026-10-18 CC 批准實裝） -->
 <div class="lottery-overlay" id="lotteryOverlay">
 <div class="lottery-modal" role="dialog" aria-modal="true" aria-label="🎰 遊戲幸運抽獎 🎰">
@@ -915,7 +953,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.23.42.8.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.23.42.9.beta'; // v40.25.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=800, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1793,7 +1831,7 @@ osc.connect(gain);gain.connect(masterGain);osc.start(start);osc.stop(start+.37);
 });
 }
 var catSVG='<svg class="cat" viewBox="0 0 64 64" aria-hidden="true"><g class="cat-sway"><g class="cat-breathe"><path d="M14 25 11 8l15 9a27 27 0 0 1 12 0l15-9-3 17c4 4 6 10 6 16 0 11-10 18-24 18S8 52 8 41c0-6 2-12 6-16Z" fill="#fffdf8" stroke="#29474f" stroke-width="2.7"/><path d="m15 13 3 10 7-4Z" fill="#f5b4ae"/><path d="m49 13-3 10-7-4Z" fill="#f5b4ae"/><g class="cat-blink"><path d="M21 35h.1M43 35h.1" stroke="#29474f" stroke-width="5" stroke-linecap="round"/></g><path d="m29 41 3-2 3 2-3 3Z" fill="#ee7b70" stroke="#29474f" stroke-width="1.2"/><path d="M32 44c-1 3-5 3-6 1m6-1c1 3 5 3 6 1" fill="none" stroke="#29474f" stroke-width="2" stroke-linecap="round"/><path d="M19 43 7 40m12 8L8 50m37-7 12-3m-12 8 11 2" fill="none" stroke="#29474f" stroke-width="2" stroke-linecap="round"/></g></g></svg>';
-document.getElementById('catModeIcon').innerHTML=catSVG;document.getElementById('resultCat').innerHTML=catSVG;document.getElementById('catsRemainingIcon').innerHTML=catSVG;
+document.getElementById('catModeIcon').innerHTML=catSVG;document.getElementById('resultCat').innerHTML=catSVG;document.getElementById('finaleCat').innerHTML=catSVG;document.getElementById('catsRemainingIcon').innerHTML=catSVG;
 function heartSVG(){return '<svg class="heart" viewBox="0 0 24 22" fill="currentColor" aria-hidden="true"><path d="M12 21S1 14.5 1 7.4C1 3.8 3.5 1 7 1c2.1 0 4 1.1 5 2.8C13 2.1 14.9 1 17 1c3.5 0 6 2.8 6 6.4C23 14.5 12 21 12 21Z"/></svg>'}
 function paintHearts(){state.hearts=Math.min(MAX_HEARTS,Math.max(0,state.hearts));var h=document.getElementById('hearts');h.innerHTML='<span class="heart-wrap">'+heartSVG()+'</span><b class="heart-num">'+state.hearts+'</b>';h.setAttribute('aria-label','剩餘'+state.hearts+'次機會')}
 function paintScore(){state.score=Math.max(0,state.score);document.getElementById('scoreValue').textContent=state.score.toLocaleString('zh-Hant')}
@@ -2087,6 +2125,15 @@ document.documentElement.classList.remove('dialog-open');document.body.classList
 }
 function openResultDialog(dialog){lockPageScroll();dialog.showModal();dialog.scrollTop=0}
 function closeResultDialog(){var dialog=document.getElementById('resultDialog');if(dialog.open)dialog.close();unlockPageScroll()}
+/* ===== 全破收尾畫面（v42.9.beta，CC 批准甲案）=====
+   觸發：完成最後一關後於結算彈窗按「完成」（nextBtn 處理器 finishedAll 分支）。
+   全破判斷只以 state.maxCompleted>=TOTAL 即時推導，不寫入任何永久旗標；
+   TOTAL 日後增大時本畫面自動不再觸發，boot 的 autoFwd 機制不受影響。
+   本畫面只在按「完成」時呈現，頁面載入（boot）路徑不呼叫，refresh 不重現。 */
+function isGameCleared(){return state.maxCompleted>=TOTAL}
+function showFinaleDialog(){if(!isGameCleared())return;var fd=document.getElementById('finaleDialog');if(!fd||fd.open)return;document.getElementById('finaleSub').textContent='恭喜您完成全部 '+TOTAL+' 關，正式全破！';document.getElementById('finaleScore').textContent=state.score.toLocaleString('zh-Hant');document.getElementById('finaleLevel').textContent=currentLevelName();var bTxt=(state.best===undefined||state.best===null)?'–':Math.floor(state.best).toLocaleString('zh-Hant');document.getElementById('finaleBest').textContent='個人紀錄：累計最高積分 '+bTxt;lockPageScroll();fd.showModal();burst(document.getElementById('finaleConfetti'))}
+function closeFinaleDialog(){var fd=document.getElementById('finaleDialog');if(fd&&fd.open)fd.close();unlockPageScroll()}
+(function(){var fd=document.getElementById('finaleDialog');if(!fd)return;fd.addEventListener('cancel',function(e){e.preventDefault()});fd.addEventListener('close',unlockPageScroll);document.getElementById('finaleCloseBtn').onclick=closeFinaleDialog;document.getElementById('finaleLbBtn').onclick=function(){var lb=document.getElementById('lbOpenBtn');if(lb)lb.click()};document.getElementById('finaleRecoveryBtn').onclick=function(){var rc=document.getElementById('myRecoveryCodeLink');if(rc)rc.click()};})();
 /* ===== 過關時版本檢查（v35.56） =====
 玩家點擊「下一關」時檢查 version.txt；有新版則彈提示，
 無新版或檢查失敗時靜默繼續，不打擾玩家 */
@@ -2275,7 +2322,7 @@ persistProgress();checkWin()
 }
 function onKey(e){var p=currentPuzzle(),i=+e.currentTarget.dataset.i,r=Math.floor(i/p.size),c=i%p.size,ni=i;if(e.key==='ArrowUp')ni=Math.max(0,r-1)*p.size+c;else if(e.key==='ArrowDown')ni=Math.min(p.size-1,r+1)*p.size+c;else if(e.key==='ArrowLeft')ni=r*p.size+Math.max(0,c-1);else if(e.key==='ArrowRight')ni=r*p.size+Math.min(p.size-1,c+1);else if(e.key===' '||e.key==='Enter'){e.preventDefault();handleCellTap(i);return}else if(e.key.toLowerCase()==='c'){e.preventDefault();chooseMode('cat');return}else if(e.key.toLowerCase()==='x'){e.preventDefault();chooseMode('x');return}else return;e.preventDefault();focusCell(ni);board.children[ni].focus()}
 var toastTimer=null;function clearToast(){if(toastTimer!==null){clearTimeout(toastTimer);toastTimer=null}toast.classList.remove('show');toast.textContent=''}function showToast(t,ms){clearToast();toast.textContent=t;void toast.offsetWidth;toast.classList.add('show');var id=setTimeout(function(){if(toastTimer===id){toastTimer=null;toast.classList.remove('show')}},(typeof ms==='number'&&ms>0)?ms:2500);toastTimer=id}function vibrate(ms){if(navigator.vibrate)navigator.vibrate(ms)}
-function burst(){var box=document.getElementById('confetti'),colors=['#ec6f5c','#f2b84b','#4aa98e','#6b8fd8'];box.innerHTML='';for(var i=0;i<26;i++){var x=document.createElement('i');x.style.left=(5+Math.random()*90)+'%';x.style.background=colors[i%colors.length];x.style.setProperty('--drift',(Math.random()*160-80)+'px');x.style.animationDelay=(Math.random()*.45)+'s';box.appendChild(x)}setTimeout(function(){box.innerHTML=''},2400)}
+function burst(targetBox){var box=targetBox||document.getElementById('confetti'),colors=['#ec6f5c','#f2b84b','#4aa98e','#6b8fd8'];box.innerHTML='';for(var i=0;i<26;i++){var x=document.createElement('i');x.style.left=(5+Math.random()*90)+'%';x.style.background=colors[i%colors.length];x.style.setProperty('--drift',(Math.random()*160-80)+'px');x.style.animationDelay=(Math.random()*.45)+'s';box.appendChild(x)}setTimeout(function(){box.innerHTML=''},2400)}
 function toggleSound(){
 muted=!muted;
 ensureAudio().then(function(ready){if(ready&&masterGain){masterGain.gain.cancelScheduledValues(audioCtx.currentTime);masterGain.gain.setValueAtTime(muted?0:.42,audioCtx.currentTime);if(!muted)audioQueueTime=audioCtx.currentTime}});
@@ -2662,7 +2709,7 @@ document.getElementById('lotteryOverlay').addEventListener('click',function(e){
 if(e.target===document.getElementById('lotteryOverlay'))lotteryCloseModal();
 });
 /* v40.7.beta：移除此處的 lsq 接線（lsqCloseModal 定義在下方 IS_TEST IIFE 內，此處引用會 ReferenceError；接線已移至 IIFE 內） */
-document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();return}if(!won)return;closeResultDialog();
+document.getElementById('nextBtn').onclick=function(){var won=result.dataset.win==='1',finishedAll=won&&state.level===TOTAL-1;if(finishedAll){closeResultDialog();showFinaleDialog();return}if(!won)return;closeResultDialog();
 function proceedAfterLottery(){function lbProceedNext(){if(state.pendingLevelUp){state.pendingLevelUp=false;showLevelUpVeil(state.pendingLevelUpName);return}checkVersionThen(function(){newLevel(state.level+1);saveLocalProgress()})}if(lbAutoPending){lbAutoPending=false;lbOpenAuto(lbProceedNext);return}lbProceedNext()}
 /* v40.5.beta：抽獎輪盤——點擊「下一關」時如有待領抽獎，先彈抽獎彈窗，完成後再繼續。
    v40.13.beta：順序保證——抽獎必在排行榜（lbAutoPending）之前。proceedAfterLottery
