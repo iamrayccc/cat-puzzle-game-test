@@ -301,6 +301,9 @@ pointer-events:auto;
 #incognitoTipDialog .sheet { width:min(92vw,400px); text-align:center; }
 #incognitoTipDialog .sheet p { margin-bottom:18px; }
 #incognitoTipDialog .jump-actions { grid-template-columns:1fr; }
+#combo501TipDialog .sheet { width:min(92vw,400px); text-align:center; }
+#combo501TipDialog .sheet p { margin-bottom:18px; }
+#combo501TipDialog .jump-actions { grid-template-columns:1fr; }
 #recCodeTipDialog .sheet { width:min(92vw,400px); text-align:center; }
 #recCodeTipDialog .sheet p { margin-bottom:18px; }
 #recCodeTipDialog .jump-actions { grid-template-columns:1fr; }
@@ -663,7 +666,7 @@ body.theme-dark {
 <tr><td>積分下限</td><td>最低 0 分</td></tr>
 <tr><td>補心</td><td>每通過十關補回 1 顆心</td></tr>
 <tr><td>心數上限</td><td>5 顆</td></tr>
-<tr><td>Combo 連續完美過關</td><td>整關沒有扣心及沒有使用找貓提示會累積 Combo；扣心或使用找貓提示，Combo 即時歸零；Combo連續達 3、5、10、15、20 個時分別加 3,000、5,000、10,000、15,000、20,000 分。20 Combo發獎勵後重置為零。</td></tr>
+<tr><td>Combo 連續完美過關</td><td>由501關開始，整關沒有扣心及沒有使用找貓提示會累積 Combo；扣心或使用找貓提示，Combo 即時歸零；Combo連續達 3、5、10、15、20 個時分別加 3,000、5,000、10,000、15,000、20,000 分。20 Combo發獎勵後重置為零。</td></tr>
 </table></div></li>
 <li><span class="rule-number">7</span><div><strong>幸運抽獎</strong><span>每通過 15 關，可參加一次幸運抽獎。</span></div></li>
 <li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
@@ -852,6 +855,18 @@ body.theme-dark {
 </div>
 </div>
 </dialog>
+<dialog id="combo501TipDialog" aria-labelledby="combo501TipTitle">
+<div class="sheet">
+<div class="result-heading">
+<div class="result-cat" id="combo501TipCat"></div>
+<h2 id="combo501TipTitle">Combo 連續完美過關</h2>
+</div>
+<p>由501關開始，新增 Combo 連續完美過關獎勵：整關沒有扣心及沒有使用找貓提示會累積 Combo；扣心或使用找貓提示，Combo 即時歸零；Combo連續達 3、5、10、15、20 個時分別加 3,000、5,000、10,000、15,000、20,000 分，達 20 個發獎後重置為零。</p>
+<div class="jump-actions">
+<button class="primary" id="combo501TipOkBtn" type="button">知道了</button>
+</div>
+</div>
+</dialog>
 <dialog id="recCodeTipDialog" aria-labelledby="recCodeTipTitle">
 <div class="sheet">
 <div class="result-heading">
@@ -992,7 +1007,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.4.beta'; // v44.4.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.5.beta'; // v44.5.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=800, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1612,7 +1627,7 @@ return Promise.resolve({level:d.level,hints:d.hints});
 var COMBO_KEY='meowdoku-combo-v1'+_storeSfx;
 var COMBO_MILESTONES={3:3000,5:5000,10:10000,15:15000,20:20000};
 function comboIsFirstAttempt(){return state.level>=state.maxCompleted}
-function paintCombo(){try{var fb=document.querySelector('.footer-note');var el=document.getElementById('comboFooterLine');if(!el&&fb){el=document.createElement('div');el.id='comboFooterLine';el.style.textAlign='right';el.style.fontSize='.62rem';el.style.marginTop='2px';el.style.color='var(--muted)';el.style.lineHeight='1.4';el.style.gridColumn='2';if(fb.parentNode)fb.parentNode.insertBefore(el,fb.nextSibling)}if(el){if(fb&&el.previousElementSibling!==fb&&fb.parentNode)fb.parentNode.insertBefore(el,fb.nextSibling);el.textContent='Combo：'+(state.combo||0)}}catch(e){}}
+function paintCombo(){try{var fb=document.querySelector('.footer-note');var el=document.getElementById('comboFooterLine');if(state.level<500){if(el)el.remove();return} /* v44.5.beta Combo 501 關起：501 關以下隱藏 */ if(!el&&fb){el=document.createElement('div');el.id='comboFooterLine';el.style.textAlign='right';el.style.fontSize='.62rem';el.style.marginTop='2px';el.style.color='var(--muted)';el.style.lineHeight='1.4';el.style.gridColumn='2';if(fb.parentNode)fb.parentNode.insertBefore(el,fb.nextSibling)}if(el){if(fb&&el.previousElementSibling!==fb&&fb.parentNode)fb.parentNode.insertBefore(el,fb.nextSibling);el.textContent='Combo：'+(state.combo||0)}}catch(e){}}
 /* 測試期顯示位置（CC 定案）：主畫面右下「恢復我的資料」的下一行；注意：本段程式碼在版圖
    載入完成後才執行，此時 DOMContentLoaded 早已觸發，故必須即時建立元素、不得依賴
    DOMContentLoaded 事件；paintCombo 每次亦會把元素移回頁底列的下一行，確保位置正確。 */
@@ -1620,7 +1635,7 @@ paintCombo();
 function comboDataString(){var c=Math.floor(state.combo||0);if(c<0)c=0;if(c>20)c=20;return String(c)+'|'+(typeof state.comboDirtyLevel==='number'?state.comboDirtyLevel:'')}
 function comboSave(){try{if(window.localStorage){var data=comboDataString();var sum=sha256hexSync(data+'|'+LS_SECRET);if(sum)localStorage.setItem(COMBO_KEY,JSON.stringify({v:2,data:data,sum:sum}))}}catch(e){}paintCombo()}
 function comboLoad(){try{var raw=null;try{raw=localStorage.getItem(COMBO_KEY)}catch(e){raw=null}if(!raw){state.combo=0;state.comboDirtyLevel=null;paintCombo();return}var d=null;try{d=JSON.parse(raw)}catch(e){d=null}var needSave=false;if(d&&d.v===2&&typeof d.data==='string'&&typeof d.sum==='string'){var sum=sha256hexSync(d.data+'|'+LS_SECRET);if(sum&&sum===d.sum){var parts=d.data.split('|');var c=(/^\d+$/.test(parts[0]))?parseInt(parts[0],10):NaN;var dl=(parts.length>1&&/^\d+$/.test(parts[1]))?parseInt(parts[1],10):NaN;if(isFinite(c)&&c>=0&&c<=20){state.combo=c;state.comboDirtyLevel=(isFinite(dl)&&dl>=0)?dl:null}else{state.combo=0;state.comboDirtyLevel=null}}else{state.combo=0;state.comboDirtyLevel=null;needSave=true}}else if(typeof d==='number'&&d>=0&&d<=20&&Math.floor(d)===d){state.combo=d;state.comboDirtyLevel=null;needSave=true}else if(d&&(d.v===1||d.v===2)&&typeof d.combo==='number'&&d.combo>=0&&d.combo<=20&&Math.floor(d.combo)===d.combo){state.combo=d.combo;state.comboDirtyLevel=(d.v===2&&typeof d.dirty==='number'&&d.dirty>=0&&Math.floor(d.dirty)===d.dirty)?d.dirty:null;needSave=true}else{state.combo=0;state.comboDirtyLevel=null;needSave=true}if(state.comboDirtyLevel!==null&&state.comboDirtyLevel!==state.level){state.comboDirtyLevel=null;needSave=true}if(needSave)comboSave()}catch(e){state.combo=0;state.comboDirtyLevel=null}paintCombo()}
-function comboOnDirty(){if(!comboIsFirstAttempt())return;state.comboDirty=true;state.comboDirtyLevel=state.level;state.combo=0;comboSave()}
+function comboOnDirty(){if(state.level<500)return; /* v44.5.beta Combo 501 關起：501 關以下不歸零、不寫標記 */ if(!comboIsFirstAttempt())return;state.comboDirty=true;state.comboDirtyLevel=state.level;state.combo=0;comboSave()}
 function comboCloudField(){try{var raw=null;try{raw=localStorage.getItem(COMBO_KEY)}catch(e){raw=null}if(!raw)return null;var d=null;try{d=JSON.parse(raw)}catch(e){return null}if(d&&d.v===2&&typeof d.data==='string'&&typeof d.sum==='string'){var sum=sha256hexSync(d.data+'|'+LS_SECRET);if(!sum||sum!==d.sum)return null;var c=(/^\d+$/.test(d.data.split('|')[0]))?parseInt(d.data.split('|')[0],10):NaN;if(isFinite(c)&&c>=0&&c<=20)return JSON.stringify({v:2,combo:c});return null}if(typeof state.combo==='number'&&state.combo>=0&&state.combo<=20&&Math.floor(state.combo)===state.combo)return JSON.stringify({v:2,combo:state.combo})}catch(e){}return null}
 /* ===== 九格抽獎輪盤持久化（v40.5.beta；v40.17.beta 簡化：記最大值）=====
    CC 最高優先要求（2026-10-18）：發獎前先標記已領取並同步落盤（含 SHA-256），
@@ -2249,12 +2264,15 @@ if(state.resultShown)return;state.resultShown=true;state.locked=true;if(!win)cle
 var completed=state.level+1,recovered=false,earned=false,firstCompletion=win&&(completed>state.maxCompleted);/* v40.18.beta 防刷分（2026-10-18 CC 批准）：firstCompletion 改用 maxCompleted（持久化）判斷，取代未持久化的 levelAwarded。關閉分頁重進後重玩同一關 completed>maxCompleted 為假，不再加分。最高關無豁免（2026-10-14 永久規則已於今日撤銷）。 */
 if(firstCompletion){state.levelAwarded=true;changeScore(1000);earned=true;var bonusLines=['過關獎勵 ＋1000'],bonusTotal=1000;if(state.hintsUsed===0){changeScore(400);bonusLines.push('不用找貓提示獎勵 ＋400');bonusTotal+=400}var elMs=getActiveMs();if(elMs<=120000){changeScore(500);bonusLines.push('2 分鐘內完成獎勵 ＋500');bonusTotal+=500}else if(elMs<=300000){changeScore(300);bonusLines.push('5 分鐘內完成獎勵 ＋300');bonusTotal+=300}else if(elMs<=480000){changeScore(100);bonusLines.push('8 分鐘內完成獎勵 ＋100');bonusTotal+=100}/* v41.0.beta 關卡加成（2026-10-20 CC 定案）：首次過關加算 ⌊completed÷10⌋×10，與找貓提示互相獨立，恆列入計分明細（含 +0） */var levelBonus=Math.floor(completed/10)*10;changeScore(levelBonus);bonusLines.push('關卡加成 ＋'+levelBonus);bonusTotal+=levelBonus;
 /* v44.0.beta Combo（CC 2026-10-24 定案，持久化標記）：只計首次完成；乾淨完成加一；里程碑獎勵計入結算及 best；達 20 發獎後保存值歸零；結算行恆列出（例：0個Combo ＋0、3個Combo ＋3000）；結算判定以持久化標記為依據，結算完成後立即清除標記並立即寫入 */
+/* v44.5.beta Combo 501 關起（CC 2026-10-24 定案）：Combo 機制僅於索引 500（501 關）或以上關卡啟動；501 關以下不累積、不發獎、不列行、不觸動既有值 */
+if(state.level>=500){
 var comboFlagDirty=(typeof state.comboDirtyLevel==='number'&&state.comboDirtyLevel===state.level);
 var comboClean=!comboFlagDirty&&!state.comboDirty&&state.hintsRemaining>=2&&!Object.keys(state.lockedXs).length,comboBonus=0,comboShown=state.combo||0;
 if(comboClean){state.combo=Math.min(20,(state.combo||0)+1);comboShown=state.combo;comboBonus=COMBO_MILESTONES[state.combo]||0;if(comboBonus>0){changeScore(comboBonus);bonusTotal+=comboBonus}if(state.combo===20)state.combo=0}
 else if(state.combo!==0){state.combo=0} /* 防禦：不乾淨完成一律歸零（正常流程已於扣心／用提示當刻即時歸零；此分支只覆蓋殘餘恢復路徑） */
 if(comboFlagDirty){state.comboDirtyLevel=null;state.comboDirty=false;}
 bonusLines.push(comboShown+'個Combo ＋'+comboBonus);comboSave();
+}
 var scoreBreakdown={lines:bonusLines,total:bonusTotal}}
 if(win&&firstCompletion){var oldLvName=currentLevelName();if(state.best===undefined||state.best===null||state.score>state.best)state.best=Math.floor(state.score);state.maxCompleted=Math.max(state.maxCompleted,state.level+1);saveMaxCompletedProgress();var newLvName=currentLevelName();if(newLvName!==oldLvName&&state.hadBest){state.pendingLevelUp=true;state.pendingLevelUpName=newLvName}paintLevelChip();saveLocalProgress()}
 if(firstCompletion&&completed%10===0&&!state.milestoneRewards[completed]){
@@ -2284,7 +2302,7 @@ else{_doUpload();_showUI();}
 }catch(e){try{_doUpload();}catch(_){}try{_showUI();}catch(_){}}
 })();
 }
-function newLevel(index,skipSave,preserveVariant){if(typeof window.__resetAnswerShown==='function')window.__resetAnswerShown();clearToast();scheduleSway();var _comboPrevLevel=state.level;state.level=index;if(index!==_comboPrevLevel){state.comboDirty=false;if(typeof state.comboDirtyLevel==='number'&&state.comboDirtyLevel!==index){state.comboDirtyLevel=null;comboSave();}} /* v44.0.beta Combo：進入不同關卡清除進行中不乾淨狀態及持久化標記；同關重開（繼續玩、跳關回同關）保留 */state.hadBest=(typeof state.best==='number'&&state.best>0);if(!preserveVariant)state.variant=HARDEST_VARIANT[index];var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];buddyHistory=[];buddyRunSeq++;state.buddyCell=-1;state.buddyDone=false;state.buddyBlue={};state.buddyPaw=-1;state.buddyAnim=false;buddyClearState();state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.catsRemaining=p.size;state.start=Date.now();state.activeMs=0;state.lastResume=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=index<30;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress();maybeShowAutoTip();maybeShowIncognitoTip();maybeShowRecCodeTip()}
+function newLevel(index,skipSave,preserveVariant){if(typeof window.__resetAnswerShown==='function')window.__resetAnswerShown();clearToast();scheduleSway();var _comboPrevLevel=state.level;state.level=index;if(index!==_comboPrevLevel){state.comboDirty=false;if(typeof state.comboDirtyLevel==='number'&&state.comboDirtyLevel!==index){state.comboDirtyLevel=null;comboSave();}} /* v44.0.beta Combo：進入不同關卡清除進行中不乾淨狀態及持久化標記；同關重開（繼續玩、跳關回同關）保留 */state.hadBest=(typeof state.best==='number'&&state.best>0);if(!preserveVariant)state.variant=HARDEST_VARIANT[index];var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];buddyHistory=[];buddyRunSeq++;state.buddyCell=-1;state.buddyDone=false;state.buddyBlue={};state.buddyPaw=-1;state.buddyAnim=false;buddyClearState();state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.catsRemaining=p.size;state.start=Date.now();state.activeMs=0;state.lastResume=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=index<30;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress();paintCombo();maybeShowAutoTip();maybeShowIncognitoTip();maybeShowCombo501Tip();maybeShowRecCodeTip()}
 function restartLevel(){
 if(state.locked||state.buddyAnim)return;if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}
 for(var i=0;i<state.cells.length;i++){if(state.cells[i]!=='cat')state.cells[i]=''}state.lockedXs={};state.history=[];buddyHistory=[];state.buddyBlue={};buddySaveState();state.focus=0;
@@ -3815,6 +3833,29 @@ var okBtn=document.getElementById('incognitoTipOkBtn');
 if(okBtn)okBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll()});
 })();
 /* ===== 第 1 關無痕模式提醒（完） ===== */
+/* ===== 501 關 Combo 介紹提示（v44.5.beta，CC 2026-10-24 定案；做法完全比照第 1 關無痕模式提醒） =====
+觸發條件只有一項：進入 501 關（索引 500）即顯示；不設旗標、不儲存顯示紀錄，每次進入均顯示。
+時序：暱稱未設定時待暱稱對話框關閉後才顯示，不與暱稱對話框疊加；心數耗盡的完結恢復流程優先，不疊加顯示。
+硬約束（CC 2026-10-24 補充）：本彈窗純粹介紹、零副作用；顯示與關閉皆不得改動分數、心數、提示次數、Combo 值或任何狀態；不得歸零、改寫 Combo，不得寫入標記或存檔；進入 501 關時絕不重置 Combo；暱稱對話框時序的延後顯示亦不得附帶任何狀態改動。 */
+function maybeShowCombo501Tip(){
+if(state.level!==500)return;
+if(state.hearts<=0)return; /* 心數耗盡的完結恢復流程優先，不疊加顯示；無旗標，下次符合條件進入時自然再顯示 */
+var nickD=document.getElementById('nicknameDialog');
+if(nickD&&nickD.open){nickD.addEventListener('close',function h(){nickD.removeEventListener('close',h);maybeShowCombo501Tip()});return}
+if(!lbGetNickname()){ /* 暱稱未設定：啟動流程隨後會開啟暱稱對話框，待其關閉後再顯示 */
+if(nickD)nickD.addEventListener('close',function h(){nickD.removeEventListener('close',h);maybeShowCombo501Tip()});
+return}
+var d=document.getElementById('combo501TipDialog');if(!d||d.open||!d.showModal)return;
+var pc=document.getElementById('combo501TipCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;
+lockPageScroll();d.showModal();d.scrollTop=0;
+}
+(function(){
+var d=document.getElementById('combo501TipDialog');if(!d)return;
+d.addEventListener('cancel',function(e){e.preventDefault()}); /* 封截 Esc：只可按掣關閉 */
+var okBtn=document.getElementById('combo501TipOkBtn');
+if(okBtn)okBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll()});
+})();
+/* ===== 501 關 Combo 介紹提示（完） ===== */
 /* ===== 第 5 關保存恢復碼提示（v41.8.beta 重做，CC 2026-10-21 定奪；v41.9.beta 文案補充及計時補償，CC 2026-10-21 採納試玩貓建議並即時建造） =====
 觸發條件只有一項：進入第 5 關即顯示，做法完全比照第 1 關無痕提醒與第 10 關
 AUTO 提示——專屬彈窗、觸發函數通過守衛後直接 showModal；不設旗標、不儲存
@@ -3945,6 +3986,7 @@ var restoredPuzzle=currentPuzzle(),healedOnLoad=healPoisonedLocks(restoredPuzzle
 render();updateAll(false);scheduleSway();
 comboLoad(); /* v44.0.beta Combo：hash 路徑恢復後載入獨立 Combo 值及不乾淨標記（標記為結算判定依據） */
 maybeShowIncognitoTip(); /* hash 恢復路徑不經 newLevel，於此補觸發第 1 關無痕提醒（函數內含關卡、心數及暱稱時序判定） */
+maybeShowCombo501Tip(); /* hash 恢復路徑不經 newLevel，於此補觸發 501 關 Combo 介紹提示（函數內含關卡、心數及暱稱時序判定） */
 maybeShowRecCodeTip(); /* hash 恢復路徑不經 newLevel，於此補觸發第 5 關保存恢復碼提示（函數內含關卡、心數及恢復碼判定） */
 if(state.hearts<=0){
 state.locked=true;setLogic('已恢復上次進度','錯放懲罰已保存；5 顆心已用完。','!');setTimeout(function(){finish(false)},120)
