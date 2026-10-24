@@ -992,7 +992,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.1.beta'; // v44.1.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.2.beta'; // v44.2.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=800, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1612,7 +1612,7 @@ return Promise.resolve({level:d.level,hints:d.hints});
 var COMBO_KEY='meowdoku-combo-v1'+_storeSfx;
 var COMBO_MILESTONES={3:3000,5:5000,10:10000,15:15000,20:20000};
 function comboIsFirstAttempt(){return state.level>=state.maxCompleted}
-function paintCombo(){try{var fb=document.querySelector('.footer-note');var el=document.getElementById('comboFooterLine');if(!el&&fb){el=document.createElement('div');el.id='comboFooterLine';el.style.textAlign='right';el.style.fontSize='.85rem';el.style.marginTop='2px';el.style.color='var(--muted)';el.style.lineHeight='1.4';el.style.gridColumn='2';if(fb.parentNode)fb.parentNode.insertBefore(el,fb.nextSibling)}if(el){if(fb&&el.previousElementSibling!==fb&&fb.parentNode)fb.parentNode.insertBefore(el,fb.nextSibling);el.textContent='Combo：'+(state.combo||0)}}catch(e){}}
+function paintCombo(){try{var fb=document.querySelector('.footer-note');var el=document.getElementById('comboFooterLine');if(!el&&fb){el=document.createElement('div');el.id='comboFooterLine';el.style.textAlign='right';el.style.fontSize='1rem';el.style.marginTop='2px';el.style.color='var(--muted)';el.style.lineHeight='1.4';el.style.gridColumn='2';if(fb.parentNode)fb.parentNode.insertBefore(el,fb.nextSibling)}if(el){if(fb&&el.previousElementSibling!==fb&&fb.parentNode)fb.parentNode.insertBefore(el,fb.nextSibling);el.textContent='Combo：'+(state.combo||0)}}catch(e){}}
 /* 測試期顯示位置（CC 定案）：主畫面右下「恢復我的資料」的下一行；注意：本段程式碼在版圖
    載入完成後才執行，此時 DOMContentLoaded 早已觸發，故必須即時建立元素、不得依賴
    DOMContentLoaded 事件；paintCombo 每次亦會把元素移回頁底列的下一行，確保位置正確。 */
@@ -2960,15 +2960,15 @@ lotteryTestBtn.setAttribute('aria-label','測試抽獎輪盤（測試專用）')
 lotteryTestBtn.textContent='測試抽獎（測試）';
 lotteryTestBtn.onclick=function(){lotteryOpenModal(999,function(){if(typeof showToast==='function')showToast('測試抽獎完成');});};
 (function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(lotteryTestBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
-/* v40.17.beta 測試版專屬：清除抽獎及最高關數紀錄（2026-10-18 CC 要求）。
+/* v40.17.beta 測試版專屬：清除抽獎、最高關數及 Combo 值紀錄（2026-10-18 CC 要求；v44.2.beta 按鈕改名為「清除抽獎+Max關+Combo值」）。
    IS_TEST=false（玩家版）時此整塊不執行，頁面上無按鈕、無入口，功能完全不可觸達。
    按新格式：重置 maxLotteryLevel=0、maxCompleted=state.level。 */
 var lotClearBtn=document.createElement('button');
 lotClearBtn.className='jump-bottom-btn';
 lotClearBtn.type='button';
 lotClearBtn.id='lotClearBtn';
-lotClearBtn.setAttribute('aria-label','清除抽獎及max關（測試專用）');
-lotClearBtn.textContent='清除抽獎及max關（測試）';
+lotClearBtn.setAttribute('aria-label','清除抽獎+Max關+Combo值（測試專用）');
+lotClearBtn.textContent='清除抽獎+Max關+Combo值';
 lotClearBtn.onclick=function(){
 try{if(typeof LOTTERY_KEY!=='undefined')localStorage.removeItem(LOTTERY_KEY)}catch(_){}
 try{if(typeof MAXCOMP_KEY!=='undefined')localStorage.removeItem(MAXCOMP_KEY)}catch(_){}
