@@ -118,17 +118,17 @@ display:flex; flex-direction:column;
 #openingBtn svg { color:var(--good); }
 #openingBtn.guide-used { opacity:.68; cursor:default; }
 /* v44.6.beta 找貓提示按鈕 E 分割雙色風（CC 選定 Demo E；外框盒模型與現行完全一致：只改背景、陰影及圖標色，不動內距、邊框、字體、間距、圓角） */
-#hintBtn { background:linear-gradient(to right,var(--sun) 0 34px,var(--panel) 34px 100%); color:#44535b; box-shadow:inset 0 0 0 1.5px var(--line),3px 3px 0 rgba(24,50,58,.3); }
-#hintBtn:hover,#hintBtn:focus-visible { background:linear-gradient(to right,var(--sun) 0 34px,var(--panel) 34px 100%); color:#44535b; outline:none; transform:translate(-1px,-1px); box-shadow:inset 0 0 0 1.5px var(--line),4px 4px 0 rgba(24,50,58,.3); }
+#hintBtn { background:linear-gradient(to right,var(--sun) 0 30px,var(--panel) 30px 100%); color:#44535b; box-shadow:inset 0 0 0 1.5px var(--line),3px 3px 0 rgba(24,50,58,.3); }
+#hintBtn:hover,#hintBtn:focus-visible { background:linear-gradient(to right,var(--sun) 0 30px,var(--panel) 30px 100%); color:#44535b; outline:none; transform:translate(-1px,-1px); box-shadow:inset 0 0 0 1.5px var(--line),4px 4px 0 rgba(24,50,58,.3); }
 #hintBtn:active { transform:translate(2px,2px); box-shadow:inset 0 0 0 1.5px var(--line),1px 1px 0 rgba(24,50,58,.3); }
 #hintBtn .lit-bulb { color:#44535b; filter:none; }
 #hintBtn .bulb-glow { fill:none; stroke:currentColor; }
-#hintBtn.hint-used { opacity:.68; background:linear-gradient(to right,#a9b6b3 0 34px,var(--panel) 34px 100%); box-shadow:inset 0 0 0 1.5px var(--line),2px 2px 0 rgba(24,50,58,.2); }
+#hintBtn.hint-used { opacity:.68; background:linear-gradient(to right,#a9b6b3 0 30px,var(--panel) 30px 100%); box-shadow:inset 0 0 0 1.5px var(--line),2px 2px 0 rgba(24,50,58,.2); }
 #hintBtn.hint-used:hover { transform:none; box-shadow:inset 0 0 0 1.5px var(--line),2px 2px 0 rgba(24,50,58,.2); }
 #hintBtn.hint-used .lit-bulb { color:#5d6d70; filter:none; }
 @media (max-width:560px){
-#hintBtn,#hintBtn:hover,#hintBtn:focus-visible { background:linear-gradient(to right,var(--sun) 0 29px,var(--panel) 29px 100%); }
-#hintBtn.hint-used { background:linear-gradient(to right,#a9b6b3 0 29px,var(--panel) 29px 100%); }
+#hintBtn,#hintBtn:hover,#hintBtn:focus-visible { background:linear-gradient(to right,var(--sun) 0 25px,var(--panel) 25px 100%); }
+#hintBtn.hint-used { background:linear-gradient(to right,#a9b6b3 0 25px,var(--panel) 25px 100%); }
 }
 @media (prefers-color-scheme: dark){
 #hintBtn { color:#c3cfcf; box-shadow:inset 0 0 0 1.5px var(--line),3px 3px 0 rgba(0,0,0,.5); }
@@ -1025,7 +1025,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.8.beta'; // v44.8.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.9.beta'; // v44.9.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=800, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
