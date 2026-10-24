@@ -658,12 +658,12 @@ body.theme-dark {
 <tr><td>2 分鐘內完成</td><td>＋500 分</td></tr>
 <tr><td>5 分鐘內完成</td><td>＋300 分</td></tr>
 <tr><td>8 分鐘內完成</td><td>＋100 分</td></tr>
-<tr><td>Combo 連續完美過關</td><td>只計算首次完成的關卡（重玩不改變 Combo 值）；全程沒有扣心、沒有使用找貓提示才累積 Combo；扣心或使用找貓提示，Combo 即時歸零；Combo 達 3、5、10、15、20 個時分別加 3,000、5,000、10,000、15,000、20,000 分，達 20 個發獎後重置為零；Combo 值範圍為 0 至 20</td></tr>
 <tr><td>每次使用找貓提示</td><td>－100 分（不扣心）</td></tr>
 <tr><td>放錯貓</td><td>只扣心、不扣分</td></tr>
 <tr><td>積分下限</td><td>最低 0 分</td></tr>
 <tr><td>補心</td><td>每通過十關補回 1 顆心</td></tr>
 <tr><td>心數上限</td><td>5 顆</td></tr>
+<tr><td>Combo 連續完美過關</td><td>整關沒有扣心及沒有使用找貓提示會累積 Combo；扣心或使用找貓提示，Combo 即時歸零；Combo連續達 3、5、10、15、20 個時分別加 3,000、5,000、10,000、15,000、20,000 分。20 Combo發獎勵後重置為零。</td></tr>
 </table></div></li>
 <li><span class="rule-number">7</span><div><strong>幸運抽獎</strong><span>每通過 15 關，可參加一次幸運抽獎。</span></div></li>
 <li><span class="rule-number">8</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
@@ -992,7 +992,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.2.beta'; // v44.2.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.3.beta'; // v44.3.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=800, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
