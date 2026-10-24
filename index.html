@@ -795,6 +795,17 @@ body.theme-dark {
 </div>
 </form>
 </dialog>
+<dialog id="comboDialog">
+<form class="sheet" id="comboForm" method="dialog">
+<label for="comboInput">設定 Combo 值（測試專用）</label>
+<input id="comboInput" type="number" min="0" max="20" step="1" inputmode="numeric" required />
+<p class="jump-error" id="comboError" role="alert" hidden>請輸入 0 至 20 的整數</p>
+<div class="jump-actions">
+<button class="secondary" id="comboCancel" type="button">取消</button>
+<button class="primary" type="submit">設定</button>
+</div>
+</form>
+</dialog>
 <dialog id="scoreDialog">
 <form class="sheet" id="scoreForm" method="dialog">
 <label for="scoreInput">設定現時積分（測試專用）</label>
@@ -981,7 +992,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.0.beta'; // v44.0.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.1.beta'; // v44.1.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=800, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1585,9 +1596,12 @@ if(!sum||sum!==d.sum)return Promise.resolve(null);
 return Promise.resolve({level:d.level,hints:d.hints});
 }catch(e){return Promise.resolve(null)}
 }
-/* ===== Combo 連續完美過關獎勵（v44.0.beta；CC 2026-10-24 逐點定案，2026-10-24 持久化標記定案）=====
-   獨立儲存：本地獨立 key，不加入主存檔、不改主存檔校驗內容、不加入 URL hash v5。
-   同格儲存：Combo 值與不乾淨標記使用同一獨立儲存格（{v:2,combo,dirty}，dirty 為曾不乾淨的關號或 null），同刻一次寫入。
+/* ===== Combo 連續完美過關獎勵（v44.0.beta；CC 2026-10-24 逐點定案，2026-10-24 持久化標記定案；v44.1.beta 改為抽獎式獨立 key）=====
+   抽獎式獨立 key（v44.1.beta；CC 2026-10-24 定案）：本地獨立 key（meowdoku-combo-v1 加測試後綴），
+   不加入主存檔、不改主存檔校驗內容、不加入 URL hash v5；格式完整依循抽獎 key（{v:2,data,sum}，
+   data 為「Combo 值|不乾淨關號」字串，sum 為 sha256hexSync(data+'|'+LS_SECRET)；校驗不符視為無資料）。
+   同格儲存：Combo 值與不乾淨標記使用同一獨立儲存格，同刻一次寫入；v44.0 舊格式（無自校驗）
+   首次載入時接受一次舊值並改寫為抽獎式格式。
    雲端：backup save_json 內新增 combo 欄位（只保存 Combo 值，標記不上雲）；雲端恢復時清除標記。
    即時重置只限首次完成進度的關卡（state.level>=state.maxCompleted）；重玩已完成關卡
    扣心或用提示不改變 Combo 值，不加不減，亦不寫入標記。Combo 值範圍 0 至 20，絕無負數。
@@ -1603,10 +1617,11 @@ function paintCombo(){try{var fb=document.querySelector('.footer-note');var el=d
    載入完成後才執行，此時 DOMContentLoaded 早已觸發，故必須即時建立元素、不得依賴
    DOMContentLoaded 事件；paintCombo 每次亦會把元素移回頁底列的下一行，確保位置正確。 */
 paintCombo();
-function comboSave(){try{if(window.localStorage)localStorage.setItem(COMBO_KEY,JSON.stringify({v:2,combo:state.combo,dirty:(typeof state.comboDirtyLevel==='number'?state.comboDirtyLevel:null)}))}catch(e){}paintCombo()}
-function comboLoad(){try{var raw=null;try{raw=localStorage.getItem(COMBO_KEY)}catch(e){raw=null}if(!raw){state.combo=0;state.comboDirtyLevel=null;paintCombo();return}var d=null;try{d=JSON.parse(raw)}catch(e){d=null}if(typeof d==='number'&&d>=0&&d<=20&&Math.floor(d)===d){state.combo=d;state.comboDirtyLevel=null}else if(d&&(d.v===1||d.v===2)&&typeof d.combo==='number'&&d.combo>=0&&d.combo<=20&&Math.floor(d.combo)===d.combo){state.combo=d.combo;state.comboDirtyLevel=(d.v===2&&typeof d.dirty==='number'&&d.dirty>=0&&Math.floor(d.dirty)===d.dirty)?d.dirty:null}else{state.combo=0;state.comboDirtyLevel=null}if(state.comboDirtyLevel!==null&&state.comboDirtyLevel!==state.level){state.comboDirtyLevel=null;comboSave()}}catch(e){state.combo=0;state.comboDirtyLevel=null}paintCombo()}
+function comboDataString(){var c=Math.floor(state.combo||0);if(c<0)c=0;if(c>20)c=20;return String(c)+'|'+(typeof state.comboDirtyLevel==='number'?state.comboDirtyLevel:'')}
+function comboSave(){try{if(window.localStorage){var data=comboDataString();var sum=sha256hexSync(data+'|'+LS_SECRET);if(sum)localStorage.setItem(COMBO_KEY,JSON.stringify({v:2,data:data,sum:sum}))}}catch(e){}paintCombo()}
+function comboLoad(){try{var raw=null;try{raw=localStorage.getItem(COMBO_KEY)}catch(e){raw=null}if(!raw){state.combo=0;state.comboDirtyLevel=null;paintCombo();return}var d=null;try{d=JSON.parse(raw)}catch(e){d=null}var needSave=false;if(d&&d.v===2&&typeof d.data==='string'&&typeof d.sum==='string'){var sum=sha256hexSync(d.data+'|'+LS_SECRET);if(sum&&sum===d.sum){var parts=d.data.split('|');var c=(/^\d+$/.test(parts[0]))?parseInt(parts[0],10):NaN;var dl=(parts.length>1&&/^\d+$/.test(parts[1]))?parseInt(parts[1],10):NaN;if(isFinite(c)&&c>=0&&c<=20){state.combo=c;state.comboDirtyLevel=(isFinite(dl)&&dl>=0)?dl:null}else{state.combo=0;state.comboDirtyLevel=null}}else{state.combo=0;state.comboDirtyLevel=null;needSave=true}}else if(typeof d==='number'&&d>=0&&d<=20&&Math.floor(d)===d){state.combo=d;state.comboDirtyLevel=null;needSave=true}else if(d&&(d.v===1||d.v===2)&&typeof d.combo==='number'&&d.combo>=0&&d.combo<=20&&Math.floor(d.combo)===d.combo){state.combo=d.combo;state.comboDirtyLevel=(d.v===2&&typeof d.dirty==='number'&&d.dirty>=0&&Math.floor(d.dirty)===d.dirty)?d.dirty:null;needSave=true}else{state.combo=0;state.comboDirtyLevel=null;needSave=true}if(state.comboDirtyLevel!==null&&state.comboDirtyLevel!==state.level){state.comboDirtyLevel=null;needSave=true}if(needSave)comboSave()}catch(e){state.combo=0;state.comboDirtyLevel=null}paintCombo()}
 function comboOnDirty(){if(!comboIsFirstAttempt())return;state.comboDirty=true;state.comboDirtyLevel=state.level;state.combo=0;comboSave()}
-function comboCloudField(){try{var raw=localStorage.getItem(COMBO_KEY);if(!raw)return null;var d=null;try{d=JSON.parse(raw)}catch(e){return null}if(typeof d==='number'&&d>=0&&d<=20&&Math.floor(d)===d)return JSON.stringify({v:2,combo:d});if(d&&(d.v===1||d.v===2)&&typeof d.combo==='number'&&d.combo>=0&&d.combo<=20&&Math.floor(d.combo)===d.combo)return JSON.stringify({v:2,combo:d.combo})}catch(e){}return null}
+function comboCloudField(){try{var raw=null;try{raw=localStorage.getItem(COMBO_KEY)}catch(e){raw=null}if(!raw)return null;var d=null;try{d=JSON.parse(raw)}catch(e){return null}if(d&&d.v===2&&typeof d.data==='string'&&typeof d.sum==='string'){var sum=sha256hexSync(d.data+'|'+LS_SECRET);if(!sum||sum!==d.sum)return null;var c=(/^\d+$/.test(d.data.split('|')[0]))?parseInt(d.data.split('|')[0],10):NaN;if(isFinite(c)&&c>=0&&c<=20)return JSON.stringify({v:2,combo:c});return null}if(typeof state.combo==='number'&&state.combo>=0&&state.combo<=20&&Math.floor(state.combo)===state.combo)return JSON.stringify({v:2,combo:state.combo})}catch(e){}return null}
 /* ===== 九格抽獎輪盤持久化（v40.5.beta；v40.17.beta 簡化：記最大值）=====
    CC 最高優先要求（2026-10-18）：發獎前先標記已領取並同步落盤（含 SHA-256），
    再發放獎勵。即使玩家在發獎瞬間 refresh，也不會重複獲得。
@@ -2552,8 +2567,8 @@ function backupDownload(code,onProgress){
       try{if(outer.hints)localStorage.setItem(HINTS_KEY,outer.hints)}catch(e){}
       try{if(outer.lottery)localStorage.setItem(LOTTERY_KEY,outer.lottery)}catch(e){}
       if(outer.maxcompleted){try{localStorage.setItem(MAXCOMP_KEY,outer.maxcompleted)}catch(_){}}else{try{localStorage.removeItem(MAXCOMP_KEY)}catch(_){}}
-      /* v44.0.beta Combo 雲端恢復：只取雲端 combo 值，標記一律清除且不上雲；舊紀錄無此欄位時不改寫 Combo 值，但仍清除本地標記（恢復落在關卡邊界，進行中的嘗試已經作廢） */
-      try{var _cc=null;if(outer.combo&&typeof outer.combo==='string'){try{_cc=JSON.parse(outer.combo)}catch(_){}}if(typeof _cc==='number'&&_cc>=0&&_cc<=20&&Math.floor(_cc)===_cc){state.combo=_cc;state.comboDirtyLevel=null;comboSave();}else if(_cc&&(_cc.v===1||_cc.v===2)&&typeof _cc.combo==='number'&&_cc.combo>=0&&_cc.combo<=20&&Math.floor(_cc.combo)===_cc.combo){state.combo=_cc.combo;state.comboDirtyLevel=null;comboSave();}else{state.comboDirtyLevel=null;comboSave();}}catch(_){}
+      /* v44.1.beta Combo 雲端恢復（CC 2026-10-24 定案）：只取雲端 combo 值，標記一律清除且不上雲；save_json 無 combo 欄位或 combo 無效時當為 0 個 Combo 值處理，兼容舊版本（恢復落在關卡邊界，進行中的嘗試已經作廢） */
+      try{var _cc=null;if(outer.combo&&typeof outer.combo==='string'){try{_cc=JSON.parse(outer.combo)}catch(_){}}if(typeof _cc==='number'&&_cc>=0&&_cc<=20&&Math.floor(_cc)===_cc){state.combo=_cc;state.comboDirtyLevel=null;comboSave();}else if(_cc&&(_cc.v===1||_cc.v===2)&&typeof _cc.combo==='number'&&_cc.combo>=0&&_cc.combo<=20&&Math.floor(_cc.combo)===_cc.combo){state.combo=_cc.combo;state.comboDirtyLevel=null;comboSave();}else{state.combo=0;state.comboDirtyLevel=null;comboSave();}}catch(_){}
       try{localStorage.setItem('meowdoku-recovery-code-v1'+_storeSfx,q)}catch(e){}
       try{if(j.nickname)localStorage.setItem('meowdoku-nickname-v1',j.nickname)}catch(e){} // v39.19：恢復時一併採用雲端暱稱，避免舊紀錄配新暱稱
       prog('覆蓋本地資料成功');
@@ -2873,7 +2888,7 @@ bestBtn.textContent='設最高積分（測試）';
 var bestDialog=document.getElementById('bestDialog'),bestForm=document.getElementById('bestForm'),bestInput=document.getElementById('bestInput'),bestError=document.getElementById('bestError');
 bestBtn.onclick=function(){bestInput.value=(state.best===undefined||state.best===null)?'':String(Math.floor(state.best));bestError.hidden=true;bestDialog.showModal();bestInput.focus();bestInput.select()};
 document.getElementById('bestCancel').onclick=function(){bestDialog.close()};
-document.getElementById('bestClear').onclick=function(){delete state.best;paintLevelChip();saveLocalProgress();bestDialog.close();showToast('最高積分紀錄已清除')};
+document.getElementById('bestClear').onclick=function(){delete state.best;paintLevelChip();saveLocalProgress();state.combo=0;state.comboDirty=false;state.comboDirtyLevel=null;try{localStorage.removeItem(COMBO_KEY)}catch(_){}paintCombo();bestDialog.close();showToast('最高積分紀錄已清除')};
 bestDialog.addEventListener('click',function(e){if(e.target===bestDialog)bestDialog.close()});
 bestForm.onsubmit=function(e){
 e.preventDefault();
@@ -2883,6 +2898,26 @@ bestDialog.close();state.best=Math.floor(n);paintLevelChip();saveLocalProgress()
 showToast('最高積分已設為 '+Math.floor(n).toLocaleString('zh-Hant')+'（等級：'+currentLevelName()+'）');
 };
 (function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(bestBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
+/* 測試版專屬：設定 Combo 值（v44.1.beta CC 要求）。IS_TEST=false（玩家版）時此整塊不執行，
+   頁面上無按鈕、無入口，功能完全不可觸達。寫入抽獎式獨立 key（含自校驗），只做本地寫入，不上傳雲端。 */
+var comboBtn=document.createElement('button');
+comboBtn.className='jump-bottom-btn';
+comboBtn.type='button';
+comboBtn.id='comboBtn';
+comboBtn.setAttribute('aria-label','設定 Combo 值（測試專用）');
+comboBtn.textContent='設 Combo 值（測試）';
+var comboDialog=document.getElementById('comboDialog'),comboForm=document.getElementById('comboForm'),comboInput=document.getElementById('comboInput'),comboError=document.getElementById('comboError');
+comboBtn.onclick=function(){comboInput.value=String(state.combo||0);comboError.hidden=true;comboDialog.showModal();comboInput.focus();comboInput.select()};
+document.getElementById('comboCancel').onclick=function(){comboDialog.close()};
+comboDialog.addEventListener('click',function(e){if(e.target===comboDialog)comboDialog.close()});
+comboForm.onsubmit=function(e){
+e.preventDefault();
+var n=Number(comboInput.value);
+if(!Number.isInteger(n)||n<0||n>20){comboError.hidden=false;showToast('請輸入 0 至 20 的整數');comboInput.focus();return}
+comboDialog.close();state.combo=Math.floor(n);state.comboDirty=false;state.comboDirtyLevel=null;comboSave();
+showToast('Combo 值已設為 '+Math.floor(n));
+};
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(comboBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* 測試版專屬：設定現時積分。IS_TEST=false（玩家版）時此整塊不執行，
    頁面上無按鈕、無入口，功能完全不可觸達。 */
 var scoreBtn=document.createElement('button');
@@ -2938,6 +2973,9 @@ lotClearBtn.onclick=function(){
 try{if(typeof LOTTERY_KEY!=='undefined')localStorage.removeItem(LOTTERY_KEY)}catch(_){}
 try{if(typeof MAXCOMP_KEY!=='undefined')localStorage.removeItem(MAXCOMP_KEY)}catch(_){}
 if(typeof state!=='undefined'){state.maxLotteryLevel=0;state.maxCompleted=state.level;}
+if(typeof state!=='undefined'){state.combo=0;state.comboDirty=false;state.comboDirtyLevel=null;}
+try{if(typeof COMBO_KEY!=='undefined')localStorage.removeItem(COMBO_KEY)}catch(_){}
+if(typeof paintCombo==='function')paintCombo();
 if(typeof showToast==='function')showToast('已清除抽獎及最高關數紀錄');
 };
 (function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(lotClearBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
