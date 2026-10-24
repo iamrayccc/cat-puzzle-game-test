@@ -329,10 +329,11 @@ pointer-events:auto;
 /* ===== 排名榜（v37.64） ===== */
 #lbOpenBtn{margin-top:10px;width:100%;font-size:1rem;}
 /* v44.12.beta：過關結算對話框「排名榜」與「我的恢復碼」同行並排，免向下捲動 */
-.result-links-row{display:flex;align-items:center;gap:14px;margin-top:10px;}
-.result-links-row #lbOpenBtn{margin-top:0;width:auto;flex:0 0 auto;}
-.result-links-row .result-recovery-wrap{margin-top:0;text-align:left;flex:1 1 auto;min-width:0;}
-.result-links-row .result-recovery-wrap .recovery-link{white-space:nowrap;}
+.result-links-row{display:flex;justify-content:center;position:relative;margin-top:10px;}
+.result-links-row #lbOpenBtn{margin-top:0;width:auto;}
+.result-links-row .result-recovery-wrap{position:absolute;left:0;top:50%;transform:translateY(-50%);margin-top:0;text-align:left;}
+.result-links-row .result-recovery-wrap .recovery-link{white-space:nowrap;font-size:.85rem;}
+@media (max-width:400px){.result-links-row .result-recovery-wrap .recovery-link{font-size:.8rem;}}
 #lbOpenBtn .lb-trophy{font-size:1.5em;line-height:1;}
 #leaderboardTitle .lb-top10{font-size:0.68em;font-weight:900;color:var(--accent);}
 #leaderboardDialog[open]{
@@ -1040,7 +1041,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.12.beta'; // v44.12.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.13.beta'; // v44.13.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=900, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -3628,7 +3629,7 @@ myCodeLink.type='button';
 myCodeLink.id='myRecoveryCodeLink';
 myCodeLink.setAttribute('aria-label','我的恢復碼');
 myCodeLink.textContent='我的恢復碼';
-/* v44.12.beta：將「我的恢復碼」與排名榜按鈕置於同一行並排（原先後次序不變），免向下捲動 */
+/* v44.13.beta：結算行改為排名榜真正置中、我的恢復碼絕對定位於行最左側（字體稍細），兩者仍在同一行、免向下捲動 */
 var lbBtn=document.getElementById('lbOpenBtn');
 if(lbBtn&&lbBtn.parentNode){
   var row=document.createElement('div');
