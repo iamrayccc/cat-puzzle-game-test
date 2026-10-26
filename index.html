@@ -1053,7 +1053,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.14.beta'; // v44.14.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.15.beta'; // v44.15.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=900, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -3861,11 +3861,11 @@ if(onBtn)onBtn.addEventListener('click',function(){setAutoMode(true);if(d.open)d
 if(laterBtn)laterBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll()});
 })();
 /* ===== 第 10 關 AUTO 提示（完） ===== */
-/* ===== 第 1 關無痕模式提醒（v41.2.beta，CC 2026-10-20 定案） =====
-觸發條件只有一項：進入第 1 關即顯示；不設旗標、不儲存顯示紀錄、不做無痕偵測，每次進入均顯示。
+/* ===== 第 1 及 15 關無痕模式提醒（v41.2.beta，CC 2026-10-20 定案；v44.15.beta 追加第 15 關） =====
+觸發條件只有一項：進入第 1 關或第 15 關即顯示；不設旗標、不儲存顯示紀錄、不做無痕偵測，每次進入均顯示。
 時序：暱稱未設定時待暱稱對話框關閉後才顯示，不與暱稱對話框疊加；心數耗盡的完結恢復流程優先，不疊加顯示 */
 function maybeShowIncognitoTip(){
-if(state.level!==0)return;
+if(state.level!==0&&state.level!==14)return;
 if(state.hearts<=0)return; /* 心數耗盡的完結恢復流程優先，不疊加顯示；無旗標，下次符合條件進入時自然再顯示 */
 var nickD=document.getElementById('nicknameDialog');
 if(nickD&&nickD.open){nickD.addEventListener('close',function h(){nickD.removeEventListener('close',h);maybeShowIncognitoTip()});return}
@@ -3882,7 +3882,7 @@ d.addEventListener('cancel',function(e){e.preventDefault()}); /* 封截 Esc：�
 var okBtn=document.getElementById('incognitoTipOkBtn');
 if(okBtn)okBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll()});
 })();
-/* ===== 第 1 關無痕模式提醒（完） ===== */
+/* ===== 第 1 及 15 關無痕模式提醒（完） ===== */
 /* ===== 501 關 Combo 介紹提示（v44.5.beta，CC 2026-10-24 定案；做法完全比照第 1 關無痕模式提醒） =====
 觸發條件只有一項：進入 501 關（索引 500）即顯示；不設旗標、不儲存顯示紀錄，每次進入均顯示。
 時序：暱稱未設定時待暱稱對話框關閉後才顯示，不與暱稱對話框疊加；心數耗盡的完結恢復流程優先，不疊加顯示。
@@ -3906,8 +3906,8 @@ var okBtn=document.getElementById('combo501TipOkBtn');
 if(okBtn)okBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll()});
 })();
 /* ===== 501 關 Combo 介紹提示（完） ===== */
-/* ===== 第 5 關保存恢復碼提示（v41.8.beta 重做，CC 2026-10-21 定奪；v41.9.beta 文案補充及計時補償，CC 2026-10-21 採納試玩貓建議並即時建造） =====
-觸發條件只有一項：進入第 5 關即顯示，做法完全比照第 1 關無痕提醒與第 10 關
+/* ===== 第 5 及 25 關保存恢復碼提示（v41.8.beta 重做，CC 2026-10-21 定奪；v41.9.beta 文案補充及計時補償，CC 2026-10-21 採納試玩貓建議並即時建造；v44.15.beta 追加第 25 關） =====
+觸發條件只有一項：進入第 5 關或第 25 關即顯示，做法完全比照第 1 關無痕提醒與第 10 關
 AUTO 提示——專屬彈窗、觸發函數通過守衛後直接 showModal；不設旗標、不儲存
 顯示紀錄、不分新／舊玩家、不論首次或重玩，每次符合守衛的進入均顯示。唯一
 守衛：心數耗盡的完結恢復流程優先，不疊加顯示。恢復碼於開啟時以既有取碼
@@ -3924,7 +3924,7 @@ state.start／state.activeMs／state.lastResume，令本關計時由關閉提示
 重新起算。Esc 已封截，關閉路徑只有「知道了」按鈕一途；newLevel 掛鉤與
 hash 補觸發兩條開啟路徑共用同一個「知道了」關閉處理，故同樣受補償。 */
 function maybeShowRecCodeTip(){
-if(state.level!==4)return;
+if(state.level!==4&&state.level!==24)return;
 if(state.hearts<=0)return; /* 心數耗盡的完結恢復流程優先，不疊加顯示；無旗標，下次符合條件進入時自然再顯示 */
 var d=document.getElementById('recCodeTipDialog');if(!d||d.open||!d.showModal)return;
 var pc=document.getElementById('recCodeTipCat');if(pc&&typeof catSVG!=='undefined')pc.innerHTML=catSVG;
@@ -3937,7 +3937,7 @@ d.addEventListener('cancel',function(e){e.preventDefault()}); /* 封截 Esc：�
 var okBtn=document.getElementById('recCodeTipOkBtn');
 if(okBtn)okBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll();state.start=Date.now();state.activeMs=0;state.lastResume=Date.now()}); /* v41.9.beta 計時補償：關閉提示時重置本關計時起點（同暱稱對話框關閉回調寫法），提示停留不計入本關用時 */
 })();
-/* ===== 第 5 關保存恢復碼提示（完） ===== */
+/* ===== 第 5 及 25 關保存恢復碼提示（完） ===== */
 function autoMarkX(i,p){
 var pr=Math.floor(i/p.size),pc=i%p.size,marked=0;
 function tryMark(idx){if(idx===i)return;if(state.cells[idx]!==''||state.lockedXs[idx]||state.pendingCells[idx])return;state.cells[idx]='x';updateCell(idx,false);marked++}
@@ -4035,9 +4035,9 @@ if(restoreProgress()){
 var restoredPuzzle=currentPuzzle(),healedOnLoad=healPoisonedLocks(restoredPuzzle);
 render();updateAll(false);scheduleSway();
 comboLoad(); /* v44.0.beta Combo：hash 路徑恢復後載入獨立 Combo 值及不乾淨標記（標記為結算判定依據） */
-maybeShowIncognitoTip(); /* hash 恢復路徑不經 newLevel，於此補觸發第 1 關無痕提醒（函數內含關卡、心數及暱稱時序判定） */
+maybeShowIncognitoTip(); /* hash 恢復路徑不經 newLevel，於此補觸發第 1 及 15 關無痕提醒（函數內含關卡、心數及暱稱時序判定） */
 maybeShowCombo501Tip(); /* hash 恢復路徑不經 newLevel，於此補觸發 501 關 Combo 介紹提示（函數內含關卡、心數及暱稱時序判定） */
-maybeShowRecCodeTip(); /* hash 恢復路徑不經 newLevel，於此補觸發第 5 關保存恢復碼提示（函數內含關卡、心數及恢復碼判定） */
+maybeShowRecCodeTip(); /* hash 恢復路徑不經 newLevel，於此補觸發第 5 及 25 關保存恢復碼提示（函數內含關卡、心數及恢復碼判定） */
 if(state.hearts<=0){
 state.locked=true;setLogic('已恢復上次進度','錯放懲罰已保存；5 顆心已用完。','!');setTimeout(function(){finish(false)},120)
 }else{
