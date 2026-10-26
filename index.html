@@ -97,7 +97,7 @@ display:flex; flex-direction:column;
 .top-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:18px; }
 .second-row { grid-column:1/-1; display:flex; gap:6px; align-items:center; }
 .second-row .quiet-btn { flex:0 1 auto; min-width:0; }
-.second-row .timer-display { flex:1 0 auto; min-width:0; justify-content:flex-start; }
+.second-row .timer-display { flex:1 0 auto; min-width:0; justify-content:flex-end; }
 .top-row { grid-column:1/-1; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
 .top-row .quiet-btn { justify-self:start; padding:8px 10px; }
 .top-row .theme-seg { justify-self:center; }
@@ -426,6 +426,7 @@ pointer-events:auto;
 .score { min-height:40px; padding:5px 9px; }
 .stats { grid-template-columns:repeat(2,1fr); }
 .top-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
+.top-row { gap:6px; } /* v44.16.beta：找貓提示移入第一行後，窄屏第一行間距與 .top-actions 一致，純間距微調 */
 .quiet-btn { justify-content:center; padding:8px 5px; font-size:.78rem; }
 .timer-display { font-size:.78rem; }
 .cats-remaining { justify-content:flex-end; padding:8px 5px; font-size:.78rem; }
@@ -622,9 +623,10 @@ body.theme-dark {
 <section class="level-meta" aria-label="關卡資料"><h1 id="levelName">午睡角落</h1><div class="theme-seg" role="group" aria-label="自動標記開關"><button class="theme-seg-btn" id="autoOnBtn" type="button">AUTO</button><button class="theme-seg-btn" id="autoOffBtn" type="button">OFF</button></div><div class="level-meta-right"><small id="levelCount">第 1／50 關</small><div id="comboLevelLine"></div></div></section>
 <nav class="top-actions" aria-label="遊戲工具">
 <div class="top-row">
-<button class="quiet-btn" id="rulesBtn" type="button" aria-label="查看玩法">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 3.1 2.3c-.8.3-1.3.9-1.3 1.7"/><path d="M12 17h.01"/></svg>玩法
+<button class="quiet-btn" id="hintBtn" type="button" aria-label="找貓提示，本關兩次">
+<svg class="lit-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1v2M4.2 4.2l1.4 1.4M1 12h2m16 0h2M18.4 5.6l1.4-1.4"/><path class="bulb-glow" d="M8.5 14.5A6 6 0 1 1 15.5 14.5c-.8.7-1.5 1.5-1.5 2.5h-4c0-1-.7-1.8-1.5-2.5Z"/><path d="M9 19h6M10 22h4"/></svg><span id="hintLabel">找貓提示 · 2 次</span>
 </button>
+
 <div class="theme-seg" role="group" aria-label="主題選擇">
 <button class="theme-seg-btn" id="themeDarkBtn" type="button">深色</button><button class="theme-seg-btn" id="themeLightBtn" type="button">淺色</button>
 </div>
@@ -633,6 +635,9 @@ body.theme-dark {
 </div>
 </div>
 <div class="second-row">
+<button class="quiet-btn" id="rulesBtn" type="button" aria-label="查看玩法">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 3.1 2.3c-.8.3-1.3.9-1.3 1.7"/><path d="M12 17h.01"/></svg>玩法
+</button>
 <button class="quiet-btn" id="undoBtn" type="button">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 8-4 4 4 4"/><path d="M5 12h8a6 6 0 0 1 6 6"/></svg>復原
 </button>
@@ -640,9 +645,7 @@ body.theme-dark {
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 11a8 8 0 1 1 2.3 6.7"/><path d="M4 5v6h6"/></svg>全部清除
 </button>
 <div class="timer-display" id="gameTimer" role="timer" aria-label="本關遊戲時間"><span class="timer-icon" aria-hidden="true">⏱</span><span id="gameTimerText">0秒</span></div>
-<button class="quiet-btn" id="hintBtn" type="button" aria-label="找貓提示，本關兩次">
-<svg class="lit-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1v2M4.2 4.2l1.4 1.4M1 12h2m16 0h2M18.4 5.6l1.4-1.4"/><path class="bulb-glow" d="M8.5 14.5A6 6 0 1 1 15.5 14.5c-.8.7-1.5 1.5-1.5 2.5h-4c0-1-.7-1.8-1.5-2.5Z"/><path d="M9 19h6M10 22h4"/></svg><span id="hintLabel">找貓提示 · 2 次</span>
-</button>
+
 </div>
 <!-- 開局指引暫時停用（2026-10-17 CC 指示），代碼保留，日後可重啟。
 <button class="quiet-btn" id="openingBtn" type="button" aria-label="查看本關免費開局指引">
@@ -1053,7 +1056,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.15.beta'; // v44.15.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.16.beta'; // v44.16.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=900, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
