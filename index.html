@@ -96,6 +96,7 @@ display:flex; flex-direction:column;
 @keyframes heartHit { 18%{transform:translateX(-3px);background:color-mix(in srgb,var(--bad) 18%,var(--panel))} 36%{transform:translateX(3px)} 54%{transform:translateX(-2px)} 100%{transform:none} }
 .top-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:18px; }
 .second-row { grid-column:1/-1; display:flex; gap:6px; align-items:center; }
+.second-left { display:flex; align-items:center; gap:6px; justify-content:space-between; flex:0 0 auto; width:calc(50% + 56px); } /* v44.17.beta：第二行左組定寬，使「除」字右緣與第一行深淺切換組右緣對齊（組寬＝半行＋切換組半寬 46px＋按鈕右內距 10px）；組內以 space-between 向右展開 */
 .second-row .quiet-btn { flex:0 1 auto; min-width:0; }
 .second-row .timer-display { flex:1 0 auto; min-width:0; justify-content:flex-end; }
 .top-row { grid-column:1/-1; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
@@ -427,6 +428,8 @@ pointer-events:auto;
 .stats { grid-template-columns:repeat(2,1fr); }
 .top-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
 .top-row { gap:6px; } /* v44.16.beta：找貓提示移入第一行後，窄屏第一行間距與 .top-actions 一致，純間距微調 */
+.second-left { width:calc(50% + 51px); } /* v44.17.beta：窄屏按鈕右內距為 5px，組寬相應改為半行＋46px＋5px */
+#hintBtn .lit-bulb { transform:translateX(-5px); } /* v44.17.beta：窄屏黃區分割點 25px，但按鈕左內距因 specificity 維持 10px，燈泡 10–28px 溢出黃區約 3px；僅平移圖示 5px 至 5–23px，完全在黃區內，按鈕外框及標籤位置不變 */
 .quiet-btn { justify-content:center; padding:8px 5px; font-size:.78rem; }
 .timer-display { font-size:.78rem; }
 .cats-remaining { justify-content:flex-end; padding:8px 5px; font-size:.78rem; }
@@ -435,6 +438,9 @@ pointer-events:auto;
 .rule-strip { flex-wrap:nowrap; gap:8px; font-size:.7rem; }
 .rule { gap:4px; white-space:nowrap; }
 .rule b { width:20px; height:20px; font-size:.75rem; }
+}
+@media (max-width:340px){
+.second-left { width:auto; } /* v44.17.beta：極窄屏下定寬組容不下三鈕自然寬度，改回自然寬度防換行；此時「除」字對齊為近似（320px 約超前 15px），不溢出不重疊 */
 }
 @media (max-width:400px) {
 .status-actions { gap:6px; }
@@ -635,6 +641,7 @@ body.theme-dark {
 </div>
 </div>
 <div class="second-row">
+<div class="second-left">
 <button class="quiet-btn" id="rulesBtn" type="button" aria-label="查看玩法">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 3.1 2.3c-.8.3-1.3.9-1.3 1.7"/><path d="M12 17h.01"/></svg>玩法
 </button>
@@ -644,6 +651,7 @@ body.theme-dark {
 <button class="quiet-btn" id="restartBtn" type="button" aria-label="清除本關所有標記，保留同一版圖">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 11a8 8 0 1 1 2.3 6.7"/><path d="M4 5v6h6"/></svg>全部清除
 </button>
+</div>
 <div class="timer-display" id="gameTimer" role="timer" aria-label="本關遊戲時間"><span class="timer-icon" aria-hidden="true">⏱</span><span id="gameTimerText">0秒</span></div>
 
 </div>
@@ -1056,7 +1064,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.16.beta'; // v44.16.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.17.beta'; // v44.17.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=900, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
