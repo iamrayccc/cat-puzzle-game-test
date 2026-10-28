@@ -1072,7 +1072,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.19.beta'; // v44.19.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.20.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1000, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2372,7 +2372,7 @@ if(state.locked||state.buddyAnim)return;if(Object.keys(state.pendingCells).lengt
 for(var i=0;i<state.cells.length;i++){if(state.cells[i]!=='cat')state.cells[i]=''}state.lockedXs={};state.history=[];buddyHistory=[];state.buddyBlue={};buddySaveState();state.focus=0;
 render();setLogic('已清除 X 標記','已放中的貓咪已鎖定保留；X 標記已全部清除，可繼續推理。','↻');showToast('已清除 X 標記（貓咪保留）');persistProgress()
 }
-function undo(){if(state.locked||state.buddyAnim||!state.history.length){showToast(state.buddyAnim?'請先等待小夥伴完成':'沒有可復原的步驟');return}if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}var prev=state.history.pop();var bh=buddyHistory.pop();if(bh){state.buddyCell=bh.cell;state.buddyDone=bh.done;state.buddyBlue=bh.blue}for(var i=0;i<state.cells.length;i++){if(state.cells[i]!=='cat')state.cells[i]=prev[i]==='cat'?'':prev[i]}Object.keys(state.lockedXs).forEach(function(key){state.cells[+key]='x'});Object.keys(state.buddyBlue).forEach(function(key){if(state.cells[+key]!=='x')delete state.buddyBlue[+key]});updateAll(false);setLogic('已復原一步','已放中的貓咪已鎖定，只復原 X 標記。','↶');buddySaveState();persistProgress()}
+function undo(){if(state.locked||state.buddyAnim||!state.history.length){showToast(state.buddyAnim?'請先等待小夥伴完成':'沒有可復原的步驟');return}if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}var prev=state.history.pop();var bh=buddyHistory.pop();if(bh){state.buddyCell=bh.cell;state.buddyDone=state.buddyDone||bh.done;state.buddyBlue=bh.blue} /* v44.20.beta 小夥伴復原漏洞修復：已觸發旗標單向，復原不得由真改回假 */for(var i=0;i<state.cells.length;i++){if(state.cells[i]!=='cat')state.cells[i]=prev[i]==='cat'?'':prev[i]}Object.keys(state.lockedXs).forEach(function(key){state.cells[+key]='x'});Object.keys(state.buddyBlue).forEach(function(key){if(state.cells[+key]!=='x')delete state.buddyBlue[+key]});updateAll(false);setLogic('已復原一步','已放中的貓咪已鎖定，只復原 X 標記。','↶');buddySaveState();persistProgress()}
 function healPoisonedLocks(p){
 var lockKeys=Object.keys(state.lockedXs);
 if(!lockKeys.length)return false;
