@@ -887,7 +887,7 @@ body.theme-dark {
 <div class="result-cat" id="incognitoTipCat"></div>
 <h2 id="incognitoTipTitle">開始遊戲前請注意</h2>
 </div>
-<p>請注意：如你正在使用瀏覽器的無痕／私密模式，遊戲進度將無法保留。請用一般模式開啟，以免進度遺失。</p>
+<p>請注意：如您正在使用瀏覽器的無痕／私密模式，遊戲進度將無法保留。請用一般模式開啟，以免進度遺失。</p>
 <div class="jump-actions">
 <button class="primary" id="incognitoTipOkBtn" type="button">知道了</button>
 </div>
@@ -1072,7 +1072,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.24.44.21.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.24.44.22.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1000, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2372,7 +2372,7 @@ if(state.locked||state.buddyAnim)return;if(Object.keys(state.pendingCells).lengt
 for(var i=0;i<state.cells.length;i++){if(state.cells[i]!=='cat')state.cells[i]=''}state.lockedXs={};state.history=[];buddyHistory=[];state.buddyBlue={};buddySaveState();state.focus=0;
 render();setLogic('已清除 X 標記','已放中的貓咪已鎖定保留；X 標記已全部清除，可繼續推理。','↻');showToast('已清除 X 標記（貓咪保留）');persistProgress()
 }
-function undo(){if(state.locked||state.buddyAnim||!state.history.length){showToast(state.buddyAnim?'請先等待小夥伴完成':'沒有可復原的步驟');return}if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}var prev=state.history.pop();var bh=buddyHistory.pop();if(bh){state.buddyCell=bh.cell;state.buddyDone=state.buddyDone||bh.done;state.buddyBlue=bh.blue} /* v44.20.beta 小夥伴復原漏洞修復：已觸發旗標單向，復原不得由真改回假 */for(var i=0;i<state.cells.length;i++){if(state.cells[i]!=='cat')state.cells[i]=prev[i]==='cat'?'':prev[i]}Object.keys(state.lockedXs).forEach(function(key){state.cells[+key]='x'});Object.keys(state.buddyBlue).forEach(function(key){if(state.cells[+key]!=='x')delete state.buddyBlue[+key]});updateAll(false);setLogic('已復原一步','已放中的貓咪已鎖定，只復原 X 標記。','↶');buddySaveState();persistProgress()}
+function undo(){if(state.locked||state.buddyAnim||!state.history.length){showToast(state.buddyAnim?'請先等待小夥伴完成':'沒有可復原的步驟');return}if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}var prev=state.history.pop();var bh=buddyHistory.pop();var _blueBefore=Object.keys(state.buddyBlue).length;if(bh){state.buddyCell=bh.cell;state.buddyDone=state.buddyDone||bh.done;state.buddyBlue=bh.blue} /* v44.20.beta 小夥伴復原漏洞修復：已觸發旗標單向，復原不得由真改回假 */for(var i=0;i<state.cells.length;i++){if(state.cells[i]!=='cat')state.cells[i]=prev[i]==='cat'?'':prev[i]}Object.keys(state.lockedXs).forEach(function(key){state.cells[+key]='x'});Object.keys(state.buddyBlue).forEach(function(key){if(state.cells[+key]!=='x')delete state.buddyBlue[+key]});updateAll(false);setLogic('已復原一步','已放中的貓咪已鎖定，只復原 X 標記。','↶');if(Object.keys(state.buddyBlue).length<_blueBefore)showToast('小夥伴開啟的藍色 X 已隨復原抹除'); /* v44.22.beta：本次復原抹除了藍色 X 時補一句小夥伴說明，只增文字提示，復原邏輯不變 */buddySaveState();persistProgress()}
 function healPoisonedLocks(p){
 var lockKeys=Object.keys(state.lockedXs);
 if(!lockKeys.length)return false;
@@ -3882,7 +3882,8 @@ if(laterBtn)laterBtn.addEventListener('click',function(){if(d.open)d.close();unl
 /* ===== 第 10 關 AUTO 提示（完） ===== */
 /* ===== 第 1、15 及 305 關無痕模式提醒（v41.2.beta，CC 2026-10-20 定案；v44.15.beta 追加第 15 關；v44.21.beta 追加第 305 關） =====
 觸發條件只有一項：進入第 1 關、第 15 關或第 305 關即顯示；不設旗標、不儲存顯示紀錄、不做無痕偵測，每次進入均顯示。
-時序：暱稱未設定時待暱稱對話框關閉後才顯示，不與暱稱對話框疊加；心數耗盡的完結恢復流程優先，不疊加顯示 */
+時序：暱稱未設定時待暱稱對話框關閉後才顯示，不與暱稱對話框疊加；心數耗盡的完結恢復流程優先，不疊加顯示
+關閉補償：v44.22.beta 起關閉時比照恢復碼提示重置本關計時起點（計時補償），提示停留不計入本關用時 */
 function maybeShowIncognitoTip(){
 if(state.level!==0&&state.level!==14&&state.level!==304)return;
 if(state.hearts<=0)return; /* 心數耗盡的完結恢復流程優先，不疊加顯示；無旗標，下次符合條件進入時自然再顯示 */
@@ -3899,7 +3900,7 @@ lockPageScroll();d.showModal();d.scrollTop=0;
 var d=document.getElementById('incognitoTipDialog');if(!d)return;
 d.addEventListener('cancel',function(e){e.preventDefault()}); /* 封截 Esc：只可按掣關閉 */
 var okBtn=document.getElementById('incognitoTipOkBtn');
-if(okBtn)okBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll()});
+if(okBtn)okBtn.addEventListener('click',function(){if(d.open)d.close();unlockPageScroll();state.start=Date.now();state.activeMs=0;state.lastResume=Date.now()}); /* v44.22.beta 計時補償：關閉提示時重置本關計時起點，比照恢復碼提示（v41.9.beta 既有寫法），提示停留不計入本關用時 */
 })();
 /* ===== 第 1、15 及 305 關無痕模式提醒（完） ===== */
 /* ===== 501 關 Combo 介紹提示（v44.5.beta，CC 2026-10-24 定案；做法完全比照第 1 關無痕模式提醒） =====
