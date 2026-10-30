@@ -570,7 +570,7 @@ body.theme-dark {
 #lotteryResultText.show { display:block; }
 #lotteryResultText.plain { font-size:.95rem; color:#8a6f45; }
 .lottery-hint { margin-top:14px; font-size:.8rem; color:#b3a094; }
-/* ===== 限時找貓小遊戲（v45.0.beta，CC 2026-10-30 批准實裝）===== */
+/* ===== 限時找貓小遊戲（v45.2.beta，CC 2026-10-30 批准實裝）===== */
 .mg-overlay {
   position:fixed; inset:0;
   background:rgba(91,74,63,.55);
@@ -734,8 +734,7 @@ body.theme-dark {
 <li><span class="rule-number">2</span><div><strong>自動模式（放貓自動標 X）</strong><span>新玩家預設為關閉，讓您先親手標記、熟習規則；到達第 10 關時，遊戲會提示您一次，可即時開啟。您亦可隨時以關卡名稱旁的 AUTO／OFF 開關切換。開啟後，每次正確放貓，系統會自動在該貓的橫行、直行、周圍八格及其所屬色區的其餘全部格標 X；誤放不會觸發。開關設定會隨進度保存。</span></div></li>
 <li><span class="rule-number">3</span><div><strong>錯放貓咪會扣心</strong><span>若放貓後棋面再沒有合法解，會先顯示剛放的貓，再提示錯誤並扣 1 顆心，最後把該格改標為鎖定的 X；該 X 不可取消，也不能再次放貓。心用完即遊戲結束。</span></div></li>
 <li><span class="rule-number">4</span><div><strong>找貓提示</strong><span>每關可使用 2 次「找貓提示」；提示不扣心；用完後，到下一關會回復 2 次。</span></div></li>
-<li><span class="rule-number">5</span><div><strong>小夥伴</strong><span>第 51 關起，每關有一隻小夥伴<svg class="rule-paw" viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.92)" stroke-width="2.2" stroke-linejoin="round"><ellipse cx="13" cy="27.5" rx="5.6" ry="7.4" transform="rotate(-18 13 27.5)" fill="#f78fb0"/><ellipse cx="23.5" cy="19.5" rx="6" ry="7.9" transform="rotate(-6 23.5 19.5)" fill="#f78fb0"/><ellipse cx="40.5" cy="19.5" rx="6" ry="7.9" transform="rotate(6 40.5 19.5)" fill="#f78fb0"/><ellipse cx="51" cy="27.5" rx="5.6" ry="7.4" transform="rotate(18 51 27.5)" fill="#f78fb0"/><ellipse cx="32" cy="41.5" rx="13.5" ry="10.8" fill="#ef6391"/></g></svg>藏在棋盤的其中一格。放下貓後牠便會藏好；只要您親手在該格標 X，牠便會現身，替您開啟肯定不藏貓的幾格，並以藍色 X 標示。小夥伴每關只幫忙一次，不扣分、不扣心。藍色 X 與普通 X 相同，可以照常清除。</span></div></li>
-<li><span class="rule-number">6</span><div><strong>積分與補心</strong><span>積分與心數規則如下表。</span>
+<li><span class="rule-number">5</span><div><strong>小夥伴</strong><span>第 51 關起，每關有一隻小夥伴<svg class="rule-paw" viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.92)" stroke-width="2.2" stroke-linejoin="round"><ellipse cx="13" cy="27.5" rx="5.6" ry="7.4" transform="rotate(-18 13 27.5)" fill="#f78fb0"/><ellipse cx="23.5" cy="19.5" rx="6" ry="7.9" transform="rotate(-6 23.5 19.5)" fill="#f78fb0"/><ellipse cx="40.5" cy="19.5" rx="6" ry="7.9" transform="rotate(6 40.5 19.5)" fill="#f78fb0"/><ellipse cx="51" cy="27.5" rx="5.6" ry="7.4" transform="rotate(18 51 27.5)" fill="#f78fb0"/><ellipse cx="32" cy="41.5" rx="13.5" ry="10.8" fill="#ef6391"/></g></svg>藏在棋盤的其中一格。放下貓後牠便會藏好；只要您親手在該格標 X，牠便會現身，替您開啟肯定不藏貓的幾格，並以藍色 X 標示。小夥伴每關只幫忙一次，不扣分、不扣心。藍色 X 與普通 X 相同，可以照常清除。</span></div></li><li><span class="rule-number">6</span><div><strong>限時找貓小遊戲</strong><span>第 101 關起，關號尾數為 7 的關卡首次過關後，可參加一次限時找貓小遊戲。</span></div></li><li><span class="rule-number">7</span><div><strong>積分與補心</strong><span>積分與心數規則如下表。</span>
 <table class="level-table">
 <tr><th>項目</th><th>規則</th></tr>
 <tr><td>過關</td><td>＋1000 分</td></tr>
@@ -751,10 +750,7 @@ body.theme-dark {
 <tr><td>心數上限</td><td>5 顆</td></tr>
 <tr><td>限時找貓小遊戲</td><td>每找對一隻貓 ＋300 分，每局最高 ＋2700 分</td></tr>
 <tr><td>Combo 連續完美過關</td><td>由501關開始，整關沒有扣心及沒有使用找貓提示會累積 Combo；扣心或使用找貓提示，Combo 即時歸零；Combo連續達 3、5、10、15、20 個時分別加 3,000、5,000、10,000、15,000、20,000 分。20 Combo發獎勵後重置為零。</td></tr>
-</table></div></li>
-<li><span class="rule-number">7</span><div><strong>幸運抽獎</strong><span>每通過 15 關，可參加一次幸運抽獎。</span></div></li>
-<li><span class="rule-number">8</span><div><strong>限時找貓小遊戲</strong><span>第 101 關起，關號尾數為 7 的關卡首次過關後，可參加一次限時找貓小遊戲。</span></div></li>
-<li><span class="rule-number">9</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
+</table></div></li><li><span class="rule-number">8</span><div><strong>幸運抽獎</strong><span>每通過 15 關，可參加一次幸運抽獎。</span></div></li><li><span class="rule-number">9</span><div><strong>心用完後可選擇</strong><span>繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。</span></div></li>
 <li><span class="rule-number">10</span><div><strong>玩家等級與最高積分</strong><span>每次過關後，系統會記下您的最高積分並評定等級（等級晉升順序如下）；等級提升時會有恭喜提示。</span>
 <div class="lvl-flow" aria-label="玩家等級由低至高晉升順序">
 <span class="lvl-node"><b>新手</b></span><span class="lvl-arrow" aria-hidden="true">→</span>
@@ -841,7 +837,7 @@ body.theme-dark {
 </div>
 </div>
 
-<!-- 限時找貓小遊戲彈窗（v45.0.beta，CC 2026-10-30 批准實裝；正式版標題，無示範版說明） -->
+<!-- 限時找貓小遊戲彈窗（v45.2.beta，CC 2026-10-30 批准實裝；正式版標題，無示範版說明） -->
 <div class="mg-overlay" id="mgOverlay">
 <div class="mg-modal" role="dialog" aria-modal="true" aria-label="🎮 小遊戲：限時找貓 🎮">
 <button class="mg-close" id="mgClose" type="button" aria-label="關閉">✕</button>
@@ -1142,7 +1138,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.30.45.0.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.30.45.2.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1100, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -1952,13 +1948,13 @@ setTimeout(tick,interval);
 tick();
 }
 
-/* ===== 限時找貓小遊戲（v45.0.beta，CC 2026-10-30 批准實裝；題池重用正式遊戲 puzzles 及 HARDEST_VARIANT，不內嵌版圖數據）=====
-   觸發：第 101 關起、關號尾數為 7 的關卡首次過關後（首個為第 107 關），至第 1100 關共 100 次。
+/* ===== 限時找貓小遊戲（v45.2.beta，CC 2026-10-30 批准實裝；題池重用正式遊戲 puzzles 及 HARDEST_VARIANT，不內嵌版圖數據）=====
+   觸發：第 101 關起、關號尾數為 7 的關卡過關後（首個為第 107 關），至第 1100 關共 100 次；只檢查有否玩過，不檢查是否重玩（仿抽獎，CC 2026-10-30 21:19 定奪）。
    防刷：彈窗開啟即時先標記最高已玩關數並同步落盤（仿抽獎先標記後開始），即使得 0 分、倒數完結或中途重新整理皆算玩過。（CC 2026-10-30 18:26 定奪：維持開局標記為最終做法，防重玩刷分。）
-   跳關（測試）不得觸發：跳關提交時記錄 _mgJumpLevel，finish 時該關不觸發；離開該關後 newLevel 清除記錄。 */
+ */
 var MG_KEY='meowdoku-minigame-v1'+_storeSfx;
 var MG_TIME_MS=30000,MG_MAX_MARKS=9,MG_PER_CAT=300;
-var _mg=null,_mgJumpLevel=0;
+var _mg=null;
 function saveMinigameProgress(){
 try{
 if(!window.localStorage)return;
@@ -1984,12 +1980,10 @@ if(!isFinite(n)||n<0)return null;
 return n;
 }catch(e){return null}
 }
-function minigameShouldTrigger(completed,firstCompletion){
-if(!firstCompletion)return false;
+function minigameShouldTrigger(completed){
 if(completed<107)return false;
 if(completed%10!==7)return false;
 if(completed<=(state.maxMinigameLevel||0))return false;
-if(typeof _mgJumpLevel==='number'&&_mgJumpLevel>0&&completed===_mgJumpLevel)return false;
 return true;
 }
 function mgPickLevel(){return 20+Math.floor(Math.random()*31);}
@@ -2596,8 +2590,8 @@ if(state.hearts<MAX_HEARTS){state.hearts=Math.min(MAX_HEARTS,state.hearts+1);rec
 if(win&&completed%15===0&&completed>state.maxLotteryLevel){
 state.pendingLottery=completed;
 }
-/* v45.0.beta 限時找貓小遊戲觸發：第 101 關起、關號尾數為 7 的關卡首次過關後；首個為第 107 關。 */
-if(win&&minigameShouldTrigger(completed,firstCompletion)){
+/* v45.2.beta 限時找貓小遊戲觸發（CC 2026-10-30 21:19 定奪，仿抽獎）：第 101 關起、關號尾數為 7 的關卡過關後，只檢查有否玩過，不檢查是否重玩；首個為第 107 關。 */
+if(win&&minigameShouldTrigger(completed)){
 state.pendingMinigame=completed;
 }
 var d=document.getElementById('resultDialog'),elapsed=Math.max(1,Math.floor(getActiveMs()/1000)),nextBtn=document.getElementById('nextBtn'),retryBtn=document.getElementById('retryBtn');document.getElementById('timeStat').textContent=Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');document.getElementById('mistakeStat').textContent=state.mistakes;document.getElementById('hintStat').textContent=state.hintsUsed;document.getElementById('moveStat').textContent=state.moves;document.getElementById('scoreStat').textContent=state.score.toLocaleString('zh-Hant');var crownEl=document.getElementById('scoreCrown');if(crownEl){crownEl.style.display=(win&&state.best!==undefined&&state.best!==null&&Math.floor(state.score)>=Math.floor(state.best))?'block':'none'}document.getElementById('levelStat').textContent=currentLevelName();document.getElementById('resultTitle').textContent=win?(state.level===TOTAL-1?'階段完成':'完成第 '+completed+' 關'):'遊戲完結';var rtEl=document.getElementById('resultText');if(win){rtEl.style.display='none'}else{rtEl.style.display='block';rtEl.textContent='5 顆心已用完；你來到第 '+completed+' 關，累計 '+state.score.toLocaleString('zh-Hant')+' 分。繼續玩：本關重玩、心回滿、扣5000分（最低 0 分）。';}var bdEl=document.getElementById('scoreBreakdown');if(win&&earned&&typeof scoreBreakdown!=='undefined'){bdEl.innerHTML='計分明細<br>'+scoreBreakdown.lines.join('<br>')+'<br><b>本關合計 ＋'+scoreBreakdown.total+'</b>';bdEl.style.display='block'}else{bdEl.style.display='none'}var bsEl=document.getElementById('bestStat');if(win&&bsEl){var bTxt=(state.best===undefined||state.best===null)?'–':Math.floor(state.best).toLocaleString('zh-Hant');bsEl.textContent='個人紀錄：累計最高積分 '+bTxt;bsEl.style.display='block'}else if(bsEl){bsEl.style.display='none'}if(win){var finishedAll=state.level===TOTAL-1;nextBtn.textContent=finishedAll?'完成':'下一關';nextBtn.style.display='block';nextBtn.className='primary';nextBtn.autofocus=true;retryBtn.style.display='none';retryBtn.autofocus=false;nextBtn.parentNode.insertBefore(nextBtn,retryBtn)}else{nextBtn.style.display='none';nextBtn.autofocus=false;retryBtn.textContent='繼續玩';retryBtn.style.display='block';retryBtn.className='primary';retryBtn.autofocus=true;nextBtn.parentNode.insertBefore(retryBtn,nextBtn)}d.dataset.win=win?'1':'0';
@@ -2612,7 +2606,7 @@ else{_doUpload();_showUI();}
 }catch(e){try{_doUpload();}catch(_){}try{_showUI();}catch(_){}}
 })();
 }
-function newLevel(index,skipSave,preserveVariant){if(typeof window.__resetAnswerShown==='function')window.__resetAnswerShown();if(typeof _mgJumpLevel==='number'&&_mgJumpLevel>0&&index+1!==_mgJumpLevel)_mgJumpLevel=0;clearToast();scheduleSway();var _comboPrevLevel=state.level;state.level=index;if(index!==_comboPrevLevel){state.comboDirty=false;if(typeof state.comboDirtyLevel==='number'&&state.comboDirtyLevel!==index){state.comboDirtyLevel=null;comboSave();}} /* v44.0.beta Combo：進入不同關卡清除進行中不乾淨狀態及持久化標記；同關重開（繼續玩、跳關回同關）保留 */state.hadBest=(typeof state.best==='number'&&state.best>0);if(!preserveVariant)state.variant=HARDEST_VARIANT[index];var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];buddyHistory=[];buddyRunSeq++;state.buddyCell=-1;state.buddyDone=false;state.buddyBlue={};state.buddyPaw=-1;state.buddyAnim=false;buddyClearState();state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.catsRemaining=p.size;state.start=Date.now();state.activeMs=0;state.lastResume=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=index<30;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress();paintCombo();maybeShowAutoTip();maybeShowIncognitoTip();maybeShowCombo501Tip();maybeShowRecCodeTip()}
+function newLevel(index,skipSave,preserveVariant){if(typeof window.__resetAnswerShown==='function')window.__resetAnswerShown();clearToast();scheduleSway();var _comboPrevLevel=state.level;state.level=index;if(index!==_comboPrevLevel){state.comboDirty=false;if(typeof state.comboDirtyLevel==='number'&&state.comboDirtyLevel!==index){state.comboDirtyLevel=null;comboSave();}} /* v44.0.beta Combo：進入不同關卡清除進行中不乾淨狀態及持久化標記；同關重開（繼續玩、跳關回同關）保留 */state.hadBest=(typeof state.best==='number'&&state.best>0);if(!preserveVariant)state.variant=HARDEST_VARIANT[index];var p=currentPuzzle();state.cells=new Array(p.size*p.size).fill('');state.lockedXs={};state.history=[];buddyHistory=[];buddyRunSeq++;state.buddyCell=-1;state.buddyDone=false;state.buddyBlue={};state.buddyPaw=-1;state.buddyAnim=false;buddyClearState();state.pendingCells={};state.hintsRemaining=2;state.mistakes=0;state.hintsUsed=0;state.moves=0;state.catsRemaining=p.size;state.start=Date.now();state.activeMs=0;state.lastResume=Date.now();state.locked=false;state.resultShown=false;state.levelAwarded=false;state.focus=0;state.openingAvailable=index<30;state.openingGuide=null;state.restoredEntry=false;render();setLogic('本關版圖已準備','直接選「標 X」／「放貓」開始；本關另有 2 次找貓提示。','↻');if(!skipSave)persistProgress();paintCombo();maybeShowAutoTip();maybeShowIncognitoTip();maybeShowCombo501Tip();maybeShowRecCodeTip()}
 function restartLevel(){
 if(state.locked||state.buddyAnim)return;if(Object.keys(state.pendingCells).length){showToast('請先等待錯誤提示完成');return}
 for(var i=0;i<state.cells.length;i++){if(state.cells[i]!=='cat')state.cells[i]=''}state.lockedXs={};state.history=[];buddyHistory=[];state.buddyBlue={};buddySaveState();state.focus=0;
@@ -3122,7 +3116,7 @@ document.getElementById('lotteryClose').onclick=function(){lotteryCloseModal();}
 document.getElementById('lotteryOverlay').addEventListener('click',function(e){
 if(e.target===document.getElementById('lotteryOverlay'))lotteryCloseModal();
 });
-/* 限時找貓小遊戲事件接線（v45.0.beta） */
+/* 限時找貓小遊戲事件接線（v45.2.beta） */
 document.getElementById('mgBeginBtn').onclick=function(){mgBeginGame();};
 document.getElementById('mgDoneBtn').onclick=function(){mgSettle();};
 document.getElementById('mgClose').onclick=function(){mgCloseModal();};
@@ -3159,7 +3153,7 @@ jumpForm.onsubmit=function(e){
 e.preventDefault();
 var n=Number(jumpInput.value);
 if(!Number.isInteger(n)||n<1||n>TOTAL){jumpError.textContent='請輸入 1–'+TOTAL+' 的關號';jumpError.hidden=false;showToast('請輸入 1–'+TOTAL+' 的關號');jumpInput.focus();return}
-jumpDialog.close();closeResultDialog();clearToast();_mgJumpLevel=n;newLevel(n-1);
+jumpDialog.close();closeResultDialog();clearToast();newLevel(n-1);
 };
 jumpBtn.className='jump-bottom-btn';
 (function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(jumpBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
@@ -3299,7 +3293,7 @@ lotteryTestBtn.id='lotteryTestBtn';
 lotteryTestBtn.setAttribute('aria-label','測試抽獎輪盤（測試專用）');
 lotteryTestBtn.textContent='測試抽獎（測試）';
 lotteryTestBtn.onclick=function(){lotteryOpenModal(999,function(){if(typeof showToast==='function')showToast('測試抽獎完成');});};
-(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(lotteryTestBtn);})();/* v45.0.beta 測試版專屬：試玩小遊戲按鈕。IS_TEST=false（玩家版）時此整塊不執行，
+(function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(lotteryTestBtn);})();/* v45.2.beta 測試版專屬：試玩小遊戲按鈕。IS_TEST=false（玩家版）時此整塊不執行，
    頁面上無按鈕、無入口，功能完全不可觸達。練習不計分、不寫存檔、不消耗觸發、不改觸發標記。 */
 var mgTestBtn=document.createElement('button');
 mgTestBtn.className='jump-bottom-btn';
@@ -3353,6 +3347,7 @@ function lsqOpenModal(){
   var keys=[
     ['主存檔（關數／心數／積分／best）','meowdoku-progress-v1'+sfx],
     ['抽獎記錄（maxLotteryLevel）','meowdoku-lottery-v1'+sfx],
+    ['小遊戲記錄（maxMinigameLevel）','meowdoku-minigame-v1'+sfx],
     ['最高過關關數','meowdoku-maxcompleted-v1'+sfx],
     ['找貓提示次數','meowdoku-hints-v1'+sfx],
     ['Combo 值（獨立儲存）','meowdoku-combo-v1'+sfx],
