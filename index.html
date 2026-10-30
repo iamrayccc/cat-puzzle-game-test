@@ -205,7 +205,7 @@ border-radius:4px;
 .guide-close { align-self:center; border:1px solid var(--soft-line); background:var(--panel); color:var(--ink); min-height:36px; padding:7px 10px; border-radius:10px; cursor:pointer; font-weight:900; font-size:.76rem; white-space:nowrap; }
 .guide-close:hover,.guide-close:focus-visible { outline:2px solid var(--line); outline-offset:2px; }
 .controls { width:100%; margin:0 auto 14px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.mode-btn { min-height:44px; border:2px solid var(--soft-line); background:var(--panel); border-radius:16px; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:10px; font-weight:900; box-shadow:0 5px 13px rgba(26,60,66,.06); touch-action:manipulation; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; }
+.mode-btn { min-height:44px; border:2px solid var(--soft-line); background:var(--panel); border-radius:16px; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:10px; font-weight:900; box-shadow:0 5px 13px rgba(26,60,66,.06); touch-action:none; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; }
 .mode-btn:hover, .mode-btn:focus-visible { border-color:var(--line); outline:2px solid var(--line); outline-offset:2px; }
 .mode-btn:active, .mode-btn:focus:not(:focus-visible) { outline:none; }
 .mode-btn[aria-pressed="true"] { border-color:#555; background:#ffffff; color:#18323a; box-shadow:0 6px 14px rgba(26,60,66,.14); outline:none !important; -webkit-tap-highlight-color:transparent; }
@@ -1138,7 +1138,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.30.45.4.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.10.30.45.5.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1100, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
