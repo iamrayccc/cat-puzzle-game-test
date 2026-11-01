@@ -1219,7 +1219,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.10.30.45.8.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.11.01.46.0.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -3719,24 +3719,25 @@ wkTestBtn.onclick=function(){whackOpenModal(0,true,function(){if(typeof showToas
 /* WHACK TEST BUTTON END */
 /* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
-/* v40.17.beta 測試版專屬：清除抽獎、最高關數及 Combo 值紀錄（2026-10-18 CC 要求；v44.2.beta 按鈕改名為「清除抽獎+Max關+Combo值」；v45.3.beta 加入清除小遊戲紀錄，CC 2026-10-30 要求）。
+/* v40.17.beta 測試版專屬：清除抽獎、最高關數及 Combo 值紀錄（2026-10-18 CC 要求；v44.2.beta 按鈕改名為「清除抽獎+Max關+Combo值」；v45.3.beta 加入清除小遊戲紀錄，CC 2026-10-30 要求；v46.0.beta 加入清除捉貓紀錄（CC 2026-11-01 指示補回））。
    IS_TEST=false（玩家版）時此整塊不執行，頁面上無按鈕、無入口，功能完全不可觸達。
    按新格式：重置 maxLotteryLevel=0、maxCompleted=state.level。 */
 var lotClearBtn=document.createElement('button');
 lotClearBtn.className='jump-bottom-btn';
 lotClearBtn.type='button';
 lotClearBtn.id='lotClearBtn';
-lotClearBtn.setAttribute('aria-label','清除抽獎+Max關+Combo值+小遊戲（測試專用）');
-lotClearBtn.textContent='清除抽獎+Max關+Combo值+小遊戲';
+lotClearBtn.setAttribute('aria-label','清除抽獎+Max關+Combo值+小遊戲+捉貓（測試專用）');
+lotClearBtn.textContent='清除抽獎+Max關+Combo值+小遊戲+捉貓';
 lotClearBtn.onclick=function(){
 try{if(typeof LOTTERY_KEY!=='undefined')localStorage.removeItem(LOTTERY_KEY)}catch(_){}
 try{if(typeof MAXCOMP_KEY!=='undefined')localStorage.removeItem(MAXCOMP_KEY)}catch(_){}
 try{if(typeof MG_KEY!=='undefined')localStorage.removeItem(MG_KEY)}catch(_){}
-if(typeof state!=='undefined'){state.maxLotteryLevel=0;state.maxCompleted=state.level;state.maxMinigameLevel=0;}
+try{if(typeof WK_KEY!=='undefined')localStorage.removeItem(WK_KEY)}catch(_){}
+if(typeof state!=='undefined'){state.maxLotteryLevel=0;state.maxCompleted=state.level;state.maxMinigameLevel=0;state.maxWhackLevel=0;state.pendingWhack=0;}
 if(typeof state!=='undefined'){state.combo=0;state.comboDirty=false;state.comboDirtyLevel=null;}
 try{if(typeof COMBO_KEY!=='undefined')localStorage.removeItem(COMBO_KEY)}catch(_){}
 if(typeof paintCombo==='function')paintCombo();
-if(typeof showToast==='function')showToast('已清除抽獎、最高關數及小遊戲紀錄');
+if(typeof showToast==='function')showToast('已清除抽獎、最高關數、小遊戲及捉貓紀錄');
 };
 (function(){var __fz=document.getElementById('testBtnZone');if(!__fz){__fz=document.createElement('div');__fz.id='testBtnZone';__fz.setAttribute('aria-label','測試專用按鈕區');var __ff=document.querySelector('.footer-note');if(__ff){if(__ff.nextSibling){__ff.parentNode.insertBefore(__fz,__ff.nextSibling);}else{__ff.parentNode.appendChild(__fz);}}}__fz.appendChild(lotClearBtn);})();/* v40.9.beta：測試按鈕移至頁底測試區（恢復我的資料＋版本號下方），每行兩欄 */
 /* v40.6.beta 測試版專屬：查詢存檔按鈕（2026-10-18 CC 要求）。
