@@ -1219,7 +1219,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.11.01.46.3.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.11.01.46.4.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -4321,7 +4321,16 @@ prodPlayersDialog.innerHTML=
 '<div class="lb-actions"><button class="secondary" id="prodPlayersCloseBtn" type="button">關閉</button></div>'+
 '</div>';
 document.body.appendChild(prodPlayersDialog);
+/* 正式玩家資料表格專屬字體（只限此彈窗，不影響其他彈窗及列表） */
+var prodPlayersStyle=document.createElement('style');
+prodPlayersStyle.textContent='#prodPlayersDialog #prodPlayersTable{font-size:0.82rem;line-height:1.45}#prodPlayersDialog #prodPlayersTable th{font-weight:700}';
+document.head.appendChild(prodPlayersStyle);
 /* 列表行渲染（只取五欄，資料值一律以 textContent 填入，不以 innerHTML 拼接） */
+/* 顯示格式化：去掉 updated_at 尾部時區後綴（只改顯示，不改資料及排序鍵） */
+function prodPlayersFmtTime(v){
+  if(v==null||v==='')return '';
+  return String(v).replace(/([+-]\d{2}:\d{2}|[+-]\d{4}|Z)$/,'');
+}
 function prodPlayersRenderRows(body,rows){
   body.innerHTML='';
   if(!rows.length){
@@ -4331,7 +4340,7 @@ function prodPlayersRenderRows(body,rows){
   }
   rows.forEach(function(row){
     var tr=document.createElement('tr');
-    var c1=document.createElement('td');c1.textContent=row.updated_at==null?'':String(row.updated_at);
+    var c1=document.createElement('td');c1.textContent=prodPlayersFmtTime(row.updated_at);
     var c2=document.createElement('td');c2.textContent=row.nickname==null?'':String(row.nickname);
     var lv=(row.max_level==null||row.max_level==='')?NaN:Number(row.max_level);var c3=document.createElement('td');c3.textContent=Number.isFinite(lv)?lv.toLocaleString('zh-Hant'):'';
     var bs=(row.best==null||row.best==='')?NaN:Number(row.best);var c4=document.createElement('td');c4.textContent=Number.isFinite(bs)?bs.toLocaleString('zh-Hant'):'';
