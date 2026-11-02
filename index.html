@@ -1219,7 +1219,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.11.01.46.0.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.11.01.46.1.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1300, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2321,9 +2321,10 @@ function wkProcessPending(){
 for(var i=0;i<_wk.pending.length;i++){
 var e=_wk.pending[i];
 if(e.resolved)continue;
-if(e.appear<=_wk.elapsed&&_wk.elapsed<e.appear+WK_APPEAR_MS){
+var _ap=(_wk&&_wk.appearMs)||WK_APPEAR_MS;
+if(e.appear<=_wk.elapsed&&_wk.elapsed<e.appear+_ap){
 if(!e.spawned)wkSpawnOne(e);
-}else if(e.appear+WK_APPEAR_MS<=_wk.elapsed){
+}else if(e.appear+_ap<=_wk.elapsed){
 if(e.spawned){wkClearCell(e.cell);delete _wk.active[e.cell];}
 e.resolved=true;_wk.missed++;
 }
@@ -2371,13 +2372,18 @@ wkPaintStatus();
 soundMeow();
 wkSetFeedback(index,'hit-feedback');
 }
+function wkRenderSub(){
+var el=document.querySelector('.wk-sub');
+if(!el)return;
+el.innerHTML='限時30秒內捉貓30隻（<span class="wk-advice">建議：用雙手捉貓</span>）'+((_wk&&_wk.pointerType==='mouse')?'- 滑鼠':'');
+}
 function whackOpenModal(level,practice,onDone){
 /* 正式觸發先標記後開始：彈窗開啟即時把最高值改為當次觸發關號並同步寫入存檔；練習不標記、不計分、不寫存檔。 */
 if(!practice){
 state.maxWhackLevel=level;
 saveWhackProgress();
 }
-_wk={cells:[],active:{},feedbackUntil:{},pending:[],beeped:{},prepTimer:null,prepCount:0,prepStart:0,prepShown:0,lastTick:0,playing:false,done:false,elapsed:0,caught:0,missed:0,tickId:null,practice:!!practice,onDone:(typeof onDone==='function')?onDone:null};
+_wk={cells:[],active:{},feedbackUntil:{},pending:[],beeped:{},prepTimer:null,prepCount:0,prepStart:0,prepShown:0,lastTick:0,playing:false,done:false,elapsed:0,caught:0,missed:0,tickId:null,practice:!!practice,onDone:(typeof onDone==='function')?onDone:null,pointerType:null,appearMs:WK_APPEAR_MS};
 try{ensureAudio();}catch(_){}
 document.getElementById('wkOverlay').classList.add('open');
 document.getElementById('wkClose').classList.remove('visible');
@@ -2400,6 +2406,7 @@ b.style.background=WK_COLORS[i];
 wkBoardEl.appendChild(b);_wk.cells.push(b);
 }
 wkPaintStatus();
+wkRenderSub();
 }
 function wkBeginGame(){
 if(!_wk||_wk.done)return;
@@ -2500,11 +2507,25 @@ if(isNewBest){try{lbFireSubmit();}catch(_){}}
 function wkCloseModal(){
 if(!_wk||!_wk.done)return;
 document.getElementById('wkOverlay').classList.remove('open');
+_wk.pointerType=null;_wk.appearMs=WK_APPEAR_MS;
+wkRenderSub();
 document.getElementById('wkClose').classList.remove('visible');
 var cb=_wk.onDone;_wk.onDone=null;
 if(cb)cb();
 }
 document.getElementById('wkBeginBtn').onclick=function(){wkBeginPrep();};
+(function(){
+var _bb=document.getElementById('wkBeginBtn');
+if(_bb&&!_bb._wkPtrBound){
+_bb._wkPtrBound=true;
+_bb.addEventListener('pointerdown',function(e){
+if(!_wk)return;
+_wk.pointerType=e.pointerType;
+_wk.appearMs=(e.pointerType==='mouse')?1000:WK_APPEAR_MS;
+wkRenderSub();
+});
+}
+})();
 document.getElementById('wkClose').onclick=function(){wkCloseModal();};
 document.getElementById('wkOverlay').addEventListener('click',function(e){
 if(e.target===document.getElementById('wkOverlay'))wkCloseModal();
