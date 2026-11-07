@@ -1485,7 +1485,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.11.04.47.1.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.11.04.47.2.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1400, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -2959,17 +2959,33 @@ if(cb)cb();
 document.getElementById('cdMinus').onclick=function(){if(_cd)cdSetBid(_cd.bid-1);};
 document.getElementById('cdPlus').onclick=function(){if(_cd)cdSetBid(_cd.bid+1);};
 (function(){
+/* 長按修復（2026-11-07，CC 批准）：加減各用獨立計時器；到達上下限即停；長按區間內檢查按鈕停用狀態；
+   另加全頁 pointerup／pointercancel 保險，確保按鈕被停用後收不到 pointerup 時殘留區間亦必被清除。 */
+var holdStops=[];
+function makeHold(btn,step){
 var holdTimer=null,holdInterval=null;
-function startHold(btn,step){
-var start=function(){holdTimer=setTimeout(function(){holdInterval=setInterval(function(){if(_cd)cdSetBid(_cd.bid+step);},70);},380);};
-var stop=function(){clearTimeout(holdTimer);clearInterval(holdInterval);holdTimer=null;holdInterval=null;};
+function stop(){clearTimeout(holdTimer);clearInterval(holdInterval);holdTimer=null;holdInterval=null;}
+function start(){
+stop();
+holdTimer=setTimeout(function(){
+holdInterval=setInterval(function(){
+if(!_cd||btn.disabled){stop();return;}
+cdSetBid(_cd.bid+step);
+if(btn.disabled){stop();}
+},70);
+},380);
+}
+holdStops.push(stop);
 btn.addEventListener('pointerdown',start);
 btn.addEventListener('pointerup',stop);
 btn.addEventListener('pointerleave',stop);
 btn.addEventListener('pointercancel',stop);
 }
-startHold(document.getElementById('cdMinus'),-1);
-startHold(document.getElementById('cdPlus'),1);
+makeHold(document.getElementById('cdMinus'),-1);
+makeHold(document.getElementById('cdPlus'),1);
+function stopAllHolds(){for(var i=0;i<holdStops.length;i++){holdStops[i]();}}
+document.addEventListener('pointerup',stopAllHolds);
+document.addEventListener('pointercancel',stopAllHolds);
 })();
 document.getElementById('cdConfirm').onclick=function(){cdConfirmBid();};
 document.getElementById('cdAgain').onclick=function(){if(!_cd)return;var cb=_cd.onDone;coinOpenModal(0,true,cb);};
