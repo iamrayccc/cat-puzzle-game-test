@@ -1662,7 +1662,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.11.08.48.0.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.11.08.48.1.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -3181,10 +3181,10 @@ if(e.target===document.getElementById('cdOverlay'))cdCloseModal();
    計時：牆鐘計時（Date.now 差值，切換分頁不暫停，同捉貓 2026-11-01 改法）；
    貓位置為牆鐘時刻的解析函數（速度曲線積分），分頁切換後位置正確跳前，不暫停、不重計。
    規格來源：數貓 Demo（demo_count_cats/count_cats_demo.html，45,658 字節、MD5 f0cc28b7…）；
-   純函數（速度、生成、計分）逐字取用，只改常數名前綴；計時由 Demo 的 rAF 改為 setInterval＋Date.now；
+   純函數（速度、生成、計分）逐字取用，只改常數名前綴；計時恢復 Demo 的 rAF 循環（每畫面更新），仍以 Date.now 牆鐘計時（切換分頁不暫停）；
    全部識別字皆加 nc 前綴或收於 _nc，與主遊戲無衝突；主遊戲的 catSVG 及 mgPlayBeep 直接沿用。 */
 var CC_KEY='meowdoku-countcats-v1'+_storeSfx;
-var NC_TIME_MS=20000,NC_TICK_MS=100,NC_PREP_SECONDS=3,NC_HOLD_AFTER_END_MS=2000,NC_LOW_SECS=5;
+var NC_TIME_MS=20000,NC_PREP_SECONDS=3,NC_HOLD_AFTER_END_MS=2000,NC_LOW_SECS=5;
 var NC_CAT_W_FRAC=0.125,NC_GAP_LEFT_FRAC=0.4375,NC_SPEED_START_PX_S=440,NC_SPEED_END_PX_S=792;
 var NC_GAP_MIN_MS=200,NC_GAP_MAX_MS=900,NC_SAFETY_MS=150,NC_FIRST_DELAY_MAX_MS=600;
 var NC_ROW_Y_FRAC=[0.153,0.653],NC_NOMINAL_STAGE_W=720;
@@ -3326,7 +3326,7 @@ function ncClearCats(){
 while(ncCatsEl.firstChild){ncCatsEl.removeChild(ncCatsEl.firstChild);}
 if(_nc)_nc.activeCats=[];
 }
-function ncStopTimer(){if(_nc&&_nc.tickId!==null){clearInterval(_nc.tickId);_nc.tickId=null;}}
+function ncStopTimer(){if(_nc&&_nc.tickId!==null){cancelAnimationFrame(_nc.tickId);_nc.tickId=null;}}
 function ncClearPrepTimer(){if(_nc&&_nc.prepTimer!==null){clearInterval(_nc.prepTimer);_nc.prepTimer=null;}}
 function ncShowPrep(){
 ncPrepEl.textContent='請準備 … '+_nc.prepCount;
@@ -3410,7 +3410,8 @@ _nc.phase='playing';
 _nc.elapsed=0;
 _nc.lastTick=Date.now();
 ncStopTimer();
-_nc.tickId=setInterval(function(){ncTick();},NC_TICK_MS);
+/* v48.1.beta 卡頓修復：rAF 驅動（每畫面更新一次），位置仍由 Date.now 牆鐘時刻解析計算 */
+_nc.tickId=requestAnimationFrame(ncTick);
 }
 function ncSpawnCat(ev){
 if(!_nc||!_nc.geom||_nc.geom.catW<=0)return;
@@ -3449,6 +3450,7 @@ _nc.activeCats.splice(i,1);
 ncPaintCountdown();
 if(now>=NC_TIME_MS&&_nc.phase==='playing'){_nc.phase='draining';_nc.drainStart=now;}
 if(_nc.phase==='draining'&&now-_nc.drainStart>=NC_HOLD_AFTER_END_MS){ncShowAnswer();return;}
+_nc.tickId=requestAnimationFrame(ncTick);
 }
 function ncShowAnswer(){
 if(!_nc)return;
