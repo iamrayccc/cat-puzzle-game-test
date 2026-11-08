@@ -1664,7 +1664,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.11.08.48.3.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.11.08.48.4.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -3178,19 +3178,19 @@ if(e.target===document.getElementById('cdOverlay'))cdCloseModal();
    觸發：第 51 關起、關號尾數為 1 的關卡過關後，只檢查有否玩過；過關彈窗「下一關」後呈現，另設載入承接。
    防刷：彈窗開啟即時先標記最高已玩關數並同步落盤，即使得 0 分或中途重新整理皆算玩過。
    玩法：左右兩幅牆，中間一條垂直罅隙（闊度恰為一隻貓）；貓由左至右經過罅隙，上下雙行、一隻接一隻通過；
-   限時 20 秒數算出現的貓數；3 秒準備倒數；線性加速初速 440／末速 792。
+   限時 20 秒數算出現的貓數；3 秒準備倒數；分段線性加速（0–10 秒 440→704，10–20 秒 704→792，v48.4.beta D3）。
    計分：數中 +1000 分，相差一隻 +500 分，其餘 +200 分；結算順序仿 wkSettle。
    計時：牆鐘計時（Date.now 差值，切換分頁不暫停，同捉貓 2026-11-01 改法）；
    貓位置為牆鐘時刻的解析函數（速度曲線積分），分頁切換後位置正確跳前，不暫停、不重計。
    規格來源：數貓 Demo（demo_count_cats/count_cats_demo.html，45,658 字節、MD5 f0cc28b7…）；
-   純函數（速度、生成、計分）逐字取用，只改常數名前綴；計時恢復 Demo 的 rAF 循環（每畫面更新），仍以 Date.now 牆鐘計時（切換分頁不暫停）；
+   純函數（速度、生成、計分）取自 Demo，v48.4.beta D3 改速度為分段線性、間距隨時間收窄並加每局節奏因子；其餘只改常數名前綴；計時恢復 Demo 的 rAF 循環（每畫面更新），仍以 Date.now 牆鐘計時（切換分頁不暫停）；
    全部識別字皆加 nc 前綴或收於 _nc，與主遊戲無衝突；主遊戲的 catSVG 及 mgPlayBeep 直接沿用。 */
 var CC_KEY='meowdoku-countcats-v1'+_storeSfx;
 var NC_TIME_MS=20000,NC_PREP_SECONDS=3,NC_HOLD_AFTER_END_MS=2000,NC_LOW_SECS=5;
 var NC_CAT_W_FRAC=0.125,NC_GAP_LEFT_FRAC=0.4375,NC_SPEED_START_PX_S=440,NC_SPEED_END_PX_S=792;
-var NC_GAP_MIN_MS=200,NC_GAP_MAX_MS=900,NC_SAFETY_MS=150,NC_FIRST_DELAY_MAX_MS=600;
+var NC_SAFETY_MS=150,NC_FIRST_DELAY_MAX_MS=600;
 var NC_ROW_Y_FRAC=[0.153,0.653],NC_NOMINAL_STAGE_W=720;
-var NC_ANSWER_DEFAULT=30,NC_ANSWER_MIN=0,NC_ANSWER_MAX=60;
+var NC_ANSWER_DEFAULT=40,NC_ANSWER_MIN=0,NC_ANSWER_MAX=60;
 var _nc=null;
 function saveCountCatsProgress(){
 try{
@@ -3223,10 +3223,14 @@ if(completed%10!==1)return false;
 if(completed<=(state.maxCountCatsLevel||0))return false;
 return true;
 }
-/* 速度與生成（純函數，逐字取自 Demo；常數改名為 NC_ 字首，GAME_DURATION_MS 改為 NC_TIME_MS） */
+/* 速度與生成（純函數取自 Demo，v48.4.beta D3 改為分段線性速度及隨時間收窄之間距；常數改名為 NC_ 字首，GAME_DURATION_MS 改為 NC_TIME_MS） */
 function ncSpeedAt(tMs,scale){
-var k=Math.min(Math.max(tMs,0),NC_TIME_MS)/NC_TIME_MS;
-var v=NC_SPEED_START_PX_S+(NC_SPEED_END_PX_S-NC_SPEED_START_PX_S)*k;
+/* v48.4.beta D3：分段線性速度——0–10 秒 440→704 px/s，10–20 秒 704→792 px/s；
+   各時點：0 秒 440、5 秒 572、10 秒 704、15 秒 748、20 秒 792。 */
+var t=Math.min(Math.max(tMs,0),NC_TIME_MS)/1000;
+var v;
+if(t<=10){v=NC_SPEED_START_PX_S+(704-NC_SPEED_START_PX_S)*(t/10);}
+else{v=704+(NC_SPEED_END_PX_S-704)*((t-10)/10);}
 return v*scale;
 }
 function ncExitTimeMs(t0,g){
@@ -3235,22 +3239,29 @@ var t=t0;
 while(x<g.gapRight){x+=ncSpeedAt(t,g.scale)*0.005;t+=5;}
 return t;
 }
-function ncComputeSchedule(rng,g){
+/* 出貓間距隨時間收窄（v48.4.beta D3）：下限 600−500×(t/20000)，上限 1200−900×(t/20000)（毫秒）；
+   t=0 秒 600–1200、5 秒 475–975、10 秒 350–750、15 秒 225–525、20 秒 100–300。 */
+function ncGapMinMs(tMs){var k=Math.min(Math.max(tMs,0),NC_TIME_MS)/NC_TIME_MS;return 600-500*k;}
+function ncGapMaxMs(tMs){var k=Math.min(Math.max(tMs,0),NC_TIME_MS)/NC_TIME_MS;return 1200-900*k;}
+function ncComputeSchedule(rng,g,tempo){
+var tp=(typeof tempo==='number'&&tempo>0)?tempo:1;
 var events=[];
 for(var row=0;row<2;row++){
 var t=rng()*NC_FIRST_DELAY_MAX_MS;
 while(t<NC_TIME_MS){
 events.push({t:Math.round(t),row:row});
 var exit=ncExitTimeMs(t,g);
-t=exit+NC_SAFETY_MS+NC_GAP_MIN_MS+rng()*(NC_GAP_MAX_MS-NC_GAP_MIN_MS);
+var gapMin=ncGapMinMs(t),gapMax=ncGapMaxMs(t);
+t=exit+NC_SAFETY_MS+(gapMin+rng()*(gapMax-gapMin))*tp;
 }
 }
 events.sort(function(a,b){return a.t-b.t;});
 return events;
 }
-/* 速度曲線積分（解析式）：v(t)=440+17.6t（t 為秒），∫v dt=440t+8.8t²。
+/* 速度曲線積分（解析式，v48.4.beta D3 分段線性）：v(t)=440+26.4t（0–10 秒），v(t)=704+8.8(t−10)（10–20 秒）；
+   ∫v dt：t≤10 為 440t+13.2t²，t>10 為 5720+704(t−10)+4.4(t−10)²；t=10 時兩段皆為 5720，連續。
    貓位置為牆鐘時刻的純函數：x=gapLeft-catW+(F(now)-F(spawn))×scale；分頁切換後位置正確跳前。 */
-function ncDistAt(tSec){return 440*tSec+8.8*tSec*tSec;}
+function ncDistAt(tSec){var t=Math.min(Math.max(tSec,0),NC_TIME_MS/1000);if(t<=10){return 440*t+13.2*t*t;}return 5720+704*(t-10)+4.4*(t-10)*(t-10);}
 /* 得分（CC 已定，2026-11-07）：數中正確貓數 +1000 分，相差一隻 +500 分，其餘 +200 分。 */
 function ncScoreFor(val,correct){
 var d=Math.abs(val-correct);
@@ -3348,7 +3359,7 @@ if(_nc.phase==='playing'&&remain>=1&&remain<=NC_LOW_SECS&&!_nc.beeped[remain]){_
 function countCatsOpenModal(level,practice,onDone){
 /* 正式觸發先標記後開始：彈窗開啟即時把最高值改為當次觸發關號並同步寫入存檔；練習不標記、不計分、不寫存檔。 */
 if(!practice){state.maxCountCatsLevel=level;saveCountCatsProgress();}
-_nc={level:level,practice:!!practice,onDone:(typeof onDone==='function')?onDone:null,done:false,phase:'start',geom:null,schedule:[],spawnIdx:0,activeCats:[],totalSpawned:0,elapsed:0,lastTick:0,tickId:null,prepTimer:null,prepCount:0,prepShown:0,prepStart:0,beeped:{},drainStart:0,lastRemain:-1,answerVal:NC_ANSWER_DEFAULT,startRetries:0};
+_nc={level:level,practice:!!practice,onDone:(typeof onDone==='function')?onDone:null,done:false,phase:'start',geom:null,schedule:[],spawnIdx:0,activeCats:[],totalSpawned:0,elapsed:0,lastTick:0,tickId:null,prepTimer:null,prepCount:0,prepShown:0,prepStart:0,beeped:{},drainStart:0,lastRemain:-1,answerVal:NC_ANSWER_DEFAULT,startRetries:0,tempo:1};
 try{ensureAudio();}catch(_){}
 ncOverlayEl.classList.add('open');
 ncCloseEl.classList.remove('visible');
@@ -3404,7 +3415,9 @@ if(d!==_nc.prepShown){_nc.prepShown=d;_nc.prepCount=d;ncShowPrep();mgPlayBeep();
 function ncBeginPlay(){
 if(!_nc)return;
 ncPrepEl.style.display='none';
-_nc.schedule=ncComputeSchedule(Math.random,_nc.geom);
+/* v48.4.beta D3：每局開始抽一次節奏因子 0.85–1.15（均勻隨機），全域間距乘同一倍數。 */
+_nc.tempo=0.85+Math.random()*0.3;
+_nc.schedule=ncComputeSchedule(Math.random,_nc.geom,_nc.tempo);
 _nc.spawnIdx=0;
 _nc.totalSpawned=0;
 _nc.lastRemain=-1;
