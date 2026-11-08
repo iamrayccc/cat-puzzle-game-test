@@ -1662,7 +1662,7 @@ return;
 IS_TEST = true  → 顯示跳關按鈕（測試版專用）
 玩家版構建時改為 false → 跳關按鈕＋全部相關邏輯完全消除，頁面無按鈕、無入口 */
 var IS_TEST = true; // 玩家版構建時改為 false，跳關功能即完全消除
-var CURRENT_VERSION='2026.11.08.48.1.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
+var CURRENT_VERSION='2026.11.08.48.2.beta'; // v44.20.beta；頁底版本文字由 JS 動態填入 CURRENT_VERSION（CC 硬規則：頁底顯示必須與發佈版本一致） // 過關時版本檢查用；發佈新版本時同步更新 version.txt
 /* 2026-10-18 v40.10.beta：頁底版本文字動態填入，確保永遠與發佈版本一致（CC 硬規則） */
 try{var _fvEl=document.querySelector('.footer-note .version');if(_fvEl)_fvEl.textContent='Version '+CURRENT_VERSION;}catch(_fvE){}
 var TOTAL=1700, MAX_HEARTS=5, PUZZLE_SEED=0x43a7c21d;
@@ -3354,6 +3354,7 @@ ncCountdownEl.classList.remove('nc-low');
 ncCountdownEl.textContent='剩餘時間：20 秒';
 ncStartBtnEl.hidden=false;
 ncResultBoxEl.hidden=true;
+ncAgainBtnEl.style.display='none'; /* v48.2.beta：開局隱藏「再玩一次」（仿鬥金幣 cdAgain） */
 ncSetAnswer(NC_ANSWER_DEFAULT);
 ncSubmitBtnEl.disabled=false;
 ncShowView('play');
@@ -3471,8 +3472,9 @@ if(!_nc||_nc.phase!=='answer')return;
 var val=_nc.answerVal;
 ncSubmitBtnEl.disabled=true;
 var score=ncScoreFor(val,_nc.totalSpawned);
-ncResultTextEl.textContent='正確數目：'+_nc.totalSpawned+' 隻，你的數目：'+val+' 隻，得分 +'+score+' 分。';
+ncResultTextEl.textContent='正確數目：'+_nc.totalSpawned+' 隻，你的數目：'+val+' 隻，得分 +'+score+' 分。'+(_nc.practice?'（練習局不計分）':''); /* v48.2.beta：練習局結果附加文案 */
 ncResultBoxEl.hidden=false;
+ncAgainBtnEl.style.display=_nc.practice?'inline-block':'none'; /* v48.2.beta：只於練習局顯示「再玩一次」（仿鬥金幣第 3127 行） */
 _nc.phase='result';
 ncSettle(score);
 }
